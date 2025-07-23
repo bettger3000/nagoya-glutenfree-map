@@ -752,6 +752,10 @@
             }
             
             if (lat && lng) {
+                // 座標を小数第4位に四捨五入
+                lat = Math.round(lat * 10000) / 10000;
+                lng = Math.round(lng * 10000) / 10000;
+                
                 // 名古屋市周辺の座標かチェック（緯度34.5-36, 経度136-138）
                 if (lat >= 34.5 && lat <= 36 && lng >= 136 && lng <= 138) {
                     document.getElementById('storeLat').value = lat;
@@ -784,39 +788,55 @@
         async function getAddressFromCoordinates(lat, lng) {
             try {
                 // OpenStreetMap Nominatim APIを使用（無料）
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18`);
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18&addressdetails=1`);
                 const data = await response.json();
                 
                 if (data && data.display_name) {
-                    // 日本語の住所を構築
-                    const address = data.display_name;
-                    
                     // 住所フィールドが空の場合のみ自動入力
                     const addressField = document.getElementById('storeAddress');
                     if (!addressField.value) {
-                        // より詳細な住所を構築
-                        let formattedAddress = '';
+                        // 完全な住所を使用（省略なし）
+                        let fullAddress = data.display_name;
+                        
+                        // もしaddressオブジェクトがある場合は、より構造化された住所を構築
                         if (data.address) {
                             const addr = data.address;
                             const parts = [];
                             
-                            if (addr.state) parts.push(addr.state);
+                            // 日本の住所形式に従って構築（大きい単位から小さい単位へ）
+                            if (addr.country) parts.push(addr.country);
+                            if (addr.state || addr.prefecture) parts.push(addr.state || addr.prefecture);
                             if (addr.city || addr.town || addr.village) {
                                 parts.push(addr.city || addr.town || addr.village);
                             }
-                            if (addr.suburb || addr.neighbourhood) {
-                                parts.push(addr.suburb || addr.neighbourhood);
+                            if (addr.suburb || addr.ward) {
+                                parts.push(addr.suburb || addr.ward);
                             }
-                            if (addr.house_number && addr.road) {
-                                parts.push(addr.road + addr.house_number);
-                            } else if (addr.road) {
-                                parts.push(addr.road);
+                            if (addr.neighbourhood || addr.quarter) {
+                                parts.push(addr.neighbourhood || addr.quarter);
+                            }
+                            if (addr.road || addr.street) {
+                                parts.push(addr.road || addr.street);
+                            }
+                            if (addr.house_number) {
+                                parts.push(addr.house_number);
+                            }
+                            if (addr.building || addr.amenity || addr.shop) {
+                                parts.push(addr.building || addr.amenity || addr.shop);
                             }
                             
-                            formattedAddress = parts.join('');
+                            // 配列を結合（ただし、重複を避ける）
+                            const uniqueParts = [...new Set(parts)];
+                            const structuredAddress = uniqueParts.join(' ');
+                            
+                            // display_nameの方が詳細な場合はそちらを使用
+                            fullAddress = fullAddress.length > structuredAddress.length ? fullAddress : structuredAddress;
                         }
                         
-                        addressField.value = formattedAddress || address;
+                        // 日本語の住所形式に整形（余分なスペースや句読点を調整）
+                        fullAddress = fullAddress.replace(/,\s*/g, ' ').replace(/\s+/g, ' ').trim();
+                        
+                        addressField.value = fullAddress;
                     }
                 }
             } catch (error) {
@@ -838,13 +858,21 @@
         
         // 座標から住所を取得するボタンの処理
         async function extractAddressFromCoordinates() {
-            const lat = parseFloat(document.getElementById('storeLat').value);
-            const lng = parseFloat(document.getElementById('storeLng').value);
+            let lat = parseFloat(document.getElementById('storeLat').value);
+            let lng = parseFloat(document.getElementById('storeLng').value);
             
             if (!lat || !lng) {
                 showStatus('緯度と経度を入力してください', 'error');
                 return;
             }
+            
+            // 座標を小数第4位に四捨五入
+            lat = Math.round(lat * 10000) / 10000;
+            lng = Math.round(lng * 10000) / 10000;
+            
+            // 四捨五入した値をフィールドに反映
+            document.getElementById('storeLat').value = lat;
+            document.getElementById('storeLng').value = lng;
             
             const addressBtn = document.getElementById('addressBtn');
             addressBtn.textContent = '🔄 住所を取得中...';
