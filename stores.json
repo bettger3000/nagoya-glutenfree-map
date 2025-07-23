@@ -37,6 +37,25 @@
       "website": "https://gf-michinori.jp/",
       "instagram": "https://www.instagram.com/gf_michinori/",
       "googleMapsUrl": "https://www.google.com/maps/place/%E3%81%BF%E3%81%A1%E3%81%AE%E3%82%8A%E5%BC%81%E5%BD%93%EF%BC%88Gluten-Free+Michinori+Bento%EF%BC%89/@35.1936044,136.8875971,17z/data=!3m1!4b1!4m6!3m5!1s0x6003775a314dfb3d:0xe478aa61d1e853ac!8m2!3d35.1936044!4d136.890172!16s%2Fg%2F11tnl686mb?entry=ttu&g_ep=EgoyMDI1MDcyMC4wIKXMDSoASAFQAw%3D%3D"
+    },
+    {
+      "id": 10,
+      "name": "Biople 名古屋タカシマヤゲートタワーモール店",
+      "category": "土産店",
+      "address": "名古屋市中村区名駅１丁目１−３ JRゲートタワー タカシマヤ モール B1F",
+      "lat": null,
+      "lng": null,
+      "hours": "9時00分～21時00分",
+      "closed": "なし",
+      "tel": "0525666112",
+      "description": "ナチュラル＆オーガニックのセルフケアアイテムを幅広く取り扱うセレクトショップです。\nグルテンフリーの珍しいお菓子など取り扱っています。\n・ZENB BREAD\n・グルテンフリーお菓子",
+      "glutenFreeType": "部分GF",
+      "takeout": false,
+      "seats": 0,
+      "nacoComment": "・ZENB BREAD\n・グルテンフリーお菓子 など、\nちょっとお高いけど見たことのない珍しいお菓子が買えます。\n見ているだけでも楽しいです。",
+      "website": "https://store.biople.jp/",
+      "instagram": "https://www.instagram.com/biople_nagoya/",
+      "googleMapsUrl": "https://maps.app.goo.gl/1KFqwNZ8NbzcdD7y8"
     }
   ]
 }
