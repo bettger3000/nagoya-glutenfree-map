@@ -15,7 +15,8 @@
       "takeout": true,
       "seats": 20,
       "nacoComment": "米粉のシフォンケーキがふわふわで最高！",
-      "website": "https://example.com"
+      "website": "https://example.com",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1685,136.9098"
     },
     {
       "id": 2,
@@ -32,7 +33,8 @@
       "takeout": false,
       "seats": 30,
       "nacoComment": "お寿司と天ぷらがグルテンフリーで楽しめます！",
-      "website": ""
+      "website": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1756,136.9645"
     },
     {
       "id": 3,
@@ -49,7 +51,8 @@
       "takeout": true,
       "seats": 0,
       "nacoComment": "食パンがもちもちで美味しい！朝早く行くのがおすすめ。",
-      "website": ""
+      "website": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1803,137.0125"
     },
     {
       "id": 4,
@@ -66,7 +69,8 @@
       "takeout": true,
       "seats": 40,
       "nacoComment": "GFパスタの種類が豊富！デートにもおすすめ。",
-      "website": "https://example-italian.com"
+      "website": "https://example-italian.com",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1595,136.9012"
     },
     {
       "id": 5,
@@ -83,7 +87,8 @@
       "takeout": true,
       "seats": 0,
       "nacoComment": "お土産選びに困ったらここ！GF表示もわかりやすい。",
-      "website": ""
+      "website": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1427,136.9005"
     },
     {
       "id": 6,
@@ -100,7 +105,8 @@
       "takeout": true,
       "seats": 10,
       "nacoComment": "季節のフルーツタルトが絶品！プレゼントにも最適です。",
-      "website": ""
+      "website": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1706,136.8968"
     },
     {
       "id": 7,
@@ -117,7 +123,8 @@
       "takeout": true,
       "seats": 15,
       "nacoComment": "米粉100%のみたらし団子は必食！熱田神宮参拝の際にぜひ。",
-      "website": ""
+      "website": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/35.1274,136.9089"
     }
   ]
 }

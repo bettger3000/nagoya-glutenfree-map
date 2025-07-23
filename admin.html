@@ -235,13 +235,20 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>Googleマップリンク *</label>
+                    <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required>
+                    <button type="button" class="btn" onclick="extractCoordinates()">座標を自動取得</button>
+                    <div class="help-text">Googleマップでお店を検索し、共有リンクをここに貼り付けてください</div>
+                </div>
+                
+                <div class="form-group">
                     <label>緯度 *</label>
-                    <input type="number" id="storeLat" step="0.0001" required>
+                    <input type="number" id="storeLat" step="0.0001" required readonly>
                 </div>
                 
                 <div class="form-group">
                     <label>経度 *</label>
-                    <input type="number" id="storeLng" step="0.0001" required>
+                    <input type="number" id="storeLng" step="0.0001" required readonly>
                 </div>
                 
                 <div class="form-group">
@@ -374,6 +381,7 @@
             document.getElementById('storeSeats').value = store.seats;
             document.getElementById('storeComment').value = store.nacoComment;
             document.getElementById('storeWebsite').value = store.website;
+            document.getElementById('storeGoogleMapsUrl').value = store.googleMapsUrl || '';
             
             document.getElementById('storeModal').style.display = 'block';
         }
@@ -411,7 +419,8 @@
                 takeout: document.getElementById('storeTakeout').checked,
                 seats: parseInt(document.getElementById('storeSeats').value) || 0,
                 nacoComment: document.getElementById('storeComment').value,
-                website: document.getElementById('storeWebsite').value || ''
+                website: document.getElementById('storeWebsite').value || '',
+                googleMapsUrl: document.getElementById('storeGoogleMapsUrl').value || ''
             };
             
             if (editingStoreId) {
@@ -453,6 +462,65 @@
             URL.revokeObjectURL(url);
             
             showStatus('stores.jsonファイルをダウンロードしました。GitHubにアップロードしてください。', 'success');
+        }
+        
+        // Googleマップリンクから座標を抽出
+        function extractCoordinates() {
+            const url = document.getElementById('storeGoogleMapsUrl').value;
+            if (!url) {
+                showStatus('Googleマップのリンクを入力してください', 'error');
+                return;
+            }
+            
+            // 各種パターンの座標抽出
+            let lat, lng;
+            
+            // パターン1: @緯度,経度,ズーム
+            let match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
+            if (match) {
+                lat = parseFloat(match[1]);
+                lng = parseFloat(match[2]);
+            }
+            
+            // パターン2: /place/緯度,経度
+            if (!lat || !lng) {
+                match = url.match(/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                if (match) {
+                    lat = parseFloat(match[1]);
+                    lng = parseFloat(match[2]);
+                }
+            }
+            
+            // パターン3: ?q=緯度,経度
+            if (!lat || !lng) {
+                match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                if (match) {
+                    lat = parseFloat(match[1]);
+                    lng = parseFloat(match[2]);
+                }
+            }
+            
+            // パターン4: ll=緯度,経度
+            if (!lat || !lng) {
+                match = url.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                if (match) {
+                    lat = parseFloat(match[1]);
+                    lng = parseFloat(match[2]);
+                }
+            }
+            
+            if (lat && lng) {
+                // 名古屋市周辺の座標かチェック（緯度34.5-36, 経度136-138）
+                if (lat >= 34.5 && lat <= 36 && lng >= 136 && lng <= 138) {
+                    document.getElementById('storeLat').value = lat;
+                    document.getElementById('storeLng').value = lng;
+                    showStatus('座標を自動取得しました', 'success');
+                } else {
+                    showStatus('名古屋市周辺の座標ではないようです。確認してください。', 'error');
+                }
+            } else {
+                showStatus('座標を抽出できませんでした。正しいGoogleマップのリンクを入力してください。', 'error');
+            }
         }
         
         // ステータス表示

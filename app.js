@@ -188,7 +188,7 @@ function showStoreDetail(storeId) {
         </div>
         ` : ''}
         
-        <a href="https://www.google.com/maps?q=${store.lat},${store.lng}" 
+        <a href="${store.googleMapsUrl || `https://www.google.com/maps?q=${store.lat},${store.lng}`}" 
            target="_blank" 
            class="map-link">
             <i class="fas fa-map"></i> Google マップで開く
