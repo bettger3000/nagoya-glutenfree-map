@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名古屋グルテンフリーマップ - テスト版</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header>
+            <div class="header-content">
+                <img src="naco-character.png.png" alt="nacoキャラクター" class="naco-character">
+                <div class="header-text">
+                    <h1><i class="fas fa-map-marked-alt"></i> 名古屋グルテンフリーマップ</h1>
+                    <p class="subtitle">by naco - Instagram @naco_glutenfree</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- 検索とフィルター -->
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="店名・住所で検索...">
+            </div>
+            
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">
+                    <i class="fas fa-globe"></i> すべて
+                </button>
+                <button class="filter-btn" data-category="和食">
+                    <i class="fas fa-utensils"></i> 和食
+                </button>
+                <button class="filter-btn" data-category="洋食">
+                    <i class="fas fa-pizza-slice"></i> 洋食
+                </button>
+                <button class="filter-btn" data-category="カフェ">
+                    <i class="fas fa-coffee"></i> カフェ
+                </button>
+                <button class="filter-btn" data-category="パン屋">
+                    <i class="fas fa-bread-slice"></i> パン屋
+                </button>
+                <button class="filter-btn" data-category="土産店">
+                    <i class="fas fa-gift"></i> 土産店
+                </button>
+                <button class="filter-btn" data-category="スイーツ">
+                    <i class="fas fa-ice-cream"></i> スイーツ
+                </button>
+            </div>
+        </div>
+
+        <!-- 地図とリストのコンテナ -->
+        <div class="main-content">
+            <div id="map"></div>
+            
+            <!-- モバイル用トグルボタン -->
+            <button class="mobile-list-toggle" id="mobileListToggle">
+                <i class="fas fa-list"></i> リストを表示
+            </button>
+            
+            <!-- 店舗リスト -->
+            <div class="store-list" id="storeList">
+                <h3>店舗リスト</h3>
+                <div id="storeListContent"></div>
+            </div>
+        </div>
+
+        <!-- 店舗詳細モーダル -->
+        <div class="modal" id="storeModal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeModal">&times;</span>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+// グローバル変数
+let map;
+let markers = [];
+let storesData = [];
+let currentFilter = 'all';
+
+// カテゴリー別の色とアイコン
+const categoryStyles = {
+    '和食': { color: '#ff6b6b', icon: 'fa-utensils' },
+    '洋食': { color: '#4ecdc4', icon: 'fa-pizza-slice' },
+    'カフェ': { color: '#f7b731', icon: 'fa-coffee' },
+    'パン屋': { color: '#5f27cd', icon: 'fa-bread-slice' },
+    '土産店': { color: '#00d2d3', icon: 'fa-gift' },
+    'スイーツ': { color: '#ff69b4', icon: 'fa-ice-cream' }
+};
+
+// 店舗データ（JSONファイルの代わりに直接定義）
+const storesDataEmbedded = [
+    {
+        "id": 1,
+        "name": "グルテンフリーカフェ 栄",
+        "category": "カフェ",
+        "address": "愛知県名古屋市中区栄3-5-1",
+        "lat": 35.1685,
+        "lng": 136.9098,
+        "hours": "10:00-18:00",
+        "closed": "火曜日",
+        "tel": "052-123-4567",
+        "description": "完全グルテンフリーのカフェ。米粉のケーキが人気です。",
+        "glutenFreeType": "完全GF",
+        "takeout": true,
+        "seats": 20,
+        "nacoComment": "米粉のシフォンケーキがふわふわで最高！",
+        "website": "https://example.com"
+    },
+    {
+        "id": 2,
+        "name": "和食処 さくら",
+        "category": "和食",
+        "address": "愛知県名古屋市千種区本山町2-10",
+        "lat": 35.1756,
+        "lng": 136.9645,
+        "hours": "11:30-14:00, 17:30-21:00",
+        "closed": "月曜日",
+        "tel": "052-234-5678",
+        "description": "醤油も小麦不使用のものを用意。事前連絡でGF対応可能。",
+        "glutenFreeType": "部分GF",
+        "takeout": false,
+        "seats": 30,
+        "nacoComment": "お寿司と天ぷらがグルテンフリーで楽しめます！",
+        "website": ""
+    },
+    {
+        "id": 3,
+        "name": "米粉パン工房 ひまわり",
+        "category": "パン屋",
+        "address": "愛知県名古屋市名東区藤が丘142",
+        "lat": 35.1803,
+        "lng": 137.0125,
+        "hours": "8:00-18:00",
+        "closed": "日曜日・月曜日",
+        "tel": "052-345-6789",
+        "description": "100%米粉使用の専門パン屋さん。",
+        "glutenFreeType": "完全GF",
+        "takeout": true,
+        "seats": 0,
+        "nacoComment": "食パンがもちもちで美味しい！朝早く行くのがおすすめ。",
+        "website": ""
+    },
+    {
+        "id": 6,
+        "name": "米粉スイーツ専門店 Sugar Free",
+        "category": "スイーツ",
+        "address": "愛知県名古屋市中区錦3-15-13",
+        "lat": 35.1706,
+        "lng": 136.8968,
+        "hours": "11:00-19:00",
+        "closed": "水曜日",
+        "tel": "052-678-9012",
+        "description": "米粉100%使用のグルテンフリースイーツ専門店。マカロンやタルトが人気。",
+        "glutenFreeType": "完全GF",
+        "takeout": true,
+        "seats": 10,
+        "nacoComment": "季節のフルーツタルトが絶品！プレゼントにも最適です。",
+        "website": ""
+    }
+];
+
+// 初期化
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    // 埋め込みデータを使用
+    storesData = storesDataEmbedded;
+    displayStores(storesData);
+    updateStoreList(storesData);
+    setupEventListeners();
+});
+
+// 地図の初期化
+function initMap() {
+    // 名古屋市の中心座標
+    map = L.map('map').setView([35.1815, 136.9066], 12);
+    
+    // OpenStreetMapタイルを追加（パステル調のスタイル）
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        opacity: 0.9
+    }).addTo(map);
+}
+
+// カスタムアイコンの作成
+function createCustomIcon(category) {
+    const style = categoryStyles[category] || { color: '#666', icon: 'fa-store' };
+    
+    return L.divIcon({
+        html: `<div class="custom-marker" style="background-color: ${style.color}">
+                <i class="fas ${style.icon}"></i>
+               </div>`,
+        className: 'custom-div-icon',
+        iconSize: [35, 35],
+        iconAnchor: [17.5, 35],
+        popupAnchor: [0, -35]
+    });
+}
+
+// 地図上に店舗を表示
+function displayStores(stores) {
+    // 既存のマーカーをクリア
+    markers.forEach(marker => map.removeLayer(marker));
+    markers = [];
+    
+    stores.forEach(store => {
+        const marker = L.marker([store.lat, store.lng], {
+            icon: createCustomIcon(store.category)
+        });
+        
+        // ポップアップの内容
+        const popupContent = `
+            <div class="popup-content">
+                <h4>${store.name}</h4>
+                <span class="store-category category-${store.category}">${store.category}</span>
+                <p>${store.address}</p>
+                <button class="popup-detail-btn" onclick="showStoreDetail(${store.id})">
+                    詳細を見る
+                </button>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+        marker.addTo(map);
+        markers.push(marker);
+    });
+}
+
+// 店舗リストの更新
+function updateStoreList(stores) {
+    const listContent = document.getElementById('storeListContent');
+    listContent.innerHTML = '';
+    
+    stores.forEach(store => {
+        const card = document.createElement('div');
+        card.className = 'store-card';
+        card.innerHTML = `
+            <h4>${store.name}</h4>
+            <span class="store-category category-${store.category}">${store.category}</span>
+            <div class="store-info">
+                <i class="fas fa-map-marker-alt"></i> ${store.address}
+            </div>
+            <div class="store-info">
+                <i class="fas fa-clock"></i> ${store.hours}
+            </div>
+        `;
+        card.onclick = () => {
+            showStoreDetail(store.id);
+            // 地図を該当店舗にズーム
+            map.setView([store.lat, store.lng], 16);
+        };
+        listContent.appendChild(card);
+    });
+}
+
+// 店舗詳細表示
+function showStoreDetail(storeId) {
+    const store = storesData.find(s => s.id === storeId);
+    if (!store) return;
+    
+    const modal = document.getElementById('storeModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalContent.innerHTML = `
+        <div class="modal-header">
+            <h2>${store.name}</h2>
+            <span class="store-category category-${store.category}">${store.category}</span>
+        </div>
+        
+        <div class="modal-info">
+            <div class="modal-info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${store.address}</span>
+            </div>
+            
+            <div class="modal-info-item">
+                <i class="fas fa-clock"></i>
+                <span>${store.hours}</span>
+            </div>
+            
+            <div class="modal-info-item">
+                <i class="fas fa-calendar-times"></i>
+                <span>定休日: ${store.closed}</span>
+            </div>
+            
+            ${store.tel ? `
+            <div class="modal-info-item">
+                <i class="fas fa-phone"></i>
+                <span>${store.tel}</span>
+            </div>
+            ` : ''}
+            
+            ${store.seats > 0 ? `
+            <div class="modal-info-item">
+                <i class="fas fa-chair"></i>
+                <span>席数: ${store.seats}席</span>
+            </div>
+            ` : ''}
+            
+            ${store.takeout ? `
+            <div class="modal-info-item">
+                <i class="fas fa-shopping-bag"></i>
+                <span>テイクアウト可</span>
+            </div>
+            ` : ''}
+            
+            <div class="modal-info-item">
+                <i class="fas fa-info-circle"></i>
+                <span>${store.description}</span>
+            </div>
+            
+            <div class="gf-badge ${store.glutenFreeType === '完全GF' ? 'complete' : 'partial'}">
+                ${store.glutenFreeType}
+            </div>
+        </div>
+        
+        ${store.nacoComment ? `
+        <div class="naco-comment">
+            <h3>nacoのおすすめポイント</h3>
+            <p>${store.nacoComment}</p>
+        </div>
+        ` : ''}
+        
+        <a href="https://www.google.com/maps?q=${store.lat},${store.lng}" 
+           target="_blank" 
+           class="map-link">
+            <i class="fas fa-map"></i> Google マップで開く
+        </a>
+    `;
+    
+    modal.style.display = 'block';
+}
+
+// イベントリスナーの設定
+function setupEventListeners() {
+    // カテゴリーフィルター
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentFilter = this.dataset.category;
+            filterStores();
+        });
+    });
+    
+    // 検索機能
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        filterStores();
+    });
+    
+    // モーダルを閉じる
+    document.getElementById('closeModal').addEventListener('click', function() {
+        document.getElementById('storeModal').style.display = 'none';
+    });
+    
+    // モーダル外をクリックで閉じる
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('storeModal');
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+    
+    // モバイル用リストトグル
+    document.getElementById('mobileListToggle').addEventListener('click', function() {
+        const storeList = document.querySelector('.store-list');
+        storeList.classList.toggle('show');
+        
+        const icon = this.querySelector('i');
+        const text = this.querySelector('i').nextSibling;
+        
+        if (storeList.classList.contains('show')) {
+            icon.className = 'fas fa-times';
+            text.textContent = ' 閉じる';
+        } else {
+            icon.className = 'fas fa-list';
+            text.textContent = ' リストを表示';
+        }
+    });
+}
+
+// フィルタリング機能
+function filterStores() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    let filteredStores = storesData;
+    
+    // カテゴリーフィルター
+    if (currentFilter !== 'all') {
+        filteredStores = filteredStores.filter(store => store.category === currentFilter);
+    }
+    
+    // 検索フィルター
+    if (searchTerm) {
+        filteredStores = filteredStores.filter(store => 
+            store.name.toLowerCase().includes(searchTerm) ||
+            store.address.toLowerCase().includes(searchTerm) ||
+            store.description.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    displayStores(filteredStores);
+    updateStoreList(filteredStores);
+}
+
+// カスタムマーカーのスタイル（CSSに追加）
+const markerStyles = document.createElement('style');
+markerStyles.textContent = `
+    .custom-div-icon {
+        background: transparent;
+        border: none;
+    }
+    
+    .custom-marker {
+        width: 35px;
+        height: 35px;
+        border-radius: 50% 50% 50% 0;
+        background: #89CFF0;
+        position: relative;
+        transform: rotate(-45deg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .custom-marker:hover {
+        transform: rotate(-45deg) scale(1.1);
+    }
+    
+    .custom-marker i {
+        transform: rotate(45deg);
+        color: white;
+        font-size: 16px;
+    }
+    
+    .popup-content {
+        text-align: center;
+        padding: 10px;
+    }
+    
+    .popup-content h4 {
+        margin-bottom: 10px;
+        color: #4a4a4a;
+    }
+    
+    .popup-detail-btn {
+        background: #98d8c8;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-top: 10px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    .popup-detail-btn:hover {
+        background: #ffb6c1;
+        transform: translateY(-2px);
+    }
+`;
+document.head.appendChild(markerStyles);
+    </script>
+</body>
+</html>

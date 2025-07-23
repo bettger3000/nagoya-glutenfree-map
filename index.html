@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名古屋グルテンフリーマップ - naco's Gluten Free Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header>
+            <div class="header-content">
+                <img src="naco-character.png.png" alt="nacoキャラクター" class="naco-character">
+                <div class="header-text">
+                    <h1><i class="fas fa-map-marked-alt"></i> 名古屋グルテンフリーマップ</h1>
+                    <p class="subtitle">by naco - Instagram @naco_glutenfree</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- 検索とフィルター -->
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="店名・住所で検索...">
+            </div>
+            
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">
+                    <i class="fas fa-globe"></i> すべて
+                </button>
+                <button class="filter-btn" data-category="和食">
+                    <i class="fas fa-utensils"></i> 和食
+                </button>
+                <button class="filter-btn" data-category="洋食">
+                    <i class="fas fa-pizza-slice"></i> 洋食
+                </button>
+                <button class="filter-btn" data-category="カフェ">
+                    <i class="fas fa-coffee"></i> カフェ
+                </button>
+                <button class="filter-btn" data-category="パン屋">
+                    <i class="fas fa-bread-slice"></i> パン屋
+                </button>
+                <button class="filter-btn" data-category="土産店">
+                    <i class="fas fa-gift"></i> 土産店
+                </button>
+                <button class="filter-btn" data-category="スイーツ">
+                    <i class="fas fa-ice-cream"></i> スイーツ
+                </button>
+            </div>
+        </div>
+
+        <!-- 地図とリストのコンテナ -->
+        <div class="main-content">
+            <div id="map"></div>
+            
+            <!-- モバイル用トグルボタン -->
+            <button class="mobile-list-toggle" id="mobileListToggle">
+                <i class="fas fa-list"></i> リストを表示
+            </button>
+            
+            <!-- 店舗リスト -->
+            <div class="store-list" id="storeList">
+                <h3>店舗リスト</h3>
+                <div id="storeListContent"></div>
+            </div>
+        </div>
+
+        <!-- 店舗詳細モーダル -->
+        <div class="modal" id="storeModal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeModal">&times;</span>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
