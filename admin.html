@@ -176,6 +176,23 @@
             margin-top: 5px;
             line-height: 1.4;
         }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        #extractBtn {
+            margin-top: 8px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        
+        #extractBtn:hover:not(:disabled) {
+            background: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -268,14 +285,14 @@
                 
                 <div class="form-group">
                     <label>Googleマップリンク *</label>
-                    <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required>
-                    <button type="button" class="btn" onclick="extractCoordinates()">座標を自動取得</button>
+                    <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required onpaste="handleGoogleMapsUrlPaste(event)">
+                    <button type="button" class="btn" onclick="extractFromGoogleMaps()" id="extractBtn">🔍 住所と座標を自動取得</button>
                     <div class="help-text">
-                        📱 <strong>操作方法:</strong><br>
+                        📱 <strong>簡単操作:</strong><br>
                         1. Googleマップでお店を検索<br>
                         2. 「共有」→「リンクをコピー」<br>
-                        3. ここに貼り付けて「座標を自動取得」をクリック<br>
-                        ※ 短縮URL（goo.gl）にも対応
+                        3. ここに貼り付けると自動で住所と座標を取得します<br>
+                        ※ 短縮URL（goo.gl）や通常URLに対応
                     </div>
                 </div>
                 
@@ -607,15 +624,26 @@
             showStatus('stores.jsonファイルをダウンロードしました。GitHubにアップロードしてください。', 'success');
         }
         
-        // Googleマップリンクから座標を抽出
-        async function extractCoordinates() {
+        // URLペースト時の自動処理
+        function handleGoogleMapsUrlPaste(event) {
+            setTimeout(() => {
+                extractFromGoogleMaps();
+            }, 100);
+        }
+        
+        // Googleマップリンクから住所と座標を自動抽出
+        async function extractFromGoogleMaps() {
             const url = document.getElementById('storeGoogleMapsUrl').value;
             if (!url) {
                 showStatus('Googleマップのリンクを入力してください', 'error');
                 return;
             }
             
-            showStatus('座標を取得中...', 'success');
+            const extractBtn = document.getElementById('extractBtn');
+            extractBtn.textContent = '🔄 取得中...';
+            extractBtn.disabled = true;
+            
+            showStatus('住所と座標を取得中...', 'success');
             
             let targetUrl = url;
             
@@ -717,12 +745,66 @@
                         document.getElementById('storeGoogleMapsUrl').value = targetUrl;
                     }
                     
-                    showStatus('座標を自動取得しました', 'success');
+                    // 住所を自動取得
+                    await getAddressFromCoordinates(lat, lng);
+                    
+                    extractBtn.textContent = '🔍 住所と座標を自動取得';
+                    extractBtn.disabled = false;
+                    showStatus('住所と座標を自動取得しました！', 'success');
                 } else {
+                    extractBtn.textContent = '🔍 住所と座標を自動取得';
+                    extractBtn.disabled = false;
                     showStatus('名古屋市周辺の座標ではないようです。確認してください。', 'error');
                 }
             } else {
-                showStatus('座標を抽出できませんでした。以下のいずれかの方法をお試しください:\n1. Googleマップで店舗を右クリック→座標をコピー\n2. 長いURLの場合は短縮されていない完全なURLを使用', 'error');
+                extractBtn.textContent = '🔍 住所と座標を自動取得';
+                extractBtn.disabled = false;
+                showStatus('座標を抽出できませんでした。URLを確認してください', 'error');
+            }
+        }
+        
+        // 座標から住所を取得
+        async function getAddressFromCoordinates(lat, lng) {
+            try {
+                // OpenStreetMap Nominatim APIを使用（無料）
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18`);
+                const data = await response.json();
+                
+                if (data && data.display_name) {
+                    // 日本語の住所を構築
+                    const address = data.display_name;
+                    
+                    // 住所フィールドが空の場合のみ自動入力
+                    const addressField = document.getElementById('storeAddress');
+                    if (!addressField.value) {
+                        // より詳細な住所を構築
+                        let formattedAddress = '';
+                        if (data.address) {
+                            const addr = data.address;
+                            const parts = [];
+                            
+                            if (addr.state) parts.push(addr.state);
+                            if (addr.city || addr.town || addr.village) {
+                                parts.push(addr.city || addr.town || addr.village);
+                            }
+                            if (addr.suburb || addr.neighbourhood) {
+                                parts.push(addr.suburb || addr.neighbourhood);
+                            }
+                            if (addr.house_number && addr.road) {
+                                parts.push(addr.road + addr.house_number);
+                            } else if (addr.road) {
+                                parts.push(addr.road);
+                            }
+                            
+                            formattedAddress = parts.join('');
+                        }
+                        
+                        addressField.value = formattedAddress || address;
+                    }
+                }
+            } catch (error) {
+                console.log('住所取得エラー:', error);
+                // 住所取得に失敗しても座標は取得できているのでエラー表示しない
             }
         }
         
