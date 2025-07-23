@@ -71,25 +71,28 @@ function displayStores(stores) {
     markers = [];
     
     stores.forEach(store => {
-        const marker = L.marker([store.lat, store.lng], {
-            icon: createCustomIcon(store.category)
-        });
-        
-        // ポップアップの内容
-        const popupContent = `
-            <div class="popup-content">
-                <h4>${store.name}</h4>
-                <span class="store-category category-${store.category}">${store.category}</span>
-                <p>${store.address}</p>
-                <button class="popup-detail-btn" onclick="showStoreDetail(${store.id})">
-                    詳細を見る
-                </button>
-            </div>
-        `;
-        
-        marker.bindPopup(popupContent);
-        marker.addTo(map);
-        markers.push(marker);
+        // 座標がある店舗のみ地図に表示
+        if (store.lat && store.lng) {
+            const marker = L.marker([store.lat, store.lng], {
+                icon: createCustomIcon(store.category)
+            });
+            
+            // ポップアップの内容
+            const popupContent = `
+                <div class="popup-content">
+                    <h4>${store.name}</h4>
+                    <span class="store-category category-${store.category}">${store.category}</span>
+                    <p>${store.address}</p>
+                    <button class="popup-detail-btn" onclick="showStoreDetail(${store.id})">
+                        詳細を見る
+                    </button>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            marker.addTo(map);
+            markers.push(marker);
+        }
     });
 }
 
@@ -118,8 +121,10 @@ function updateStoreList(stores) {
         `;
         card.onclick = () => {
             showStoreDetail(store.id);
-            // 地図を該当店舗にズーム
-            map.setView([store.lat, store.lng], 16);
+            // 座標がある場合のみ地図をズーム
+            if (store.lat && store.lng) {
+                map.setView([store.lat, store.lng], 16);
+            }
         };
         listContent.appendChild(card);
     });
