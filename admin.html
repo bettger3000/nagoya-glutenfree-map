@@ -825,118 +825,144 @@
             }
         }
         
+        // 住所データを処理する関数
+        function processAddressData(data) {
+            // 住所フィールドが空の場合のみ自動入力
+            const addressField = document.getElementById('storeAddress');
+            console.log('現在の住所フィールド値:', addressField.value); // デバッグ用
+            if (!addressField.value) {
+                const addr = data.address;
+                console.log('住所オブジェクト:', addr); // デバッグ用
+                let japaneseAddress = '';
+                
+                // 日本式住所の構築（市区町村から開始、都道府県と国は省略）
+                const addressParts = [];
+                
+                // 1. 市区町村（必須）
+                if (addr.city) {
+                    addressParts.push(addr.city);
+                } else if (addr.town) {
+                    addressParts.push(addr.town);
+                } else if (addr.village) {
+                    addressParts.push(addr.village);
+                }
+                
+                // 2. 区（存在する場合）
+                if (addr.suburb && !addressParts.some(part => part.includes(addr.suburb))) {
+                    addressParts.push(addr.suburb);
+                }
+                
+                // 3. 町・丁目
+                if (addr.neighbourhood && !addressParts.some(part => part.includes(addr.neighbourhood))) {
+                    addressParts.push(addr.neighbourhood);
+                } else if (addr.quarter && !addressParts.some(part => part.includes(addr.quarter))) {
+                    addressParts.push(addr.quarter);
+                }
+                
+                // 4. 道路名（丁目の一部として）
+                if (addr.road && !addressParts.some(part => part.includes(addr.road))) {
+                    addressParts.push(addr.road);
+                }
+                
+                // 5. 番地
+                if (addr.house_number) {
+                    if (addr.road && addr.house_number) {
+                        // 道路名と番地を組み合わせる場合は最後の要素を更新
+                        const lastIndex = addressParts.length - 1;
+                        if (lastIndex >= 0 && addressParts[lastIndex] === addr.road) {
+                            addressParts[lastIndex] = addr.road + addr.house_number;
+                        } else {
+                            addressParts.push(addr.house_number);
+                        }
+                    } else {
+                        addressParts.push(addr.house_number);
+                    }
+                }
+                
+                // 6. 建物名・施設名
+                if (addr.building) {
+                    addressParts.push(addr.building);
+                } else if (addr.amenity) {
+                    addressParts.push(addr.amenity);
+                } else if (addr.shop) {
+                    addressParts.push(addr.shop);
+                }
+                
+                // 重複を除去し、日本式住所として結合
+                const uniqueParts = [...new Set(addressParts)];
+                console.log('住所パーツ:', addressParts); // デバッグ用
+                japaneseAddress = uniqueParts.join('');
+                
+                // 郵便番号を除去（〒マークや数字-数字のパターン）
+                japaneseAddress = japaneseAddress.replace(/〒?\d{3}-?\d{4}\s*/, '');
+                
+                // 余分なスペースやカンマを清理
+                japaneseAddress = japaneseAddress.replace(/,\s*/g, '').replace(/\s+/g, '').trim();
+                
+                console.log('構築された住所:', japaneseAddress); // デバッグ用
+                
+                // 結果が空でない場合のみ設定
+                if (japaneseAddress) {
+                    addressField.value = japaneseAddress;
+                    console.log('住所フィールドに設定:', japaneseAddress); // デバッグ用
+                } else {
+                    // フォールバック: display_nameから日本の住所部分を抽出
+                    let fallbackAddress = data.display_name;
+                    console.log('フォールバック元住所:', fallbackAddress); // デバッグ用
+                    
+                    // 郵便番号、国名、都道府県を除去
+                    fallbackAddress = fallbackAddress.replace(/〒?\d{3}-?\d{4}\s*,?\s*/, ''); // 郵便番号
+                    fallbackAddress = fallbackAddress.replace(/日本\s*,?\s*/, ''); // 国名
+                    fallbackAddress = fallbackAddress.replace(/愛知県\s*,?\s*/, ''); // 都道府県
+                    fallbackAddress = fallbackAddress.replace(/,\s*/g, '').replace(/\s+/g, '').trim();
+                    
+                    console.log('フォールバック処理後:', fallbackAddress); // デバッグ用
+                    addressField.value = fallbackAddress;
+                    console.log('フォールバック住所をフィールドに設定:', fallbackAddress); // デバッグ用
+                }
+            } else {
+                console.log('住所フィールドに既に値があるため、自動入力をスキップします'); // デバッグ用
+            }
+        }
+        
         // 座標から住所を取得
         async function getAddressFromCoordinates(lat, lng) {
             try {
-                // OpenStreetMap Nominatim APIを使用（無料）
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18&addressdetails=1`);
-                const data = await response.json();
+                // CORSプロキシを使用してOpenStreetMap Nominatim APIにアクセス
+                const apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18&addressdetails=1`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+                
+                console.log('API URL:', apiUrl); // デバッグ用
+                console.log('プロキシ URL:', proxyUrl); // デバッグ用
+                
+                const response = await fetch(proxyUrl);
+                const proxyData = await response.json();
+                const data = JSON.parse(proxyData.contents);
                 
                 console.log('住所取得API応答:', data); // デバッグ用
                 
                 if (data && data.address) {
-                    // 住所フィールドが空の場合のみ自動入力
-                    const addressField = document.getElementById('storeAddress');
-                    console.log('現在の住所フィールド値:', addressField.value); // デバッグ用
-                    if (!addressField.value) {
-                        const addr = data.address;
-                        console.log('住所オブジェクト:', addr); // デバッグ用
-                        let japaneseAddress = '';
-                        
-                        // 日本式住所の構築（市区町村から開始、都道府県と国は省略）
-                        const addressParts = [];
-                        
-                        // 1. 市区町村（必須）
-                        if (addr.city) {
-                            addressParts.push(addr.city);
-                        } else if (addr.town) {
-                            addressParts.push(addr.town);
-                        } else if (addr.village) {
-                            addressParts.push(addr.village);
-                        }
-                        
-                        // 2. 区（存在する場合）
-                        if (addr.suburb && !addressParts.some(part => part.includes(addr.suburb))) {
-                            addressParts.push(addr.suburb);
-                        }
-                        
-                        // 3. 町・丁目
-                        if (addr.neighbourhood && !addressParts.some(part => part.includes(addr.neighbourhood))) {
-                            addressParts.push(addr.neighbourhood);
-                        } else if (addr.quarter && !addressParts.some(part => part.includes(addr.quarter))) {
-                            addressParts.push(addr.quarter);
-                        }
-                        
-                        // 4. 道路名（丁目の一部として）
-                        if (addr.road && !addressParts.some(part => part.includes(addr.road))) {
-                            addressParts.push(addr.road);
-                        }
-                        
-                        // 5. 番地
-                        if (addr.house_number) {
-                            if (addr.road && addr.house_number) {
-                                // 道路名と番地を組み合わせる場合は最後の要素を更新
-                                const lastIndex = addressParts.length - 1;
-                                if (lastIndex >= 0 && addressParts[lastIndex] === addr.road) {
-                                    addressParts[lastIndex] = addr.road + addr.house_number;
-                                } else {
-                                    addressParts.push(addr.house_number);
-                                }
-                            } else {
-                                addressParts.push(addr.house_number);
-                            }
-                        }
-                        
-                        // 6. 建物名・施設名
-                        if (addr.building) {
-                            addressParts.push(addr.building);
-                        } else if (addr.amenity) {
-                            addressParts.push(addr.amenity);
-                        } else if (addr.shop) {
-                            addressParts.push(addr.shop);
-                        }
-                        
-                        // 重複を除去し、日本式住所として結合
-                        const uniqueParts = [...new Set(addressParts)];
-                        console.log('住所パーツ:', addressParts); // デバッグ用
-                        japaneseAddress = uniqueParts.join('');
-                        
-                        // 郵便番号を除去（〒マークや数字-数字のパターン）
-                        japaneseAddress = japaneseAddress.replace(/〒?\d{3}-?\d{4}\s*/, '');
-                        
-                        // 余分なスペースやカンマを清理
-                        japaneseAddress = japaneseAddress.replace(/,\s*/g, '').replace(/\s+/g, '').trim();
-                        
-                        console.log('構築された住所:', japaneseAddress); // デバッグ用
-                        
-                        // 結果が空でない場合のみ設定
-                        if (japaneseAddress) {
-                            addressField.value = japaneseAddress;
-                            console.log('住所フィールドに設定:', japaneseAddress); // デバッグ用
-                        } else {
-                            // フォールバック: display_nameから日本の住所部分を抽出
-                            let fallbackAddress = data.display_name;
-                            console.log('フォールバック元住所:', fallbackAddress); // デバッグ用
-                            
-                            // 郵便番号、国名、都道府県を除去
-                            fallbackAddress = fallbackAddress.replace(/〒?\d{3}-?\d{4}\s*,?\s*/, ''); // 郵便番号
-                            fallbackAddress = fallbackAddress.replace(/日本\s*,?\s*/, ''); // 国名
-                            fallbackAddress = fallbackAddress.replace(/愛知県\s*,?\s*/, ''); // 都道府県
-                            fallbackAddress = fallbackAddress.replace(/,\s*/g, '').replace(/\s+/g, '').trim();
-                            
-                            console.log('フォールバック処理後:', fallbackAddress); // デバッグ用
-                            addressField.value = fallbackAddress;
-                            console.log('フォールバック住所をフィールドに設定:', fallbackAddress); // デバッグ用
-                        }
-                    } else {
-                        console.log('住所フィールドに既に値があるため、自動入力をスキップします'); // デバッグ用
-                    }
+                    processAddressData(data);
                 } else {
                     console.log('住所データが取得できませんでした'); // デバッグ用
                 }
             } catch (error) {
                 console.log('住所取得エラー:', error);
-                // 住所取得に失敗しても座標は取得できているのでエラー表示しない
+                
+                // フォールバック: 直接APIを試す（CORSエラーが発生する可能性があるが）
+                try {
+                    console.log('フォールバック: 直接API呼び出しを試行'); // デバッグ用
+                    const directResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18&addressdetails=1`);
+                    const directData = await directResponse.json();
+                    
+                    if (directData && directData.address) {
+                        // 同じ住所処理ロジックを適用
+                        processAddressData(directData);
+                    }
+                } catch (directError) {
+                    console.log('直接API呼び出しも失敗:', directError);
+                    showStatus('住所の自動取得に失敗しました。手動で入力してください。', 'error');
+                }
             }
         }
         
