@@ -635,14 +635,26 @@
         // URLペースト時の自動処理
         function handleGoogleMapsUrlPaste(event) {
             setTimeout(() => {
+                console.log('URLペースト検出、自動実行開始'); // デバッグ用
                 extractFromGoogleMaps();
             }, 100);
         }
         
+        // テスト用関数（デバッグ専用）
+        function testAddressExtraction() {
+            console.log('=== 住所取得テスト開始 ===');
+            const testUrl = 'https://www.google.com/maps/place/%E6%88%90%E5%9F%8E%E7%9F%B3%E4%BA%95+%E5%90%8D%E5%8F%A4%E5%B1%8B+%E8%BF%91%E9%89%84%E3%83%91%E3%83%83%E3%82%BB%E5%BA%97/@35.1683183,136.8747521,16z';
+            document.getElementById('storeGoogleMapsUrl').value = testUrl;
+            extractFromGoogleMaps();
+        }
+        
         // Googleマップリンクから住所と座標を自動抽出
         async function extractFromGoogleMaps() {
+            console.log('=== extractFromGoogleMaps 関数開始 ==='); // デバッグ用
             const url = document.getElementById('storeGoogleMapsUrl').value;
+            console.log('入力されたURL:', url); // デバッグ用
             if (!url) {
+                console.log('URLが空です'); // デバッグ用
                 showStatus('Googleマップのリンクを入力してください', 'error');
                 return;
             }
