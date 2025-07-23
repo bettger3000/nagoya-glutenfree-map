@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店舗情報入力フォーム - 名古屋グルテンフリーマップ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a4a4a;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #98d8c8;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ffb6c1;
+        }
+        
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .copy-output {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍰 店舗情報入力フォーム</h1>
+        
+        <form id="storeForm">
+            <div class="form-group">
+                <label for="name">店舗名 *</label>
+                <input type="text" id="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">カテゴリー *</label>
+                <select id="category" required>
+                    <option value="">選択してください</option>
+                    <option value="和食">和食</option>
+                    <option value="洋食">洋食</option>
+                    <option value="カフェ">カフェ</option>
+                    <option value="パン屋">パン屋</option>
+                    <option value="土産店">土産店</option>
+                    <option value="スイーツ">スイーツ</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">住所 *</label>
+                <input type="text" id="address" required>
+                <div class="help-text">例：愛知県名古屋市中区栄3-5-1</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="coordinates">緯度,経度 *</label>
+                <input type="text" id="coordinates" placeholder="35.1685,136.9098" required>
+                <div class="help-text">Googleマップで店舗を右クリック → 座標をコピー</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="hours">営業時間 *</label>
+                <input type="text" id="hours" placeholder="10:00-18:00" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="closed">定休日</label>
+                <input type="text" id="closed" placeholder="火曜日">
+            </div>
+            
+            <div class="form-group">
+                <label for="tel">電話番号</label>
+                <input type="text" id="tel" placeholder="052-123-4567">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">店舗説明 *</label>
+                <textarea id="description" placeholder="グルテンフリー対応の詳細など" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="glutenFreeType">グルテンフリー対応 *</label>
+                <select id="glutenFreeType" required>
+                    <option value="">選択してください</option>
+                    <option value="完全GF">完全GF</option>
+                    <option value="部分GF">部分GF</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="takeout">
+                    <label for="takeout">テイクアウト可能</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="seats">席数</label>
+                <input type="number" id="seats" placeholder="20" min="0">
+                <div class="help-text">テイクアウト専門の場合は0</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="nacoComment">nacoのコメント *</label>
+                <textarea id="nacoComment" placeholder="実際に訪問した感想やおすすめポイント" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="website">ウェブサイト</label>
+                <input type="url" id="website" placeholder="https://example.com">
+            </div>
+            
+            <button type="submit" class="submit-btn">JSONコードを生成</button>
+        </form>
+        
+        <div id="output" style="display: none;">
+            <h3>生成されたコード：</h3>
+            <div class="copy-output" id="jsonOutput"></div>
+            <p style="margin-top: 15px; color: #666;">
+                ✅ 上記のコードをコピーして、stores.jsonファイルの最後の店舗の後に追加してください。<br>
+                💡 カンマ（,）を前の店舗の最後に忘れずに追加してください。
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let storeIdCounter = 8; // 次のIDから開始
+
+        document.getElementById('storeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // フォームデータを取得
+            const coordinates = document.getElementById('coordinates').value.split(',');
+            const lat = parseFloat(coordinates[0]?.trim());
+            const lng = parseFloat(coordinates[1]?.trim());
+            
+            const storeData = {
+                id: storeIdCounter++,
+                name: document.getElementById('name').value,
+                category: document.getElementById('category').value,
+                address: document.getElementById('address').value,
+                lat: lat,
+                lng: lng,
+                hours: document.getElementById('hours').value,
+                closed: document.getElementById('closed').value || "なし",
+                tel: document.getElementById('tel').value || "",
+                description: document.getElementById('description').value,
+                glutenFreeType: document.getElementById('glutenFreeType').value,
+                takeout: document.getElementById('takeout').checked,
+                seats: parseInt(document.getElementById('seats').value) || 0,
+                nacoComment: document.getElementById('nacoComment').value,
+                website: document.getElementById('website').value || ""
+            };
+            
+            // JSON形式で出力
+            const jsonOutput = JSON.stringify(storeData, null, 2);
+            document.getElementById('jsonOutput').textContent = ',\n' + jsonOutput;
+            document.getElementById('output').style.display = 'block';
+            
+            // 出力部分にスクロール
+            document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>

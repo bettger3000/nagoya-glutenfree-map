@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理画面 - 名古屋グルテンフリーマップ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #4a4a4a;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .category-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .category-和食 { background-color: #ff6b6b; }
+        .category-洋食 { background-color: #4ecdc4; }
+        .category-カフェ { background-color: #f7b731; }
+        .category-パン屋 { background-color: #5f27cd; }
+        .category-土産店 { background-color: #00d2d3; }
+        .category-スイーツ { background-color: #ff69b4; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 90vh;
+            margin: 50px auto;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a4a4a;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #98d8c8;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        .close-btn {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍰 名古屋グルテンフリーマップ管理画面</h1>
+            <p>店舗情報の追加・編集・削除ができます</p>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="showAddModal()">➕ 新しい店舗を追加</button>
+            <button class="btn" onclick="loadFromSpreadsheet()">📊 スプレッドシートから読み込み</button>
+            <button class="btn btn-success" onclick="saveToGitHub()">💾 GitHubに保存</button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="table-container">
+            <table id="storesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>店舗名</th>
+                        <th>カテゴリー</th>
+                        <th>住所</th>
+                        <th>GF対応</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="storesTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 店舗追加・編集モーダル -->
+    <div id="storeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">新しい店舗を追加</h2>
+            
+            <form id="storeForm">
+                <div class="form-group">
+                    <label>店舗名 *</label>
+                    <input type="text" id="storeName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>カテゴリー *</label>
+                    <select id="storeCategory" required>
+                        <option value="">選択してください</option>
+                        <option value="和食">和食</option>
+                        <option value="洋食">洋食</option>
+                        <option value="カフェ">カフェ</option>
+                        <option value="パン屋">パン屋</option>
+                        <option value="土産店">土産店</option>
+                        <option value="スイーツ">スイーツ</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>住所 *</label>
+                    <input type="text" id="storeAddress" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>緯度 *</label>
+                    <input type="number" id="storeLat" step="0.0001" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>経度 *</label>
+                    <input type="number" id="storeLng" step="0.0001" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>営業時間 *</label>
+                    <input type="text" id="storeHours" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>定休日</label>
+                    <input type="text" id="storeClosed">
+                </div>
+                
+                <div class="form-group">
+                    <label>電話番号</label>
+                    <input type="text" id="storeTel">
+                </div>
+                
+                <div class="form-group">
+                    <label>店舗説明 *</label>
+                    <textarea id="storeDescription" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>GF対応 *</label>
+                    <select id="storeGfType" required>
+                        <option value="">選択してください</option>
+                        <option value="完全GF">完全GF</option>
+                        <option value="部分GF">部分GF</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="storeTakeout"> テイクアウト可能
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>席数</label>
+                    <input type="number" id="storeSeats" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>nacoのコメント *</label>
+                    <textarea id="storeComment" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>ウェブサイト</label>
+                    <input type="url" id="storeWebsite">
+                </div>
+                
+                <button type="submit" class="btn">保存</button>
+                <button type="button" class="btn" onclick="closeModal()">キャンセル</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let storesData = [];
+        let editingStoreId = null;
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStoresData();
+        });
+        
+        // 店舗データを読み込み
+        async function loadStoresData() {
+            try {
+                const response = await fetch('stores.json');
+                const data = await response.json();
+                storesData = data.stores;
+                renderTable();
+            } catch (error) {
+                showStatus('店舗データの読み込みに失敗しました', 'error');
+            }
+        }
+        
+        // テーブルを描画
+        function renderTable() {
+            const tbody = document.getElementById('storesTableBody');
+            tbody.innerHTML = '';
+            
+            storesData.forEach(store => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${store.id}</td>
+                    <td>${store.name}</td>
+                    <td><span class="category-badge category-${store.category}">${store.category}</span></td>
+                    <td>${store.address}</td>
+                    <td>${store.glutenFreeType}</td>
+                    <td>
+                        <button class="btn" onclick="editStore(${store.id})">編集</button>
+                        <button class="btn" onclick="deleteStore(${store.id})" style="background: #dc3545;">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 新規追加モーダルを表示
+        function showAddModal() {
+            editingStoreId = null;
+            document.getElementById('modalTitle').textContent = '新しい店舗を追加';
+            document.getElementById('storeForm').reset();
+            document.getElementById('storeModal').style.display = 'block';
+        }
+        
+        // 編集モーダルを表示
+        function editStore(id) {
+            const store = storesData.find(s => s.id === id);
+            if (!store) return;
+            
+            editingStoreId = id;
+            document.getElementById('modalTitle').textContent = '店舗情報を編集';
+            
+            // フォームに既存データを設定
+            document.getElementById('storeName').value = store.name;
+            document.getElementById('storeCategory').value = store.category;
+            document.getElementById('storeAddress').value = store.address;
+            document.getElementById('storeLat').value = store.lat;
+            document.getElementById('storeLng').value = store.lng;
+            document.getElementById('storeHours').value = store.hours;
+            document.getElementById('storeClosed').value = store.closed;
+            document.getElementById('storeTel').value = store.tel;
+            document.getElementById('storeDescription').value = store.description;
+            document.getElementById('storeGfType').value = store.glutenFreeType;
+            document.getElementById('storeTakeout').checked = store.takeout;
+            document.getElementById('storeSeats').value = store.seats;
+            document.getElementById('storeComment').value = store.nacoComment;
+            document.getElementById('storeWebsite').value = store.website;
+            
+            document.getElementById('storeModal').style.display = 'block';
+        }
+        
+        // 店舗を削除
+        function deleteStore(id) {
+            if (confirm('この店舗を削除しますか？')) {
+                storesData = storesData.filter(s => s.id !== id);
+                renderTable();
+                showStatus('店舗を削除しました', 'success');
+            }
+        }
+        
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('storeModal').style.display = 'none';
+        }
+        
+        // フォーム送信
+        document.getElementById('storeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const storeData = {
+                id: editingStoreId || Math.max(...storesData.map(s => s.id), 0) + 1,
+                name: document.getElementById('storeName').value,
+                category: document.getElementById('storeCategory').value,
+                address: document.getElementById('storeAddress').value,
+                lat: parseFloat(document.getElementById('storeLat').value),
+                lng: parseFloat(document.getElementById('storeLng').value),
+                hours: document.getElementById('storeHours').value,
+                closed: document.getElementById('storeClosed').value || 'なし',
+                tel: document.getElementById('storeTel').value || '',
+                description: document.getElementById('storeDescription').value,
+                glutenFreeType: document.getElementById('storeGfType').value,
+                takeout: document.getElementById('storeTakeout').checked,
+                seats: parseInt(document.getElementById('storeSeats').value) || 0,
+                nacoComment: document.getElementById('storeComment').value,
+                website: document.getElementById('storeWebsite').value || ''
+            };
+            
+            if (editingStoreId) {
+                // 編集
+                const index = storesData.findIndex(s => s.id === editingStoreId);
+                storesData[index] = storeData;
+                showStatus('店舗情報を更新しました', 'success');
+            } else {
+                // 新規追加
+                storesData.push(storeData);
+                showStatus('新しい店舗を追加しました', 'success');
+            }
+            
+            renderTable();
+            closeModal();
+        });
+        
+        // スプレッドシートから読み込み（将来の拡張用）
+        function loadFromSpreadsheet() {
+            showStatus('スプレッドシート連携機能は準備中です', 'error');
+        }
+        
+        // GitHubに保存
+        function saveToGitHub() {
+            const jsonData = {
+                stores: storesData
+            };
+            
+            const blob = new Blob([JSON.stringify(jsonData, null, 2)], {
+                type: 'application/json'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'stores.json';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            
+            showStatus('stores.jsonファイルをダウンロードしました。GitHubにアップロードしてください。', 'success');
+        }
+        
+        // ステータス表示
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
