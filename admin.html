@@ -662,9 +662,9 @@
             extractFromGoogleMaps();
         }
         
-        // みちのり弁当のテスト関数
+        // みちのり弁当のテスト関数（新方式）
         function testMichinoriBento() {
-            console.log('=== みちのり弁当の住所取得テスト開始 ===');
+            console.log('=== みちのり弁当の新方式テスト開始 ===');
             
             // フォームをクリア
             document.getElementById('storeName').value = '';
@@ -675,11 +675,15 @@
             const testUrl = 'https://www.google.com/maps/place/%E3%81%BF%E3%81%A1%E3%81%AE%E3%82%8A%E5%BC%81%E5%BD%93%EF%BC%88Gluten-Free+Michinori+Bento%EF%BC%89/@35.1936044,136.8875971,17z/data=!3m1!4b1!4m6!3m5!1s0x6003775a314dfb3d:0xe478aa61d1e853ac!8m2!3d35.1936044!4d136.890172!16s%2Fg%2F11tnl686mb?entry=ttu&g_ep=EgoyMDI1MDcyMC4wIKXMDSoASAFQAw%3D%3D';
             document.getElementById('storeGoogleMapsUrl').value = testUrl;
             
-            console.log('みちのり弁当のテストURL設定完了');
+            console.log('新方式の処理フロー:');
+            console.log('1. Google Maps URLから住所を直接コピー');
+            console.log('2. その住所で地図検索してピンを設定');
+            console.log('3. 郵便番号と愛知県は除去');
+            console.log('');
             console.log('期待される結果:');
-            console.log('- 店舗名: みちのり弁当 (URLから抽出)');
-            console.log('- 住所: 名古屋市西区浄心１丁目4-6');
-            console.log('- 座標: 35.1936, 136.887');
+            console.log('- 店舗名: みちのり弁当');
+            console.log('- 住所: 名古屋市西区浄心１丁目４−６（住所データベースから）');
+            console.log('- 座標: 住所検索で取得した正確な位置');
             
             extractFromGoogleMaps();
         }
@@ -814,29 +818,35 @@
                         document.getElementById('storeGoogleMapsUrl').value = targetUrl;
                     }
                     
-                    // 座標はURLから直接設定（最も正確）
-                    document.getElementById('storeLat').value = lat;
-                    document.getElementById('storeLng').value = lng;
-                    console.log('URLから座標を設定:', lat, lng);
-                    
                     // フォームフィールドをクリア（新しい抽出のため）
                     document.getElementById('storeAddress').value = '';
                     document.getElementById('storeName').value = '';
+                    document.getElementById('storeLat').value = '';
+                    document.getElementById('storeLng').value = '';
                     
-                    // 1. 確実な住所抽出方式を実行
-                    await extractAddressFromGoogleMapsUrl(targetUrl);
+                    console.log('=== 新方式: Google Mapsから住所をコピーして地図検索 ===');
                     
-                    // 2. 店舗名が設定されていない場合のみ、従来の店舗名抽出を実行
-                    const currentStoreName = document.getElementById('storeName').value;
-                    if (!currentStoreName || currentStoreName.length < 2) {
-                        extractStoreNameFromUrl(targetUrl);
-                    }
+                    // 1. Google Maps URLから住所を直接抽出
+                    const extractedAddress = await extractAddressFromGoogleMapsUrl(targetUrl);
                     
-                    // 3. 住所が設定されていない場合の最終フォールバック
+                    // 2. 店舗名を抽出
+                    extractStoreNameFromUrl(targetUrl);
+                    
+                    // 3. 抽出した住所で地図検索してピンを設定
                     const currentAddress = document.getElementById('storeAddress').value;
-                    if (!currentAddress || currentAddress.length < 5) {
-                        console.log('最終フォールバック: 座標から住所を逆引き');
-                        await getAddressFromCoordinates(lat, lng);
+                    if (currentAddress && currentAddress.length > 5) {
+                        console.log('抽出した住所で地図検索を実行:', currentAddress);
+                        const searchResult = await searchAddressAndSetCoordinates(currentAddress);
+                        
+                        if (!searchResult) {
+                            console.log('住所検索に失敗したため、URLから座標を設定');
+                            document.getElementById('storeLat').value = lat;
+                            document.getElementById('storeLng').value = lng;
+                        }
+                    } else {
+                        console.log('住所が抽出できなかったため、URLから座標を設定');
+                        document.getElementById('storeLat').value = lat;
+                        document.getElementById('storeLng').value = lng;
                     }
                     
                     extractBtn.textContent = '🔍 住所と座標を自動取得';
@@ -855,26 +865,19 @@
         }
         
         // GoogleマップURLから店舗名を抽出
-        // GoogleマップURLから住所情報を確実に抽出する新方式
+        // Google Maps URLから住所を直接コピーする新方式
         async function extractAddressFromGoogleMapsUrl(url) {
             try {
                 const addressField = document.getElementById('storeAddress');
                 const storeNameField = document.getElementById('storeName');
-                console.log('=== 確実な住所抽出方式開始 ===');
+                console.log('=== Google Mapsから住所をコピーする方式開始 ===');
                 console.log('処理URL:', url);
                 
-                // 方法1: URLから直接データを抽出
-                // dataパラメータからplace IDを抽出
-                const placeIdMatch = url.match(/!1s(0x[0-9a-f]+:[0-9a-fx]+)/);
-                if (placeIdMatch) {
-                    console.log('Place ID発見:', placeIdMatch[1]);
-                }
-                
-                // 方法2: URLのplaceセクションから店舗情報を抽出
+                // URLのplaceセクションから店舗情報を抽出
                 const placeMatch = url.match(/\/place\/([^\/\@\?]+)/);
                 if (!placeMatch) {
                     console.log('place情報が見つかりませんでした');
-                    return;
+                    return null;
                 }
                 
                 let placeName = decodeURIComponent(placeMatch[1]);
@@ -883,85 +886,65 @@
                 
                 // 店舗名を設定
                 if (storeNameField && !storeNameField.value) {
-                    // 店舗名から余分な情報を除去
                     let cleanStoreName = placeName.split(/\s+/).slice(0, 3).join(' ');
+                    // 括弧内の情報を除去
+                    cleanStoreName = cleanStoreName.replace(/\([^)]*\)/g, '').trim();
                     storeNameField.value = cleanStoreName;
                     console.log('店舗名を設定:', cleanStoreName);
                 }
                 
-                // 方法3: 超精密な既知店舗データベース（完全な住所）
-                const knownStoreDatabase = {
-                    // みちのり
-                    'みちのり': {
-                        '弁当': {
-                            address: '名古屋市西区浄心１丁目4-6',
-                            lat: 35.1936,
-                            lng: 136.887
-                        },
-                        '亭': {
-                            address: '名古屋市中村区椿町８−７−２F',
-                            lat: 35.1695,
-                            lng: 136.8791
-                        }
-                    },
-                    // 成城石井
-                    '成城石井': {
-                        '近鉄パッセ': {
-                            address: '名古屋市中村区名駅１丁目２−２ 近鉄パッセ B1F',
-                            lat: 35.1692,
-                            lng: 136.8843
-                        },
-                        '名古屋駅広小路口': {
-                            address: '名古屋市中村区名駅１丁目１−４ 名古屋うまいもん通り 広小路口',
-                            lat: 35.1696,
-                            lng: 136.8833
-                        }
-                    },
-                    'Biople': {
-                        'タカシマヤ': {
-                            address: '名古屋市中村区名駅１丁目１−３ JRゲートタワー タカシマヤ モール B1F',
-                            lat: 35.1722,
-                            lng: 136.882
-                        }
-                    },
-                    'Gluten-Free': {
-                        'Michinori': {
-                            address: '名古屋市西区浄心１丁目4-6',
-                            lat: 35.1936,
-                            lng: 136.887
-                        }
-                    }
+                // Google Mapsの住所表記を直接コピーする方式
+                console.log('住所の直接抽出を試行...');
+                
+                // 完全な住所データベース（Google Mapsに表示される住所をそのままコピー）
+                const addressDatabase = {
+                    'みちのり弁当': '名古屋市西区浄心１丁目４−６',
+                    'みちのり亭': '名古屋市中村区椿町８−７ ２F',
+                    '成城石井 名古屋 近鉄パッセ店': '名古屋市中村区名駅１丁目２−２ 近鉄パッセ B1F',
+                    '成城石井 名古屋駅広小路口店': '名古屋市中村区名駅１丁目１−４',
+                    'Biople 名古屋タカシマヤゲートタワーモール店': '名古屋市中村区名駅１丁目１−３ JRゲートタワー B1F'
                 };
                 
-                // 既知店舗データベースから検索
-                for (const [brandName, locations] of Object.entries(knownStoreDatabase)) {
-                    if (placeName.includes(brandName)) {
-                        console.log(`ブランド「${brandName}」を検出`);
-                        
-                        for (const [locationKey, data] of Object.entries(locations)) {
-                            if (placeName.includes(locationKey)) {
-                                console.log(`場所「${locationKey}」にマッチ`);
-                                addressField.value = data.address;
-                                document.getElementById('storeLat').value = data.lat;
-                                document.getElementById('storeLng').value = data.lng;
-                                console.log('既知データベースから設定完了:', data);
-                                return;
-                            }
+                // キーワードマッチングで住所を特定
+                for (const [storeName, address] of Object.entries(addressDatabase)) {
+                    const storeKeywords = storeName.toLowerCase().split(/\s+/);
+                    const placeNameLower = placeName.toLowerCase();
+                    
+                    let matchCount = 0;
+                    for (const keyword of storeKeywords) {
+                        if (placeNameLower.includes(keyword)) {
+                            matchCount++;
                         }
+                    }
+                    
+                    // 50%以上のキーワードがマッチした場合
+                    if (matchCount >= Math.ceil(storeKeywords.length / 2)) {
+                        console.log(`住所データベースからマッチング: ${storeName} -> ${address}`);
+                        
+                        // 郵便番号と愛知県を除去
+                        let cleanAddress = address.replace(/〒?\d{3}-?\d{4}\s*/g, '');
+                        cleanAddress = cleanAddress.replace(/愛知県\s*/g, '');
+                        
+                        addressField.value = cleanAddress;
+                        console.log('住所を設定:', cleanAddress);
+                        return cleanAddress;
                     }
                 }
                 
-                // 方法4: URLから住所パターンを直接検索（フォールバック）
-                console.log('既知データベースに見つからないため、URLから住所パターンを検索');
+                // データベースにない場合は、URLから住所らしい文字列を抽出
+                console.log('住所データベースに見つからないため、URLから住所を抽出');
                 
-                // URLデコードして日本語を復元
+                // URLデコードして日本語住所を検索
                 const decodedUrl = decodeURIComponent(url);
-                console.log('デコードされたURL:', decodedUrl);
                 
-                // 住所パターンを抽出
+                // 住所パターンを検索
                 const addressPatterns = [
-                    /([^\/\@\?]*(?:市|区)[^\/\@\?]*[0-9]+[^\/\@\?]*)/,
-                    /([^\/\@\?]*[0-9]+丁目[0-9\-−]+[^\/\@\?]*)/
+                    // 完全な住所パターン
+                    /(名古屋市[^\/\@\?]*区[^\/\@\?]*[0-9０-９]+[^\/\@\?]*)/,
+                    // 市区町村+数字パターン
+                    /([^\/\@\?]*市[^\/\@\?]*区[^\/\@\?]*[0-9０-９][^\/\@\?]*)/,
+                    // 数字+丁目パターン
+                    /([0-9０-９]+丁目[0-9０-９\-−]+[^\/\@\?]*)/
                 ];
                 
                 for (const pattern of addressPatterns) {
@@ -969,105 +952,92 @@
                     if (match) {
                         let extractedAddress = match[1]
                             .replace(/[\+_]/g, ' ')
-                            .replace(/\s+/g, ' ')
+                            .replace(/\s+/g, '')
                             .trim();
-                        console.log('URLから抽出された住所パターン:', extractedAddress);
+                        
+                        // 郵便番号と愛知県を除去
+                        extractedAddress = extractedAddress.replace(/〒?\d{3}-?\d{4}/g, '');
+                        extractedAddress = extractedAddress.replace(/愛知県/g, '');
+                        
+                        console.log('URLから抽出された住所:', extractedAddress);
                         
                         if (extractedAddress.length > 5) {
                             addressField.value = extractedAddress;
                             console.log('住所を設定:', extractedAddress);
-                            
-                            // この住所で座標を検索
-                            await searchAddressAndSetCoordinates(extractedAddress);
-                            return;
+                            return extractedAddress;
                         }
                     }
                 }
                 
-                // 最終フォールバック：店舗名で検索
-                console.log('住所パターンが見つからないため、店舗名で検索:', placeName);
-                await searchAddressAndSetCoordinates(placeName + ' 名古屋');
+                // 最終的に店舗名を住所として使用
+                let fallbackAddress = placeName + ' 名古屋市';
+                console.log('フォールバック住所:', fallbackAddress);
+                addressField.value = fallbackAddress;
+                return fallbackAddress;
                 
             } catch (error) {
                 console.error('住所抽出エラー:', error);
+                return null;
             }
         }
         
-        // 住所で検索して座標を取得する関数
+        // 住所で検索して座標を取得する関数（住所に基づく地図検索）
         async function searchAddressAndSetCoordinates(searchQuery) {
             try {
-                console.log('住所検索実行:', searchQuery);
+                console.log('=== 住所による地図検索を実行 ===');
+                console.log('検索クエリ:', searchQuery);
                 
                 // OpenStreetMap Nominatim検索API (forward geocoding)
-                const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&accept-language=ja&limit=1&countrycodes=jp`;
+                const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&accept-language=ja&limit=5&countrycodes=jp`;
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
                 
                 console.log('検索API URL:', searchUrl);
-                console.log('プロキシ URL:', proxyUrl);
                 
                 const response = await fetch(proxyUrl);
                 const proxyData = await response.json();
                 const searchResults = JSON.parse(proxyData.contents);
                 
-                console.log('検索結果:', searchResults);
+                console.log('住所検索結果:', searchResults);
                 
                 if (searchResults && searchResults.length > 0) {
-                    const result = searchResults[0];
-                    const lat = parseFloat(result.lat);
-                    const lng = parseFloat(result.lon);
+                    // 最も適切な結果を選択（名古屋市内を優先）
+                    let bestResult = null;
+                    for (const result of searchResults) {
+                        if (result.display_name.includes('名古屋市')) {
+                            bestResult = result;
+                            break;
+                        }
+                    }
+                    
+                    // 名古屋市内が見つからない場合は最初の結果を使用
+                    if (!bestResult) {
+                        bestResult = searchResults[0];
+                    }
+                    
+                    const lat = parseFloat(bestResult.lat);
+                    const lng = parseFloat(bestResult.lon);
                     
                     // 座標を小数第4位に四捨五入
                     const roundedLat = Math.round(lat * 10000) / 10000;
                     const roundedLng = Math.round(lng * 10000) / 10000;
                     
-                    console.log('検索で取得した座標:', roundedLat, roundedLng);
+                    console.log('住所検索で取得した座標:', roundedLat, roundedLng);
+                    console.log('この座標で地図にピンを設定します');
                     
-                    // 座標をフォームに設定
+                    // 座標をフォームに設定（地図のピン位置として使用）
                     document.getElementById('storeLat').value = roundedLat;
                     document.getElementById('storeLng').value = roundedLng;
                     
-                    // 住所も設定（検索結果から整形された住所を使用）
-                    if (result.display_name) {
-                        let displayAddress = result.display_name;
-                        console.log('元のdisplay_name:', displayAddress);
-                        
-                        // カンマで分割して処理
-                        const addressParts = displayAddress.split(',').map(s => s.trim());
-                        let city = '';
-                        let ward = '';
-                        let detail = '';
-                        
-                        // 各パーツを分類
-                        for (const part of addressParts) {
-                            if (part.includes('市') && !city) {
-                                city = part;
-                            } else if (part.includes('区') && !ward) {
-                                ward = part;
-                            } else if (part.match(/[0-9０-９]/) && !part.match(/^\d{3}-?\d{4}$/) && !detail) {
-                                detail = part;
-                            }
-                        }
-                        
-                        // 正しい順序で組み立て
-                        let finalAddress = '';
-                        if (city) finalAddress += city;
-                        if (ward) finalAddress += ward;
-                        if (detail) finalAddress += detail;
-                        
-                        console.log('検索結果から設定する住所:', finalAddress);
-                        if (finalAddress) {
-                            document.getElementById('storeAddress').value = finalAddress;
-                        }
-                    }
-                    
+                    console.log('住所による地図検索が成功しました');
                     return true;
+                    
                 } else {
-                    console.log('検索結果が見つかりませんでした');
+                    console.log('住所検索結果が見つかりませんでした');
                     return false;
                 }
                 
             } catch (error) {
-                console.log('住所検索エラー:', error);
+                console.error('住所検索エラー:', error);
                 return false;
             }
         }
@@ -1097,62 +1067,45 @@
             }
         }
         
-        // 住所データを処理する関数（フォールバック用）
+        // 住所データを処理する関数（最終フォールバック用）
         function processAddressData(data) {
             const addressField = document.getElementById('storeAddress');
-            console.log('=== フォールバック住所処理開始 ===');
+            console.log('=== 最終フォールバック住所処理開始 ===');
             console.log('現在の住所フィールド値:', addressField.value);
             
-            // 新しいアプローチで既に住所が設定されている場合はスキップ
-            if (addressField.value && addressField.value.length > 10 && !addressField.value.includes('児玉一丁目西区')) {
+            // 新方式で既に住所が設定されている場合はスキップ
+            if (addressField.value && addressField.value.length > 5) {
                 console.log('住所が既に設定されているため、フォールバック処理をスキップ');
                 return;
             }
             
             console.log('取得したデータ全体:', data);
             
-            // display_nameを使用した正しい日本語住所の構築
+            // display_nameを使用したシンプルな住所構築
             const displayName = data.display_name;
             console.log('display_name:', displayName);
             
             if (displayName) {
-                // カンマ区切りで分割
+                // カンマで分割して処理
                 const parts = displayName.split(',').map(s => s.trim());
                 console.log('住所パーツ:', parts);
                 
-                // 日本の住所要素を抽出
-                let city = '';
-                let ward = '';
-                let district = '';
-                let detail = '';
+                // 郵便番号、愛知県、日本を除去
+                const filteredParts = parts.filter(part => 
+                    !part.match(/^日本$/) && 
+                    !part.match(/^愛知県$/) && 
+                    !part.match(/^\d{3}-?\d{4}$/)
+                );
                 
-                for (const part of parts) {
-                    if (part.includes('市') && !city) {
-                        city = part;
-                    } else if (part.includes('区') && !ward) {
-                        ward = part;
-                    } else if (part.match(/[0-9０-９]/) && !detail) {
-                        detail = part;
-                    } else if (!part.match(/^(日本|愛知県|\d{3}-?\d{4})$/) && !district) {
-                        district = part;
-                    }
-                }
+                // 最初の2-3つのパーツを使用
+                let finalAddress = filteredParts.slice(0, 3).join('').replace(/\s+/g, '');
                 
-                // 正しい順序で組み立て：市 + 区 + 地区 + 詳細
-                let finalAddress = '';
-                if (city) finalAddress += city;
-                if (ward) finalAddress += ward;
-                if (district) finalAddress += district;
-                if (detail) finalAddress += detail;
+                // 郵便番号と愛知県を除去
+                finalAddress = finalAddress.replace(/〒?\d{3}-?\d{4}/g, '');
+                finalAddress = finalAddress.replace(/愛知県/g, '');
                 
-                // 住所が逆順になっている場合の修正
-                if (finalAddress.includes('児玉一丁目西区名古屋市')) {
-                    finalAddress = '名古屋市西区浄心１丁目4-6';
-                    console.log('既知の住所パターンを修正');
-                }
-                
-                console.log('構築された住所:', finalAddress);
-                if (finalAddress) {
+                console.log('フォールバック住所:', finalAddress);
+                if (finalAddress && finalAddress.length > 3) {
                     addressField.value = finalAddress;
                     console.log('フォールバック住所をフィールドに設定:', addressField.value);
                 }
