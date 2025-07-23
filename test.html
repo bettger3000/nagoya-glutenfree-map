@@ -122,6 +122,7 @@ const storesDataEmbedded = [
         "seats": 20,
         "nacoComment": "米粉のシフォンケーキがふわふわで最高！",
         "website": "https://example.com",
+        "instagram": "",
         "googleMapsUrl": "https://www.google.com/maps/place/35.1685,136.9098"
     },
     {
@@ -140,6 +141,7 @@ const storesDataEmbedded = [
         "seats": 30,
         "nacoComment": "お寿司と天ぷらがグルテンフリーで楽しめます！",
         "website": "",
+        "instagram": "",
         "googleMapsUrl": "https://www.google.com/maps/place/35.1756,136.9645"
     },
     {
@@ -158,6 +160,7 @@ const storesDataEmbedded = [
         "seats": 0,
         "nacoComment": "食パンがもちもちで美味しい！朝早く行くのがおすすめ。",
         "website": "",
+        "instagram": "",
         "googleMapsUrl": "https://www.google.com/maps/place/35.1803,137.0125"
     },
     {
@@ -176,6 +179,7 @@ const storesDataEmbedded = [
         "seats": 10,
         "nacoComment": "季節のフルーツタルトが絶品！プレゼントにも最適です。",
         "website": "",
+        "instagram": "",
         "googleMapsUrl": "https://www.google.com/maps/place/35.1706,136.8968"
     }
 ];
@@ -347,6 +351,14 @@ function showStoreDetail(storeId) {
                target="_blank" 
                class="map-link">
                 <i class="fas fa-globe"></i> 公式ウェブサイト
+            </a>
+            ` : ''}
+            
+            ${store.instagram ? `
+            <a href="${store.instagram}" 
+               target="_blank" 
+               class="map-link">
+                <i class="fab fa-instagram"></i> Instagram
             </a>
             ` : ''}
             

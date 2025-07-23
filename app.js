@@ -197,6 +197,14 @@ function showStoreDetail(storeId) {
             </a>
             ` : ''}
             
+            ${store.instagram ? `
+            <a href="${store.instagram}" 
+               target="_blank" 
+               class="map-link">
+                <i class="fab fa-instagram"></i> Instagram
+            </a>
+            ` : ''}
+            
             <a href="${store.googleMapsUrl || `https://www.google.com/maps?q=${store.lat},${store.lng}`}" 
                target="_blank" 
                class="map-link">

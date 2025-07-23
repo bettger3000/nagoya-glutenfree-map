@@ -283,8 +283,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>営業時間 *</label>
-                    <input type="text" id="storeHours" required>
+                    <label>営業時間</label>
+                    <input type="text" id="storeHours">
                 </div>
                 
                 <div class="form-group">
@@ -298,13 +298,13 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>店舗説明 *</label>
-                    <textarea id="storeDescription" required></textarea>
+                    <label>店舗説明</label>
+                    <textarea id="storeDescription"></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label>GF対応 *</label>
-                    <select id="storeGfType" required>
+                    <label>GF対応</label>
+                    <select id="storeGfType">
                         <option value="">選択してください</option>
                         <option value="完全GF">完全GF</option>
                         <option value="部分GF">部分GF</option>
@@ -323,13 +323,18 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>nacoのコメント *</label>
-                    <textarea id="storeComment" required></textarea>
+                    <label>nacoのコメント</label>
+                    <textarea id="storeComment"></textarea>
                 </div>
                 
                 <div class="form-group">
                     <label>ウェブサイト</label>
-                    <input type="url" id="storeWebsite">
+                    <input type="url" id="storeWebsite" placeholder="https://example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Instagram</label>
+                    <input type="url" id="storeInstagram" placeholder="https://www.instagram.com/username/">
                 </div>
                 
                 <button type="submit" class="btn">保存</button>
@@ -411,7 +416,8 @@
             document.getElementById('storeTakeout').checked = store.takeout;
             document.getElementById('storeSeats').value = store.seats;
             document.getElementById('storeComment').value = store.nacoComment;
-            document.getElementById('storeWebsite').value = store.website;
+            document.getElementById('storeWebsite').value = store.website || '';
+            document.getElementById('storeInstagram').value = store.instagram || '';
             document.getElementById('storeGoogleMapsUrl').value = store.googleMapsUrl || '';
             
             document.getElementById('storeModal').style.display = 'block';
@@ -442,15 +448,16 @@
                 address: document.getElementById('storeAddress').value,
                 lat: parseFloat(document.getElementById('storeLat').value),
                 lng: parseFloat(document.getElementById('storeLng').value),
-                hours: document.getElementById('storeHours').value,
+                hours: document.getElementById('storeHours').value || '',
                 closed: document.getElementById('storeClosed').value || 'なし',
                 tel: document.getElementById('storeTel').value || '',
-                description: document.getElementById('storeDescription').value,
-                glutenFreeType: document.getElementById('storeGfType').value,
+                description: document.getElementById('storeDescription').value || '',
+                glutenFreeType: document.getElementById('storeGfType').value || '',
                 takeout: document.getElementById('storeTakeout').checked,
                 seats: parseInt(document.getElementById('storeSeats').value) || 0,
-                nacoComment: document.getElementById('storeComment').value,
+                nacoComment: document.getElementById('storeComment').value || '',
                 website: document.getElementById('storeWebsite').value || '',
+                instagram: document.getElementById('storeInstagram').value || '',
                 googleMapsUrl: document.getElementById('storeGoogleMapsUrl').value || ''
             };
             
