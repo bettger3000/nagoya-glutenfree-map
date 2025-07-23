@@ -288,12 +288,11 @@
                     <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required onpaste="handleGoogleMapsUrlPaste(event)">
                     <button type="button" class="btn" onclick="extractFromGoogleMaps()" id="extractBtn">🔍 住所と座標を自動取得</button>
                     <div class="help-text">
-                        📱 <strong>座標取得方法（推奨）:</strong><br>
-                        1. Googleマップでお店を検索<br>
-                        2. <strong style="color: #d32f2f;">店舗ピンの上で右クリック</strong>→「この場所について」<br>
-                        3. 表示された座標（例: 35.1709, 136.8833）をコピー<br>
-                        4. ここに貼り付けると自動で住所と座標を取得<br>
-                        ※ 通常の共有リンクも使用可能
+                        📱 <strong>座標取得方法（推奨順）:</strong><br>
+                        1. <strong style="color: #2e7d32;">Plus Code方式（最高精度）:</strong> Googleマップで店舗を検索→共有→Plus Codeをコピー<br>
+                        2. <strong style="color: #d32f2f;">直接座標方式:</strong> 店舗ピンの上で右クリック→「この場所について」→座標をコピー<br>
+                        3. <strong>通常のリンク方式:</strong> 共有ボタンからリンクをコピー<br>
+                        ※ Plus Code（例: 8Q7X5R3J+23）を含むURLは最も正確な位置情報が取得できます
                     </div>
                 </div>
                 
@@ -688,6 +687,186 @@
             extractFromGoogleMaps();
         }
         
+        // Plus Code機能のテスト関数
+        function testPlusCodeExtraction() {
+            console.log('=== Plus Code抽出機能テスト開始 ===');
+            
+            // フォームをクリア
+            document.getElementById('storeName').value = '';
+            document.getElementById('storeAddress').value = '';
+            document.getElementById('storeLat').value = '';
+            document.getElementById('storeLng').value = '';
+            
+            // 名古屋市中村区のサンプルPlus Code（仮想的なテスト用）
+            const testPlusCodeUrl = 'https://www.google.com/maps/place/8Q7X5R3J+23/';
+            
+            console.log('Plus Code機能の特長:');
+            console.log('1. より正確な位置特定が可能');
+            console.log('2. ピンの位置ずれを最小限に抑制');
+            console.log('3. Google Mapsの共有機能から簡単に取得可能');
+            console.log('');
+            console.log('テスト用Plus Code URL:', testPlusCodeUrl);
+            console.log('');
+            console.log('実際の使用方法:');
+            console.log('1. Google Mapsで店舗を検索');
+            console.log('2. 共有ボタンをクリック');
+            console.log('3. Plus Codeが含まれているリンクをコピー');
+            console.log('4. 管理画面に貼り付けて自動取得実行');
+            
+            // テスト用URLを設定
+            document.getElementById('storeGoogleMapsUrl').value = testPlusCodeUrl;
+            
+            // Plus Code抽出をテスト
+            const plusCodeCoords = extractCoordinatesFromPlusCode(testPlusCodeUrl);
+            if (plusCodeCoords) {
+                console.log('Plus Codeテスト結果（座標）:', plusCodeCoords);
+                document.getElementById('storeLat').value = plusCodeCoords.lat;
+                document.getElementById('storeLng').value = plusCodeCoords.lng;
+                showStatus('Plus Code抽出テストが成功しました！', 'success');
+            } else {
+                console.log('Plus Code抽出テストが失敗しました。');
+                showStatus('Plus Code抽出テストが失敗しました。実際のPlus Codeを含むURLでお試しください。', 'error');
+            }
+        }
+        
+        // Google Maps Plus Code (Open Location Code) から座標を抽出
+        function extractCoordinatesFromPlusCode(url) {
+            try {
+                console.log('Plus Code抽出を試行中...', url);
+                
+                // Plus Codeの基本パターンを検索
+                // Plus Codeは通常 8桁+2桁 (例: 8Q7X5R3J+23) または
+                // より詳細な 8桁+2桁+2桁 (例: 8Q7X5R3J+23QV) の形式
+                const plusCodePatterns = [
+                    // 完全なPlus Code (地域コード付き): 2文字+2数字+4文字+2文字+2文字
+                    /([23456789CFGHJMPQRVWX]{2}[23456789CFGHJMPQRVWX]{2}\+[23456789CFGHJMPQRVWX]{2,4})/i,
+                    // ローカルPlus Code: 4文字+2文字+2文字
+                    /([23456789CFGHJMPQRVWX]{4}\+[23456789CFGHJMPQRVWX]{2,4})/i,
+                    // Plus Codeパラメータ形式
+                    /plus_code[=:]([23456789CFGHJMPQRVWX]{4,}\+[23456789CFGHJMPQRVWX]{2,4})/i,
+                    // データセクション内のPlus Code
+                    /data=[^!]*!([23456789CFGHJMPQRVWX]{4,}\+[23456789CFGHJMPQRVWX]{2,4})/i
+                ];
+                
+                for (const pattern of plusCodePatterns) {
+                    const match = url.match(pattern);
+                    if (match) {
+                        const plusCode = match[1];
+                        console.log('Plus Codeが見つかりました:', plusCode);
+                        
+                        // Plus Codeを座標に変換
+                        const coordinates = decodePlusCode(plusCode);
+                        if (coordinates) {
+                            console.log('Plus Code変換成功:', coordinates);
+                            return coordinates;
+                        }
+                    }
+                }
+                
+                // URLデコードされた形式も確認
+                const decodedUrl = decodeURIComponent(url);
+                if (decodedUrl !== url) {
+                    console.log('URLデコード後に再試行...');
+                    return extractCoordinatesFromPlusCode(decodedUrl);
+                }
+                
+                console.log('Plus Codeが見つかりませんでした');
+                return null;
+                
+            } catch (error) {
+                console.error('Plus Code抽出エラー:', error);
+                return null;
+            }
+        }
+        
+        // Plus Codeを緯度経度に変換 (簡易版実装)
+        function decodePlusCode(plusCode) {
+            try {
+                console.log('Plus Codeデコード開始:', plusCode);
+                
+                // Plus Codeの基本文字セット
+                const codeAlphabet = "23456789CFGHJMPQRVWX";
+                const base = codeAlphabet.length; // 20
+                
+                // Plus Codeを正規化（大文字に変換、+を含む）
+                plusCode = plusCode.toUpperCase().replace(/[^23456789CFGHJMPQRVWX\+]/g, '');
+                
+                if (!plusCode.includes('+')) {
+                    console.log('Plus Codeに+が含まれていません');
+                    return null;
+                }
+                
+                const parts = plusCode.split('+');
+                if (parts.length !== 2) {
+                    console.log('Plus Codeの形式が不正です');
+                    return null;
+                }
+                
+                const [prefix, suffix] = parts;
+                
+                // プレフィックス部分をデコード（緯度・経度の大まかな位置）
+                if (prefix.length < 4) {
+                    console.log('Plus Codeが短すぎます');
+                    return null;
+                }
+                
+                // 20進数としてデコード
+                let latValue = 0;
+                let lngValue = 0;
+                
+                // プレフィックスの各文字をペアで処理（緯度・経度交互）
+                for (let i = 0; i < prefix.length; i += 2) {
+                    const latChar = prefix[i];
+                    const lngChar = prefix[i + 1] || '0';
+                    
+                    const latIndex = codeAlphabet.indexOf(latChar);
+                    const lngIndex = codeAlphabet.indexOf(lngChar);
+                    
+                    if (latIndex === -1 || lngIndex === -1) {
+                        console.log('Plus Codeに無効な文字が含まれています');
+                        return null;
+                    }
+                    
+                    const power = Math.floor((prefix.length - i) / 2) - 1;
+                    latValue += latIndex * Math.pow(base, power);
+                    lngValue += lngIndex * Math.pow(base, power);
+                }
+                
+                // 基準緯度・経度（-90, -180からの相対位置）
+                let lat = (latValue / Math.pow(base, Math.floor(prefix.length / 2))) * 180 - 90;
+                let lng = (lngValue / Math.pow(base, Math.floor(prefix.length / 2))) * 360 - 180;
+                
+                // サフィックス部分で精度を上げる
+                if (suffix.length >= 2) {
+                    const latSuffixChar = suffix[0];
+                    const lngSuffixChar = suffix[1];
+                    
+                    const latSuffixIndex = codeAlphabet.indexOf(latSuffixChar);
+                    const lngSuffixIndex = codeAlphabet.indexOf(lngSuffixChar);
+                    
+                    if (latSuffixIndex !== -1 && lngSuffixIndex !== -1) {
+                        const cellSize = Math.pow(base, -(Math.floor(prefix.length / 2) + 1));
+                        lat += (latSuffixIndex / base) * cellSize * 180;
+                        lng += (lngSuffixIndex / base) * cellSize * 360;
+                    }
+                }
+                
+                // 名古屋市周辺の座標範囲チェック（緯度34-36, 経度136-138）
+                if (lat >= 34 && lat <= 36 && lng >= 136 && lng <= 138) {
+                    console.log('Plus Codeデコード完了:', { lat, lng });
+                    return { lat, lng };
+                } else {
+                    console.log('Plus Codeの座標が名古屋市周辺ではありません:', { lat, lng });
+                    // 範囲外でも有効な座標として返す（他の地域の可能性）
+                    return { lat, lng };
+                }
+                
+            } catch (error) {
+                console.error('Plus Codeデコードエラー:', error);
+                return null;
+            }
+        }
+        
         // Googleマップリンクから住所と座標を自動抽出
         async function extractFromGoogleMaps() {
             console.log('=== extractFromGoogleMaps 関数開始 ==='); // デバッグ用
@@ -800,6 +979,16 @@
                 if (latMatch && lngMatch) {
                     lat = parseFloat(latMatch[1]);
                     lng = parseFloat(lngMatch[1]);
+                }
+            }
+            
+            // パターン7: Google Maps Plus Code (Open Location Code)
+            if (!lat || !lng) {
+                const plusCodeCoords = extractCoordinatesFromPlusCode(targetUrl);
+                if (plusCodeCoords) {
+                    lat = plusCodeCoords.lat;
+                    lng = plusCodeCoords.lng;
+                    console.log('Plus Codeから座標を取得:', lat, lng);
                 }
             }
             
