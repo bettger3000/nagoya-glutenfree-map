@@ -188,11 +188,21 @@ function showStoreDetail(storeId) {
         </div>
         ` : ''}
         
-        <a href="${store.googleMapsUrl || `https://www.google.com/maps?q=${store.lat},${store.lng}`}" 
-           target="_blank" 
-           class="map-link">
-            <i class="fas fa-map"></i> Google マップで開く
-        </a>
+        <div class="store-links">
+            ${store.website ? `
+            <a href="${store.website}" 
+               target="_blank" 
+               class="map-link">
+                <i class="fas fa-globe"></i> 公式ウェブサイト
+            </a>
+            ` : ''}
+            
+            <a href="${store.googleMapsUrl || `https://www.google.com/maps?q=${store.lat},${store.lng}`}" 
+               target="_blank" 
+               class="map-link">
+                <i class="fas fa-map"></i> Google マップで開く
+            </a>
+        </div>
     `;
     
     modal.style.display = 'block';

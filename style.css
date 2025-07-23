@@ -336,6 +336,13 @@ header .subtitle {
     margin-bottom: 8px;
 }
 
+.store-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
 .map-link {
     display: inline-block;
     background: var(--primary-green);
@@ -343,14 +350,20 @@ header .subtitle {
     padding: 10px 20px;
     border-radius: 25px;
     text-decoration: none;
-    margin-top: 20px;
     transition: all 0.3s;
+    flex: 1;
+    text-align: center;
+    min-width: 150px;
 }
 
 .map-link:hover {
     background: var(--primary-pink);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px var(--shadow);
+}
+
+.map-link i {
+    margin-right: 5px;
 }
 
 /* モバイル用トグルボタン */
@@ -427,5 +440,14 @@ header .subtitle {
     
     .filter-btn {
         flex-shrink: 0;
+    }
+    
+    .store-links {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .map-link {
+        min-width: auto;
     }
 }
