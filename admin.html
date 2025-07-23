@@ -288,22 +288,30 @@
                     <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required onpaste="handleGoogleMapsUrlPaste(event)">
                     <button type="button" class="btn" onclick="extractFromGoogleMaps()" id="extractBtn">🔍 住所と座標を自動取得</button>
                     <div class="help-text">
-                        📱 <strong>簡単操作:</strong><br>
+                        📱 <strong>座標取得方法（推奨）:</strong><br>
                         1. Googleマップでお店を検索<br>
-                        2. 「共有」→「リンクをコピー」<br>
-                        3. ここに貼り付けると自動で住所と座標を取得します<br>
-                        ※ 短縮URL（goo.gl）や通常URLに対応
+                        2. <strong style="color: #d32f2f;">店舗ピンの上で右クリック</strong>→「この場所について」<br>
+                        3. 表示された座標（例: 35.1709, 136.8833）をコピー<br>
+                        4. ここに貼り付けると自動で住所と座標を取得<br>
+                        ※ 通常の共有リンクも使用可能
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label>緯度 *</label>
-                    <input type="number" id="storeLat" step="0.0001" required readonly>
+                    <input type="number" id="storeLat" step="0.0001" required placeholder="例: 35.1709" onchange="handleCoordinateChange()">
+                    <div class="help-text">
+                        📍 Googleマップで右クリック→「この場所について」で取得した座標を入力可能
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label>経度 *</label>
-                    <input type="number" id="storeLng" step="0.0001" required readonly>
+                    <input type="number" id="storeLng" step="0.0001" required placeholder="例: 136.8833" onchange="handleCoordinateChange()">
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" class="btn" onclick="extractAddressFromCoordinates()" id="addressBtn">📍 座標から住所を取得</button>
                 </div>
                 
                 <div class="form-group">
@@ -681,11 +689,20 @@
             // 各種パターンの座標抽出
             let lat, lng;
             
-            // パターン1: @緯度,経度,ズーム
-            let match = targetUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
-            if (match) {
-                lat = parseFloat(match[1]);
-                lng = parseFloat(match[2]);
+            // まず、直接座標が入力された場合をチェック（例: "35.1709, 136.8833"）
+            let directCoordMatch = url.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+            if (directCoordMatch) {
+                lat = parseFloat(directCoordMatch[1]);
+                lng = parseFloat(directCoordMatch[2]);
+            }
+            
+            // パターン1: @緯度,経度,ズーム（最も正確な座標）
+            if (!lat || !lng) {
+                let match = targetUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
+                if (match) {
+                    lat = parseFloat(match[1]);
+                    lng = parseFloat(match[2]);
+                }
             }
             
             // パターン2: /place/緯度,経度
@@ -806,6 +823,38 @@
                 console.log('住所取得エラー:', error);
                 // 住所取得に失敗しても座標は取得できているのでエラー表示しない
             }
+        }
+        
+        // 座標入力時の処理
+        function handleCoordinateChange() {
+            const lat = document.getElementById('storeLat').value;
+            const lng = document.getElementById('storeLng').value;
+            
+            if (lat && lng) {
+                // 両方の座標が入力されたら住所取得ボタンを有効化
+                document.getElementById('addressBtn').disabled = false;
+            }
+        }
+        
+        // 座標から住所を取得するボタンの処理
+        async function extractAddressFromCoordinates() {
+            const lat = parseFloat(document.getElementById('storeLat').value);
+            const lng = parseFloat(document.getElementById('storeLng').value);
+            
+            if (!lat || !lng) {
+                showStatus('緯度と経度を入力してください', 'error');
+                return;
+            }
+            
+            const addressBtn = document.getElementById('addressBtn');
+            addressBtn.textContent = '🔄 住所を取得中...';
+            addressBtn.disabled = true;
+            
+            await getAddressFromCoordinates(lat, lng);
+            
+            addressBtn.textContent = '📍 座標から住所を取得';
+            addressBtn.disabled = false;
+            showStatus('住所を取得しました', 'success');
         }
         
         // ステータス表示
