@@ -238,7 +238,13 @@
                     <label>Googleマップリンク *</label>
                     <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required>
                     <button type="button" class="btn" onclick="extractCoordinates()">座標を自動取得</button>
-                    <div class="help-text">Googleマップでお店を検索し、共有リンクをここに貼り付けてください</div>
+                    <div class="help-text">
+                        📱 <strong>操作方法:</strong><br>
+                        1. Googleマップでお店を検索<br>
+                        2. 「共有」→「リンクをコピー」<br>
+                        3. ここに貼り付けて「座標を自動取得」をクリック<br>
+                        ※ 短縮URL（goo.gl）にも対応
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -465,18 +471,53 @@
         }
         
         // Googleマップリンクから座標を抽出
-        function extractCoordinates() {
+        async function extractCoordinates() {
             const url = document.getElementById('storeGoogleMapsUrl').value;
             if (!url) {
                 showStatus('Googleマップのリンクを入力してください', 'error');
                 return;
             }
             
+            showStatus('座標を取得中...', 'success');
+            
+            let targetUrl = url;
+            
+            // 短縮URLの場合は展開する
+            if (url.includes('maps.app.goo.gl') || url.includes('goo.gl')) {
+                try {
+                    // フェッチでリダイレクト先を取得
+                    const response = await fetch(url, {
+                        method: 'HEAD',
+                        redirect: 'follow'
+                    });
+                    targetUrl = response.url;
+                    console.log('展開されたURL:', targetUrl);
+                } catch (error) {
+                    // CORSエラーの場合はプロキシを使用
+                    try {
+                        const proxyResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                        const data = await proxyResponse.json();
+                        // レスポンスヘッダーから実際のURLを探す
+                        if (data.contents) {
+                            const urlMatch = data.contents.match(/window\.location\.replace\("([^"]+)"/);
+                            if (urlMatch) {
+                                targetUrl = decodeURIComponent(urlMatch[1]);
+                            }
+                        }
+                    } catch (proxyError) {
+                        console.log('プロキシも失敗:', proxyError);
+                        // 手動で短縮URLのパターンを処理
+                        showStatus('短縮URLです。展開されたURLを貼り付けてください', 'error');
+                        return;
+                    }
+                }
+            }
+            
             // 各種パターンの座標抽出
             let lat, lng;
             
             // パターン1: @緯度,経度,ズーム
-            let match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
+            let match = targetUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
             if (match) {
                 lat = parseFloat(match[1]);
                 lng = parseFloat(match[2]);
@@ -484,7 +525,7 @@
             
             // パターン2: /place/緯度,経度
             if (!lat || !lng) {
-                match = url.match(/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                match = targetUrl.match(/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
                 if (match) {
                     lat = parseFloat(match[1]);
                     lng = parseFloat(match[2]);
@@ -493,7 +534,7 @@
             
             // パターン3: ?q=緯度,経度
             if (!lat || !lng) {
-                match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                match = targetUrl.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
                 if (match) {
                     lat = parseFloat(match[1]);
                     lng = parseFloat(match[2]);
@@ -502,10 +543,29 @@
             
             // パターン4: ll=緯度,経度
             if (!lat || !lng) {
-                match = url.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                match = targetUrl.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
                 if (match) {
                     lat = parseFloat(match[1]);
                     lng = parseFloat(match[2]);
+                }
+            }
+            
+            // パターン5: destination=緯度,経度
+            if (!lat || !lng) {
+                match = targetUrl.match(/destination=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                if (match) {
+                    lat = parseFloat(match[1]);
+                    lng = parseFloat(match[2]);
+                }
+            }
+            
+            // パターン6: !3d緯度!4d経度 (Google Maps embed format)
+            if (!lat || !lng) {
+                const latMatch = targetUrl.match(/!3d(-?\d+\.?\d*)/);
+                const lngMatch = targetUrl.match(/!4d(-?\d+\.?\d*)/);
+                if (latMatch && lngMatch) {
+                    lat = parseFloat(latMatch[1]);
+                    lng = parseFloat(lngMatch[1]);
                 }
             }
             
@@ -514,12 +574,18 @@
                 if (lat >= 34.5 && lat <= 36 && lng >= 136 && lng <= 138) {
                     document.getElementById('storeLat').value = lat;
                     document.getElementById('storeLng').value = lng;
+                    
+                    // 展開されたURLを保存
+                    if (targetUrl !== url) {
+                        document.getElementById('storeGoogleMapsUrl').value = targetUrl;
+                    }
+                    
                     showStatus('座標を自動取得しました', 'success');
                 } else {
                     showStatus('名古屋市周辺の座標ではないようです。確認してください。', 'error');
                 }
             } else {
-                showStatus('座標を抽出できませんでした。正しいGoogleマップのリンクを入力してください。', 'error');
+                showStatus('座標を抽出できませんでした。以下のいずれかの方法をお試しください:\n1. Googleマップで店舗を右クリック→座標をコピー\n2. 長いURLの場合は短縮されていない完全なURLを使用', 'error');
             }
         }
         
