@@ -184,8 +184,8 @@
       "name": "Biople 名古屋タカシマヤゲートタワーモール店",
       "category": "販売店",
       "address": "名古屋市中村区名駅１丁目１−３ JRゲートタワー タカシマヤ モール B1F",
-      "lat": 35.1709,
-      "lng": 136.8833,
+      "lat": 35.1722393,
+      "lng": 136.8823772,
       "hours": "9時00分～21時00分",
       "closed": "なし",
       "tel": "0525666112",
@@ -196,15 +196,16 @@
       "nacoComment": "・ZENB BREAD\n・グルテンフリーお菓子 など、\nちょっとお高いけど見たことのない珍しいお菓子が買えます。\n見ているだけでも楽しいです。",
       "website": "https://store.biople.jp/",
       "instagram": "https://www.instagram.com/biople_nagoya/",
-      "googleMapsUrl": "https://maps.app.goo.gl/1KFqwNZ8NbzcdD7y8"
+      "imageUrl": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/Biople+%E3%82%BF%E3%82%AB%E3%82%B7%E3%83%9E%E3%83%A4+%E3%82%B2%E3%83%BC%E3%83%88%E3%82%BF%E3%83%AF%E3%83%BC%E3%83%A2%E3%83%BC%E3%83%AB%E5%BA%97/@35.1722393,136.8823772,17z/data=!3m1!4b1!4m6!3m5!1s0x600376e7e3155555:0xc8e5f852cf64e19d!8m2!3d35.1722393!4d136.8823772!16s%2Fg%2F11d_ptk_n1?entry=tts&g_ep=EgoyMDI1MDcyMC4wIPu8ASoASAFQAw%3D%3D&skid=b518ce11-3951-4cc6-8910-b32b4efdeba4"
     },
     {
       "id": 11,
       "name": "成城石井 名古屋駅広小路口店",
       "category": "販売店",
       "address": "名古屋市中村区名駅１丁目１−４ 名古屋うまいもん通り 広小路口",
-      "lat": 35.1713,
-      "lng": 136.8813,
+      "lat": 35.1683183,
+      "lng": 136.8747521,
       "hours": "7時30分～22時00分",
       "closed": "なし",
       "tel": "0525872345",
@@ -215,15 +216,16 @@
       "nacoComment": "名古屋駅近くに3店舗ある成城石井の中で、駅に一番近いですが一番小さい店舗です。\nコンパクトながら、小麦不使用のスイーツやお菓子、パンもあります。",
       "website": "https://shop.seijoishii.co.jp/seijoishii/spot/detail?code=0035",
       "instagram": "",
-      "googleMapsUrl": "https://maps.app.goo.gl/A4L5WRqT1NsdcnuC9"
+      "imageUrl": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/%E6%88%90%E5%9F%8E%E7%9F%B3%E4%BA%95+%E5%90%8D%E5%8F%A4%E5%B1%8B%E9%A7%85%E5%BA%83%E5%B0%8F%E8%B7%AF%E5%8F%A3%E5%BA%97/@35.1683183,136.8747521,16z/data=!4m7!3m6!1s0x60037727951432ff:0x2efe9402d033993d!8m2!3d35.1696419!4d136.8833471!15sCgzmiJDln47nn7PkupUiA4gBAVoPIg3miJDln44g55-z5LqVkgELc3VwZXJtYXJrZXSqAXIKDS9nLzExZzZxbDRsbmIKCy9nLzEyMWI3Nm5tCgwvZy8xMmxsNDJrcGMQASoRIg3miJDln44g55-z5LqVKAgyHhABIhoyHiMaKPNhkzNpaDB9KbTXmrBOSzQuRUByqTIREAIiDeaIkOWfjiDnn7PkupXgAQA!16s%2Fg%2F1vlk1hgd?entry=tts&g_ep=EgoyMDI1MDcyMC4wIPu8ASoASAFQAw%3D%3D&skid=48714990-69c5-4884-be25-c41cda2d1d79"
     },
     {
       "id": 12,
       "name": "成城石井 名古屋 近鉄パッセ店",
       "category": "販売店",
       "address": "名古屋市中村区名駅１丁目２−２ 近鉄パッセ B1F",
-      "lat": 35.1708,
-      "lng": 136.8824,
+      "lat": 35.1683183,
+      "lng": 136.8747521,
       "hours": "",
       "closed": "なし",
       "tel": "",
@@ -234,7 +236,8 @@
       "nacoComment": "",
       "website": "",
       "instagram": "",
-      "googleMapsUrl": "https://maps.app.goo.gl/KSGXoddgzMXjSUJA7"
+      "imageUrl": "",
+      "googleMapsUrl": "https://www.google.com/maps/place/%E6%88%90%E5%9F%8E%E7%9F%B3%E4%BA%95+%E5%90%8D%E5%8F%A4%E5%B1%8B+%E8%BF%91%E9%89%84%E3%83%91%E3%83%83%E3%82%BB%E5%BA%97/@35.1683183,136.8747521,16z/data=!3m1!5s0x600376dde8d37791:0xdb78b1eb8f33a38!4m7!3m6!1s0x60037706e0ef0681:0x7d88586dc20831a4!8m2!3d35.1692165!4d136.8842713!15sCgzmiJDln47nn7PkupUiA4gBAVoPIg3miJDln44g55-z5LqVkgELc3VwZXJtYXJrZXSqAXIKDS9nLzExZzZxbDRsbmIKCy9nLzEyMWI3Nm5tCgwvZy8xMmxsNDJrcGMQASoRIg3miJDln44g55-z5LqVKAgyHhABIhoyHiMaKPNhkzNpaDB9KbTXmrBOSzQuRUByqTIREAIiDeaIkOWfjiDnn7PkupXgAQA!16s%2Fg%2F11rcnwrg1m?entry=tts&g_ep=EgoyMDI1MDcyMC4wIPu8ASoASAFQAw%3D%3D&skid=dbcac1c6-e69c-43c1-9c53-4568bf0aab80"
     }
   ]
 }
