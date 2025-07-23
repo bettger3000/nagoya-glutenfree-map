@@ -181,7 +181,32 @@
         <div class="controls">
             <button class="btn" onclick="showAddModal()">➕ 新しい店舗を追加</button>
             <button class="btn" onclick="loadFromSpreadsheet()">📊 スプレッドシートから読み込み</button>
-            <button class="btn btn-success" onclick="saveToGitHub()">💾 GitHubに保存</button>
+            <button class="btn btn-success" onclick="saveToGitHubDirect()">🚀 GitHubに直接保存</button>
+            <button class="btn" onclick="saveToGitHub()">💾 ファイルダウンロード</button>
+        </div>
+        
+        <!-- GitHub設定モーダル -->
+        <div id="githubModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeGitHubModal()">&times;</span>
+                <h2>GitHub設定</h2>
+                <p>初回のみ設定が必要です。Personal Access Tokenを入力してください。</p>
+                
+                <div class="form-group">
+                    <label>GitHub Personal Access Token</label>
+                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+                    <div class="help-text">
+                        <strong>取得方法:</strong><br>
+                        1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)<br>
+                        2. 「Generate new token」→「Generate new token (classic)」<br>
+                        3. 「Contents」権限を選択<br>
+                        4. 生成されたトークンをコピー
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="saveGitHubToken()">保存</button>
+                <button class="btn" onclick="closeGitHubModal()">キャンセル</button>
+            </div>
         </div>
         
         <div id="status" class="status"></div>
@@ -449,7 +474,92 @@
             showStatus('スプレッドシート連携機能は準備中です', 'error');
         }
         
-        // GitHubに保存
+        // GitHubに直接保存
+        async function saveToGitHubDirect() {
+            const token = localStorage.getItem('githubToken');
+            
+            if (!token) {
+                document.getElementById('githubModal').style.display = 'block';
+                return;
+            }
+            
+            showStatus('GitHubに保存中...', 'success');
+            
+            try {
+                const jsonData = {
+                    stores: storesData
+                };
+                
+                const content = JSON.stringify(jsonData, null, 2);
+                const encodedContent = btoa(unescape(encodeURIComponent(content)));
+                
+                // 現在のファイルのSHAを取得
+                const getResponse = await fetch('https://api.github.com/repos/bettger3000/nagoya-glutenfree-map/contents/stores.json', {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                let sha = '';
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    sha = fileData.sha;
+                }
+                
+                // ファイルを更新
+                const updateData = {
+                    message: '店舗データを更新 - 管理画面より',
+                    content: encodedContent,
+                    sha: sha
+                };
+                
+                const updateResponse = await fetch('https://api.github.com/repos/bettger3000/nagoya-glutenfree-map/contents/stores.json', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (updateResponse.ok) {
+                    showStatus('GitHubに保存完了！数分後にマップに反映されます。', 'success');
+                } else {
+                    const error = await updateResponse.json();
+                    throw new Error(error.message || 'GitHubへの保存に失敗しました');
+                }
+                
+            } catch (error) {
+                console.error('GitHub保存エラー:', error);
+                showStatus(`GitHubへの保存に失敗しました: ${error.message}`, 'error');
+            }
+        }
+        
+        // GitHubトークンを保存
+        function saveGitHubToken() {
+            const token = document.getElementById('githubToken').value;
+            if (!token) {
+                showStatus('トークンを入力してください', 'error');
+                return;
+            }
+            
+            localStorage.setItem('githubToken', token);
+            closeGitHubModal();
+            showStatus('GitHubトークンを保存しました', 'success');
+            
+            // 自動で保存を実行
+            saveToGitHubDirect();
+        }
+        
+        // GitHubモーダルを閉じる
+        function closeGitHubModal() {
+            document.getElementById('githubModal').style.display = 'none';
+            document.getElementById('githubToken').value = '';
+        }
+        
+        // GitHubに保存（ファイルダウンロード）
         function saveToGitHub() {
             const jsonData = {
                 stores: storesData
