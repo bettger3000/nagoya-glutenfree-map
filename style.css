@@ -162,6 +162,7 @@ header .subtitle {
 /* 店舗リスト */
 .store-list {
     width: 350px;
+    height: 100%;
     background: var(--white);
     box-shadow: -2px 0 10px var(--shadow);
     overflow-y: auto;
@@ -183,6 +184,31 @@ header .subtitle {
     cursor: pointer;
     transition: all 0.3s;
     border: 2px solid transparent;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+}
+
+.store-card-image {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.store-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.store-card-content {
+    flex: 1;
+    padding: 0;
 }
 
 .store-card:hover {
@@ -210,7 +236,7 @@ header .subtitle {
 .category-洋食 { background-color: #4ecdc4; }
 .category-カフェ { background-color: #f7b731; }
 .category-パン屋 { background-color: #5f27cd; }
-.category-土産店 { background-color: #00d2d3; }
+.category-販売店 { background-color: #00d2d3; }
 .category-スイーツ { background-color: #ff69b4; }
 
 .store-info {
@@ -279,6 +305,20 @@ header .subtitle {
     border-bottom: 2px solid var(--primary-green);
     padding-bottom: 15px;
     margin-bottom: 20px;
+}
+
+.modal-image {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.modal-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .modal-header h2 {
@@ -449,5 +489,22 @@ header .subtitle {
     
     .map-link {
         min-width: auto;
+    }
+    
+    .store-card {
+        flex-direction: column;
+        padding: 15px;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .store-card-image {
+        width: 100%;
+        height: 120px;
+        align-self: stretch;
+    }
+    
+    .store-card-content {
+        padding: 0;
     }
 }

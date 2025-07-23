@@ -10,7 +10,7 @@ const categoryStyles = {
     '洋食': { color: '#4ecdc4', icon: 'fa-pizza-slice' },
     'カフェ': { color: '#f7b731', icon: 'fa-coffee' },
     'パン屋': { color: '#5f27cd', icon: 'fa-bread-slice' },
-    '土産店': { color: '#00d2d3', icon: 'fa-gift' },
+    '販売店': { color: '#00d2d3', icon: 'fa-gift' },
     'スイーツ': { color: '#ff69b4', icon: 'fa-ice-cream' }
 };
 
@@ -102,13 +102,18 @@ function updateStoreList(stores) {
         const card = document.createElement('div');
         card.className = 'store-card';
         card.innerHTML = `
-            <h4>${store.name}</h4>
-            <span class="store-category category-${store.category}">${store.category}</span>
-            <div class="store-info">
-                <i class="fas fa-map-marker-alt"></i> ${store.address}
+            <div class="store-card-image">
+                <img src="${store.imageUrl || ''}" alt="${store.name}" onerror="this.style.display='none'">
             </div>
-            <div class="store-info">
-                <i class="fas fa-clock"></i> ${store.hours}
+            <div class="store-card-content">
+                <h4>${store.name}</h4>
+                <span class="store-category category-${store.category}">${store.category}</span>
+                <div class="store-info">
+                    <i class="fas fa-map-marker-alt"></i> ${store.address}
+                </div>
+                <div class="store-info">
+                    <i class="fas fa-clock"></i> ${store.hours}
+                </div>
             </div>
         `;
         card.onclick = () => {
@@ -130,6 +135,9 @@ function showStoreDetail(storeId) {
     
     modalContent.innerHTML = `
         <div class="modal-header">
+            ${store.imageUrl ? `<div class="modal-image">
+                <img src="${store.imageUrl}" alt="${store.name}" onerror="this.parentElement.style.display='none'">
+            </div>` : ''}
             <h2>${store.name}</h2>
             <span class="store-category category-${store.category}">${store.category}</span>
         </div>
@@ -200,7 +208,8 @@ function showStoreDetail(storeId) {
             ${store.instagram ? `
             <a href="${store.instagram}" 
                target="_blank" 
-               class="map-link">
+               class="map-link"
+               onclick="openInstagram('${store.instagram}'); return false;">
                 <i class="fab fa-instagram"></i> Instagram
             </a>
             ` : ''}
@@ -287,6 +296,65 @@ function filterStores() {
     
     displayStores(filteredStores);
     updateStoreList(filteredStores);
+}
+
+// Instagram アプリで開く関数
+function openInstagram(url) {
+    // Instagram URLからユーザー名を抽出
+    const username = extractInstagramUsername(url);
+    
+    if (username) {
+        // まずInstagramアプリのdeep linkを試す
+        const appLink = `instagram://user?username=${username}`;
+        
+        // iOSの場合
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            window.location = appLink;
+            // アプリが開かなかった場合のフォールバック
+            setTimeout(() => {
+                window.open(url, '_blank');
+            }, 500);
+        }
+        // Androidの場合
+        else if (/Android/.test(navigator.userAgent)) {
+            const intent = `intent://instagram.com/_u/${username}/#Intent;package=com.instagram.android;scheme=https;end`;
+            window.location = intent;
+            // フォールバック
+            setTimeout(() => {
+                window.open(url, '_blank');
+            }, 500);
+        }
+        // その他のデバイス（PC等）
+        else {
+            window.open(url, '_blank');
+        }
+    } else {
+        // ユーザー名が抽出できない場合はブラウザで開く
+        window.open(url, '_blank');
+    }
+}
+
+// Instagram URLからユーザー名を抽出する関数
+function extractInstagramUsername(url) {
+    try {
+        // 様々なInstagram URLパターンに対応
+        const patterns = [
+            /instagram\.com\/([^\/\?\#]+)/i,
+            /instagram\.com\/p\/[^\/]+\/\?.*taken-by=([^&]+)/i,
+            /instagram\.com\/explore\/tags\/([^\/\?\#]+)/i
+        ];
+        
+        for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('Instagram username extraction failed:', error);
+        return null;
+    }
 }
 
 // カスタムマーカーのスタイル（CSSに追加）

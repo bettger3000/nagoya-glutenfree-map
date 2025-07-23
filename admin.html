@@ -94,7 +94,7 @@
         .category-洋食 { background-color: #4ecdc4; }
         .category-カフェ { background-color: #f7b731; }
         .category-パン屋 { background-color: #5f27cd; }
-        .category-土産店 { background-color: #00d2d3; }
+        .category-販売店 { background-color: #00d2d3; }
         .category-スイーツ { background-color: #ff69b4; }
         
         .modal {
@@ -168,6 +168,13 @@
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -249,7 +256,7 @@
                         <option value="洋食">洋食</option>
                         <option value="カフェ">カフェ</option>
                         <option value="パン屋">パン屋</option>
-                        <option value="土産店">土産店</option>
+                        <option value="販売店">販売店</option>
                         <option value="スイーツ">スイーツ</option>
                     </select>
                 </div>
@@ -337,6 +344,17 @@
                     <input type="url" id="storeInstagram" placeholder="https://www.instagram.com/username/">
                 </div>
                 
+                <div class="form-group">
+                    <label>店舗画像URL</label>
+                    <input type="url" id="storeImageUrl" placeholder="https://example.com/image.jpg">
+                    <div class="help-text">
+                        📸 <strong>画像について:</strong><br>
+                        • 無料画像サイト（Unsplash等）のURLを使用可能<br>
+                        • 推奨サイズ：400x300px以上<br>
+                        • 空欄の場合は画像なしで表示されます
+                    </div>
+                </div>
+                
                 <button type="submit" class="btn">保存</button>
                 <button type="button" class="btn" onclick="closeModal()">キャンセル</button>
             </form>
@@ -418,6 +436,7 @@
             document.getElementById('storeComment').value = store.nacoComment;
             document.getElementById('storeWebsite').value = store.website || '';
             document.getElementById('storeInstagram').value = store.instagram || '';
+            document.getElementById('storeImageUrl').value = store.imageUrl || '';
             document.getElementById('storeGoogleMapsUrl').value = store.googleMapsUrl || '';
             
             document.getElementById('storeModal').style.display = 'block';
@@ -458,6 +477,7 @@
                 nacoComment: document.getElementById('storeComment').value || '',
                 website: document.getElementById('storeWebsite').value || '',
                 instagram: document.getElementById('storeInstagram').value || '',
+                imageUrl: document.getElementById('storeImageUrl').value || '',
                 googleMapsUrl: document.getElementById('storeGoogleMapsUrl').value || ''
             };
             

@@ -16,6 +16,8 @@
       "seats": 20,
       "nacoComment": "米粉のシフォンケーキがふわふわで最高！",
       "website": "https://example.com",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1685,136.9098"
     },
     {
@@ -34,6 +36,8 @@
       "seats": 30,
       "nacoComment": "お寿司と天ぷらがグルテンフリーで楽しめます！",
       "website": "",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1756,136.9645"
     },
     {
@@ -52,6 +56,8 @@
       "seats": 0,
       "nacoComment": "食パンがもちもちで美味しい！朝早く行くのがおすすめ。",
       "website": "",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1803,137.0125"
     },
     {
@@ -70,12 +76,14 @@
       "seats": 40,
       "nacoComment": "GFパスタの種類が豊富！デートにもおすすめ。",
       "website": "https://example-italian.com",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1595,136.9012"
     },
     {
       "id": 5,
       "name": "名古屋土産処 八丁味噌の郷",
-      "category": "土産店",
+      "category": "販売店",
       "address": "愛知県名古屋市中区金山1-1-1",
       "lat": 35.1427,
       "lng": 136.9005,
@@ -88,6 +96,8 @@
       "seats": 0,
       "nacoComment": "お土産選びに困ったらここ！GF表示もわかりやすい。",
       "website": "",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1427,136.9005"
     },
     {
@@ -106,6 +116,8 @@
       "seats": 10,
       "nacoComment": "季節のフルーツタルトが絶品！プレゼントにも最適です。",
       "website": "",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1706,136.8968"
     },
     {
@@ -124,6 +136,8 @@
       "seats": 15,
       "nacoComment": "米粉100%のみたらし団子は必食！熱田神宮参拝の際にぜひ。",
       "website": "",
+      "instagram": "",
+      "imageUrl": "https://images.unsplash.com/photo-1582716401301-b2407dc7563d?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/35.1274,136.9089"
     },
     {
@@ -141,7 +155,9 @@
       "takeout": false,
       "seats": 28,
       "nacoComment": "私のお店です",
-      "website": "https://www.instagram.com/gf_michinori_tei/",
+      "website": "",
+      "instagram": "https://www.instagram.com/gf_michinori_tei/",
+      "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop",
       "googleMapsUrl": "https://www.google.com/maps/place/%E3%81%BF%E3%81%A1%E3%81%AE%E3%82%8A%E4%BA%AD/@35.1694717,136.8790828,17z/data=!3m1!4b1!4m6!3m5!1s0x600377f592c69f27:0xfcbe7e72e46a5f4c!8m2!3d35.1694717!4d136.8790828!16s%2Fg%2F11rgb_tzpv?entry=ttu&g_ep=EgoyMDI1MDcyMC4wIKXMDSoASAFQAw%3D%3D"
     }
   ]

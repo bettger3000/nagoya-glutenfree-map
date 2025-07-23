@@ -1,0 +1,1061 @@
+<!-- 名古屋グルテンフリーマップ - WordPress統合版 -->
+<div id="nagoya-glutenfree-map-container">
+    <style>
+        /* マップ専用スタイル - WordPressテーマと競合しないよう名前空間を使用 */
+        #nagoya-glutenfree-map-container {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
+            background-color: #fef9f3;
+            color: #4a4a4a;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #nagoya-glutenfree-map-container * {
+            box-sizing: border-box;
+        }
+
+        /* カラーパレット */
+        #nagoya-glutenfree-map-container {
+            --primary-pink: #ffb6c1;
+            --primary-green: #98d8c8;
+            --primary-yellow: #f7dc6f;
+            --primary-purple: #dda0dd;
+            --primary-blue: #87ceeb;
+            --bg-cream: #fef9f3;
+            --text-dark: #4a4a4a;
+            --white: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* ヘッダー */
+        #nagoya-glutenfree-map-container .map-header {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-green) 100%);
+            color: var(--white);
+            padding: 20px;
+            text-align: center;
+        }
+
+        #nagoya-glutenfree-map-container .map-header h1 {
+            font-size: 24px;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        #nagoya-glutenfree-map-container .map-header p {
+            font-size: 14px;
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        /* コントロールエリア */
+        #nagoya-glutenfree-map-container .map-controls {
+            background: var(--white);
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 検索ボックス */
+        #nagoya-glutenfree-map-container .map-search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        #nagoya-glutenfree-map-container .map-search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-green);
+        }
+
+        #nagoya-glutenfree-map-container .map-search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid var(--primary-green);
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        #nagoya-glutenfree-map-container .map-search-input:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
+        }
+
+        /* カテゴリーフィルター */
+        #nagoya-glutenfree-map-container .map-category-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #nagoya-glutenfree-map-container .map-filter-btn {
+            background: var(--white);
+            border: 2px solid var(--primary-green);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #nagoya-glutenfree-map-container .map-filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+
+        #nagoya-glutenfree-map-container .map-filter-btn.active {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        /* メインコンテンツ */
+        #nagoya-glutenfree-map-container .map-main-content {
+            display: flex;
+            min-height: 600px;
+            position: relative;
+        }
+
+        /* 地図 */
+        #nagoya-glutenfree-map-container .map-container {
+            flex: 1;
+            height: 600px;
+            position: relative;
+        }
+
+        /* 店舗リスト */
+        #nagoya-glutenfree-map-container .map-store-list {
+            width: 350px;
+            background: var(--white);
+            border-left: 1px solid #eee;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-list h3 {
+            color: var(--primary-green);
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+
+        /* 店舗カード */
+        #nagoya-glutenfree-map-container .map-store-card {
+            background: var(--bg-cream);
+            border-radius: 15px;
+            padding: 0;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow);
+            border-color: var(--primary-pink);
+        }
+
+        #nagoya-glutenfree-map-container .map-store-card-image {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-card-content {
+            flex: 1;
+            padding: 15px 15px 15px 0;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-card h4 {
+            color: var(--text-dark);
+            margin: 0 0 5px 0;
+            font-size: 16px;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-category {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--white);
+            margin-bottom: 5px;
+        }
+
+        #nagoya-glutenfree-map-container .category-和食 { background-color: #ff6b6b; }
+        #nagoya-glutenfree-map-container .category-洋食 { background-color: #4ecdc4; }
+        #nagoya-glutenfree-map-container .category-カフェ { background-color: #f7b731; }
+        #nagoya-glutenfree-map-container .category-パン屋 { background-color: #5f27cd; }
+        #nagoya-glutenfree-map-container .category-販売店 { background-color: #00d2d3; }
+        #nagoya-glutenfree-map-container .category-スイーツ { background-color: #ff69b4; }
+
+        #nagoya-glutenfree-map-container .map-store-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-info i {
+            color: var(--primary-green);
+            margin-right: 5px;
+        }
+
+        /* モーダル */
+        #nagoya-glutenfree-map-container .map-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-content {
+            background: var(--white);
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 90vh;
+            margin: auto;
+            padding: 30px;
+            position: relative;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #nagoya-glutenfree-map-container .map-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        #nagoya-glutenfree-map-container .map-close-btn:hover {
+            color: var(--primary-pink);
+        }
+
+        /* モーダル内コンテンツ */
+        #nagoya-glutenfree-map-container .map-modal-header {
+            border-bottom: 2px solid var(--primary-green);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-image {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-header h2 {
+            color: var(--text-dark);
+            font-size: 24px;
+            margin: 0;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-info {
+            margin-bottom: 15px;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        #nagoya-glutenfree-map-container .map-modal-info-item i {
+            color: var(--primary-green);
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        #nagoya-glutenfree-map-container .map-gf-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        #nagoya-glutenfree-map-container .map-gf-badge.complete {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        #nagoya-glutenfree-map-container .map-gf-badge.partial {
+            background: var(--primary-yellow);
+            color: var(--text-dark);
+        }
+
+        #nagoya-glutenfree-map-container .map-naco-comment {
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.2) 0%, rgba(152, 216, 200, 0.2) 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary-pink);
+        }
+
+        #nagoya-glutenfree-map-container .map-naco-comment h3 {
+            color: var(--primary-pink);
+            font-size: 16px;
+            margin: 0 0 8px 0;
+        }
+
+        #nagoya-glutenfree-map-container .map-store-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        #nagoya-glutenfree-map-container .map-link {
+            display: inline-block;
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        #nagoya-glutenfree-map-container .map-link:hover {
+            background: var(--primary-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow);
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        #nagoya-glutenfree-map-container .map-link i {
+            margin-right: 5px;
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            #nagoya-glutenfree-map-container .map-main-content {
+                flex-direction: column;
+                min-height: 500px;
+            }
+            
+            #nagoya-glutenfree-map-container .map-container {
+                height: 400px;
+            }
+            
+            #nagoya-glutenfree-map-container .map-store-list {
+                width: 100%;
+                max-height: 300px;
+            }
+            
+            #nagoya-glutenfree-map-container .map-store-card {
+                flex-direction: column;
+                padding: 15px;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            #nagoya-glutenfree-map-container .map-store-card-image {
+                width: 100%;
+                height: 120px;
+                align-self: stretch;
+            }
+            
+            #nagoya-glutenfree-map-container .map-store-card-content {
+                padding: 0;
+            }
+            
+            #nagoya-glutenfree-map-container .map-store-links {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            #nagoya-glutenfree-map-container .map-link {
+                min-width: auto;
+            }
+            
+            #nagoya-glutenfree-map-container .map-category-filters {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 10px;
+            }
+            
+            #nagoya-glutenfree-map-container .map-filter-btn {
+                flex-shrink: 0;
+            }
+        }
+
+        /* カスタムマーカースタイル */
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+        
+        .custom-marker {
+            width: 35px;
+            height: 35px;
+            border-radius: 50% 50% 50% 0;
+            background: #89CFF0;
+            position: relative;
+            transform: rotate(-45deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .custom-marker:hover {
+            transform: rotate(-45deg) scale(1.1);
+        }
+        
+        .custom-marker i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .popup-content {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .popup-content h4 {
+            margin-bottom: 10px;
+            color: #4a4a4a;
+        }
+        
+        .popup-detail-btn {
+            background: #98d8c8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .popup-detail-btn:hover {
+            background: #ffb6c1;
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <!-- マップのHTML構造 -->
+    <div class="map-header">
+        <h1><i class="fas fa-map-marked-alt"></i> 名古屋グルテンフリーマップ</h1>
+        <p>by naco - Instagram @naco_glutenfree</p>
+    </div>
+
+    <!-- 検索とフィルター -->
+    <div class="map-controls">
+        <div class="map-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" class="map-search-input" id="mapSearchInput" placeholder="店名・住所で検索...">
+        </div>
+        
+        <div class="map-category-filters">
+            <button class="map-filter-btn active" data-category="all">
+                <i class="fas fa-globe"></i> すべて
+            </button>
+            <button class="map-filter-btn" data-category="和食">
+                <i class="fas fa-utensils"></i> 和食
+            </button>
+            <button class="map-filter-btn" data-category="洋食">
+                <i class="fas fa-pizza-slice"></i> 洋食
+            </button>
+            <button class="map-filter-btn" data-category="カフェ">
+                <i class="fas fa-coffee"></i> カフェ
+            </button>
+            <button class="map-filter-btn" data-category="パン屋">
+                <i class="fas fa-bread-slice"></i> パン屋
+            </button>
+            <button class="map-filter-btn" data-category="販売店">
+                <i class="fas fa-gift"></i> 販売店
+            </button>
+            <button class="map-filter-btn" data-category="スイーツ">
+                <i class="fas fa-ice-cream"></i> スイーツ
+            </button>
+        </div>
+    </div>
+
+    <!-- 地図とリストのコンテナ -->
+    <div class="map-main-content">
+        <div class="map-container" id="mapContainer"></div>
+        
+        <!-- 店舗リスト -->
+        <div class="map-store-list">
+            <h3>店舗リスト</h3>
+            <div id="mapStoreListContent"></div>
+        </div>
+    </div>
+
+    <!-- 店舗詳細モーダル -->
+    <div class="map-modal" id="mapStoreModal">
+        <div class="map-modal-content">
+            <span class="map-close-btn" id="mapCloseModal">&times;</span>
+            <div id="mapModalContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// マップ専用の名前空間を使用してWordPressとの競合を回避
+(function() {
+    'use strict';
+    
+    // グローバル変数
+    let nagoyaMap;
+    let nagoyaMarkers = [];
+    let nagoyaStoresData = [];
+    let nagoyaCurrentFilter = 'all';
+
+    // カテゴリー別の色とアイコン
+    const nagoyaCategoryStyles = {
+        '和食': { color: '#ff6b6b', icon: 'fa-utensils' },
+        '洋食': { color: '#4ecdc4', icon: 'fa-pizza-slice' },
+        'カフェ': { color: '#f7b731', icon: 'fa-coffee' },
+        'パン屋': { color: '#5f27cd', icon: 'fa-bread-slice' },
+        '販売店': { color: '#00d2d3', icon: 'fa-gift' },
+        'スイーツ': { color: '#ff69b4', icon: 'fa-ice-cream' }
+    };
+
+    // 店舗データ（埋め込み版）
+    const nagoyaStoresDataEmbedded = [
+        {
+            "id": 1,
+            "name": "グルテンフリーカフェ 栄",
+            "category": "カフェ",
+            "address": "愛知県名古屋市中区栄3-5-1",
+            "lat": 35.1685,
+            "lng": 136.9098,
+            "hours": "10:00-18:00",
+            "closed": "火曜日",
+            "tel": "052-123-4567",
+            "description": "完全グルテンフリーのカフェ。米粉のケーキが人気です。",
+            "glutenFreeType": "完全GF",
+            "takeout": true,
+            "seats": 20,
+            "nacoComment": "米粉のシフォンケーキがふわふわで最高！",
+            "website": "https://example.com",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1685,136.9098"
+        },
+        {
+            "id": 2,
+            "name": "和食処 さくら",
+            "category": "和食",
+            "address": "愛知県名古屋市千種区本山町2-10",
+            "lat": 35.1756,
+            "lng": 136.9645,
+            "hours": "11:30-14:00, 17:30-21:00",
+            "closed": "月曜日",
+            "tel": "052-234-5678",
+            "description": "醤油も小麦不使用のものを用意。事前連絡でGF対応可能。",
+            "glutenFreeType": "部分GF",
+            "takeout": false,
+            "seats": 30,
+            "nacoComment": "お寿司と天ぷらがグルテンフリーで楽しめます！",
+            "website": "",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1756,136.9645"
+        },
+        {
+            "id": 3,
+            "name": "米粉パン工房 ひまわり",
+            "category": "パン屋",
+            "address": "愛知県名古屋市名東区藤が丘142",
+            "lat": 35.1803,
+            "lng": 137.0125,
+            "hours": "8:00-18:00",
+            "closed": "日曜日・月曜日",
+            "tel": "052-345-6789",
+            "description": "100%米粉使用の専門パン屋さん。",
+            "glutenFreeType": "完全GF",
+            "takeout": true,
+            "seats": 0,
+            "nacoComment": "食パンがもちもちで美味しい！朝早く行くのがおすすめ。",
+            "website": "",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1803,137.0125"
+        },
+        {
+            "id": 4,
+            "name": "イタリアン・リストランテ ソーレ",
+            "category": "洋食",
+            "address": "愛知県名古屋市中区大須3-30-40",
+            "lat": 35.1595,
+            "lng": 136.9012,
+            "hours": "11:00-15:00, 17:00-22:00",
+            "closed": "なし",
+            "tel": "052-456-7890",
+            "description": "グルテンフリーパスタあり。ピザ生地もGF対応可能。",
+            "glutenFreeType": "部分GF",
+            "takeout": true,
+            "seats": 40,
+            "nacoComment": "GFパスタの種類が豊富！デートにもおすすめ。",
+            "website": "https://example-italian.com",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1595,136.9012"
+        },
+        {
+            "id": 5,
+            "name": "名古屋土産処 八丁味噌の郷",
+            "category": "販売店",
+            "address": "愛知県名古屋市中区金山1-1-1",
+            "lat": 35.1427,
+            "lng": 136.9005,
+            "hours": "9:00-20:00",
+            "closed": "なし",
+            "tel": "052-567-8901",
+            "description": "八丁味噌商品や米粉のお菓子など、GF土産が豊富。",
+            "glutenFreeType": "部分GF",
+            "takeout": true,
+            "seats": 0,
+            "nacoComment": "お土産選びに困ったらここ！GF表示もわかりやすい。",
+            "website": "",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1427,136.9005"
+        },
+        {
+            "id": 6,
+            "name": "米粉スイーツ専門店 Sugar Free",
+            "category": "スイーツ",
+            "address": "愛知県名古屋市中区錦3-15-13",
+            "lat": 35.1706,
+            "lng": 136.8968,
+            "hours": "11:00-19:00",
+            "closed": "水曜日",
+            "tel": "052-678-9012",
+            "description": "米粉100%使用のグルテンフリースイーツ専門店。マカロンやタルトが人気。",
+            "glutenFreeType": "完全GF",
+            "takeout": true,
+            "seats": 10,
+            "nacoComment": "季節のフルーツタルトが絶品！プレゼントにも最適です。",
+            "website": "",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1706,136.8968"
+        },
+        {
+            "id": 7,
+            "name": "和スイーツ処 みたらし",
+            "category": "スイーツ",
+            "address": "愛知県名古屋市熱田区神宮2-3-1",
+            "lat": 35.1274,
+            "lng": 136.9089,
+            "hours": "9:00-17:00",
+            "closed": "不定休",
+            "tel": "052-789-0123",
+            "description": "伝統的な和菓子をグルテンフリーで。みたらし団子、大福が人気。",
+            "glutenFreeType": "完全GF",
+            "takeout": true,
+            "seats": 15,
+            "nacoComment": "米粉100%のみたらし団子は必食！熱田神宮参拝の際にぜひ。",
+            "website": "",
+            "instagram": "",
+            "imageUrl": "https://images.unsplash.com/photo-1582716401301-b2407dc7563d?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/35.1274,136.9089"
+        },
+        {
+            "id": 8,
+            "name": "みちのり亭",
+            "category": "和食",
+            "address": "名古屋市中村区椿町８－７－２F",
+            "lat": 35.1694717,
+            "lng": 136.8790828,
+            "hours": "11:00-15:00(LO14:00)  18:00-22:00(LO21::00",
+            "closed": "なし",
+            "tel": "",
+            "description": "グルテンフリーの定食屋",
+            "glutenFreeType": "完全GF",
+            "takeout": false,
+            "seats": 28,
+            "nacoComment": "私のお店です",
+            "website": "",
+            "instagram": "https://www.instagram.com/gf_michinori_tei/",
+            "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop",
+            "googleMapsUrl": "https://www.google.com/maps/place/%E3%81%BF%E3%81%A1%E3%81%AE%E3%82%8A%E4%BA%AD/@35.1694717,136.8790828,17z/data=!3m1!4b1!4m6!3m5!1s0x600377f592c69f27:0xfcbe7e72e46a5f4c!8m2!3d35.1694717!4d136.8790828!16s%2Fg%2F11rgb_tzpv?entry=ttu&g_ep=EgoyMDI1MDcyMC4wIKXMDSoASAFQAw%3D%3D"
+        }
+    ];
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', function() {
+        initNagoyaMap();
+        nagoyaStoresData = nagoyaStoresDataEmbedded;
+        displayNagoyaStores(nagoyaStoresData);
+        updateNagoyaStoreList(nagoyaStoresData);
+        setupNagoyaEventListeners();
+    });
+
+    // 地図の初期化
+    function initNagoyaMap() {
+        // 名古屋市の中心座標
+        nagoyaMap = L.map('mapContainer').setView([35.1815, 136.9066], 12);
+        
+        // OpenStreetMapタイルを追加
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            opacity: 0.9
+        }).addTo(nagoyaMap);
+    }
+
+    // カスタムアイコンの作成
+    function createNagoyaCustomIcon(category) {
+        const style = nagoyaCategoryStyles[category] || { color: '#666', icon: 'fa-store' };
+        
+        return L.divIcon({
+            html: `<div class="custom-marker" style="background-color: ${style.color}">
+                    <i class="fas ${style.icon}"></i>
+                   </div>`,
+            className: 'custom-div-icon',
+            iconSize: [35, 35],
+            iconAnchor: [17.5, 35],
+            popupAnchor: [0, -35]
+        });
+    }
+
+    // 地図上に店舗を表示
+    function displayNagoyaStores(stores) {
+        // 既存のマーカーをクリア
+        nagoyaMarkers.forEach(marker => nagoyaMap.removeLayer(marker));
+        nagoyaMarkers = [];
+        
+        stores.forEach(store => {
+            const marker = L.marker([store.lat, store.lng], {
+                icon: createNagoyaCustomIcon(store.category)
+            });
+            
+            // ポップアップの内容
+            const popupContent = `
+                <div class="popup-content">
+                    <h4>${store.name}</h4>
+                    <span class="map-store-category category-${store.category}">${store.category}</span>
+                    <p>${store.address}</p>
+                    <button class="popup-detail-btn" onclick="showNagoyaStoreDetail(${store.id})">
+                        詳細を見る
+                    </button>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            marker.addTo(nagoyaMap);
+            nagoyaMarkers.push(marker);
+        });
+    }
+
+    // 店舗リストの更新
+    function updateNagoyaStoreList(stores) {
+        const listContent = document.getElementById('mapStoreListContent');
+        listContent.innerHTML = '';
+        
+        stores.forEach(store => {
+            const card = document.createElement('div');
+            card.className = 'map-store-card';
+            card.innerHTML = `
+                <div class="map-store-card-image">
+                    <img src="${store.imageUrl || ''}" alt="${store.name}" onerror="this.style.display='none'">
+                </div>
+                <div class="map-store-card-content">
+                    <h4>${store.name}</h4>
+                    <span class="map-store-category category-${store.category}">${store.category}</span>
+                    <div class="map-store-info">
+                        <i class="fas fa-map-marker-alt"></i> ${store.address}
+                    </div>
+                    <div class="map-store-info">
+                        <i class="fas fa-clock"></i> ${store.hours}
+                    </div>
+                </div>
+            `;
+            card.onclick = () => {
+                showNagoyaStoreDetail(store.id);
+                // 地図を該当店舗にズーム
+                nagoyaMap.setView([store.lat, store.lng], 16);
+            };
+            listContent.appendChild(card);
+        });
+    }
+
+    // 店舗詳細表示
+    window.showNagoyaStoreDetail = function(storeId) {
+        const store = nagoyaStoresData.find(s => s.id === storeId);
+        if (!store) return;
+        
+        const modal = document.getElementById('mapStoreModal');
+        const modalContent = document.getElementById('mapModalContent');
+        
+        modalContent.innerHTML = `
+            <div class="map-modal-header">
+                ${store.imageUrl ? `<div class="map-modal-image">
+                    <img src="${store.imageUrl}" alt="${store.name}" onerror="this.parentElement.style.display='none'">
+                </div>` : ''}
+                <h2>${store.name}</h2>
+                <span class="map-store-category category-${store.category}">${store.category}</span>
+            </div>
+            
+            <div class="map-modal-info">
+                <div class="map-modal-info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${store.address}</span>
+                </div>
+                
+                <div class="map-modal-info-item">
+                    <i class="fas fa-clock"></i>
+                    <span>${store.hours}</span>
+                </div>
+                
+                <div class="map-modal-info-item">
+                    <i class="fas fa-calendar-times"></i>
+                    <span>定休日: ${store.closed}</span>
+                </div>
+                
+                ${store.tel ? `
+                <div class="map-modal-info-item">
+                    <i class="fas fa-phone"></i>
+                    <span>${store.tel}</span>
+                </div>
+                ` : ''}
+                
+                ${store.seats > 0 ? `
+                <div class="map-modal-info-item">
+                    <i class="fas fa-chair"></i>
+                    <span>席数: ${store.seats}席</span>
+                </div>
+                ` : ''}
+                
+                ${store.takeout ? `
+                <div class="map-modal-info-item">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>テイクアウト可</span>
+                </div>
+                ` : ''}
+                
+                <div class="map-modal-info-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>${store.description}</span>
+                </div>
+                
+                <div class="map-gf-badge ${store.glutenFreeType === '完全GF' ? 'complete' : 'partial'}">
+                    ${store.glutenFreeType}
+                </div>
+            </div>
+            
+            ${store.nacoComment ? `
+            <div class="map-naco-comment">
+                <h3>nacoのおすすめポイント</h3>
+                <p>${store.nacoComment}</p>
+            </div>
+            ` : ''}
+            
+            <div class="map-store-links">
+                ${store.website ? `
+                <a href="${store.website}" 
+                   target="_blank" 
+                   class="map-link">
+                    <i class="fas fa-globe"></i> 公式ウェブサイト
+                </a>
+                ` : ''}
+                
+                ${store.instagram ? `
+                <a href="${store.instagram}" 
+                   target="_blank" 
+                   class="map-link"
+                   onclick="openNagoyaInstagram('${store.instagram}'); return false;">
+                    <i class="fab fa-instagram"></i> Instagram
+                </a>
+                ` : ''}
+                
+                <a href="${store.googleMapsUrl || `https://www.google.com/maps?q=${store.lat},${store.lng}`}" 
+                   target="_blank" 
+                   class="map-link">
+                    <i class="fas fa-map"></i> Google マップで開く
+                </a>
+            </div>
+        `;
+        
+        modal.style.display = 'block';
+    }
+
+    // Instagram アプリで開く関数
+    window.openNagoyaInstagram = function(url) {
+        // Instagram URLからユーザー名を抽出
+        const username = extractNagoyaInstagramUsername(url);
+        
+        if (username) {
+            // まずInstagramアプリのdeep linkを試す
+            const appLink = `instagram://user?username=${username}`;
+            
+            // iOSの場合
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                window.location = appLink;
+                // アプリが開かなかった場合のフォールバック
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                }, 500);
+            }
+            // Androidの場合
+            else if (/Android/.test(navigator.userAgent)) {
+                const intent = `intent://instagram.com/_u/${username}/#Intent;package=com.instagram.android;scheme=https;end`;
+                window.location = intent;
+                // フォールバック
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                }, 500);
+            }
+            // その他のデバイス（PC等）
+            else {
+                window.open(url, '_blank');
+            }
+        } else {
+            // ユーザー名が抽出できない場合はブラウザで開く
+            window.open(url, '_blank');
+        }
+    }
+
+    // Instagram URLからユーザー名を抽出する関数
+    function extractNagoyaInstagramUsername(url) {
+        try {
+            // 様々なInstagram URLパターンに対応
+            const patterns = [
+                /instagram\.com\/([^\/\?\#]+)/i,
+                /instagram\.com\/p\/[^\/]+\/\?.*taken-by=([^&]+)/i,
+                /instagram\.com\/explore\/tags\/([^\/\?\#]+)/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Instagram username extraction failed:', error);
+            return null;
+        }
+    }
+
+    // イベントリスナーの設定
+    function setupNagoyaEventListeners() {
+        // カテゴリーフィルター
+        document.querySelectorAll('#nagoya-glutenfree-map-container .map-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#nagoya-glutenfree-map-container .map-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                nagoyaCurrentFilter = this.dataset.category;
+                filterNagoyaStores();
+            });
+        });
+        
+        // 検索機能
+        document.getElementById('mapSearchInput').addEventListener('input', function(e) {
+            filterNagoyaStores();
+        });
+        
+        // モーダルを閉じる
+        document.getElementById('mapCloseModal').addEventListener('click', function() {
+            document.getElementById('mapStoreModal').style.display = 'none';
+        });
+        
+        // モーダル外をクリックで閉じる
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('mapStoreModal');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+
+    // フィルタリング機能
+    function filterNagoyaStores() {
+        const searchTerm = document.getElementById('mapSearchInput').value.toLowerCase();
+        
+        let filteredStores = nagoyaStoresData;
+        
+        // カテゴリーフィルター
+        if (nagoyaCurrentFilter !== 'all') {
+            filteredStores = filteredStores.filter(store => store.category === nagoyaCurrentFilter);
+        }
+        
+        // 検索フィルター
+        if (searchTerm) {
+            filteredStores = filteredStores.filter(store => 
+                store.name.toLowerCase().includes(searchTerm) ||
+                store.address.toLowerCase().includes(searchTerm) ||
+                store.description.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        displayNagoyaStores(filteredStores);
+        updateNagoyaStoreList(filteredStores);
+    }
+
+})();
+</script>
