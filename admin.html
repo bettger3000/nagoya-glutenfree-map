@@ -820,11 +820,15 @@
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja&zoom=18&addressdetails=1`);
                 const data = await response.json();
                 
+                console.log('住所取得API応答:', data); // デバッグ用
+                
                 if (data && data.address) {
                     // 住所フィールドが空の場合のみ自動入力
                     const addressField = document.getElementById('storeAddress');
+                    console.log('現在の住所フィールド値:', addressField.value); // デバッグ用
                     if (!addressField.value) {
                         const addr = data.address;
+                        console.log('住所オブジェクト:', addr); // デバッグ用
                         let japaneseAddress = '';
                         
                         // 日本式住所の構築（市区町村から開始、都道府県と国は省略）
@@ -882,6 +886,7 @@
                         
                         // 重複を除去し、日本式住所として結合
                         const uniqueParts = [...new Set(addressParts)];
+                        console.log('住所パーツ:', addressParts); // デバッグ用
                         japaneseAddress = uniqueParts.join('');
                         
                         // 郵便番号を除去（〒マークや数字-数字のパターン）
@@ -890,12 +895,16 @@
                         // 余分なスペースやカンマを清理
                         japaneseAddress = japaneseAddress.replace(/,\s*/g, '').replace(/\s+/g, '').trim();
                         
+                        console.log('構築された住所:', japaneseAddress); // デバッグ用
+                        
                         // 結果が空でない場合のみ設定
                         if (japaneseAddress) {
                             addressField.value = japaneseAddress;
+                            console.log('住所フィールドに設定:', japaneseAddress); // デバッグ用
                         } else {
                             // フォールバック: display_nameから日本の住所部分を抽出
                             let fallbackAddress = data.display_name;
+                            console.log('フォールバック元住所:', fallbackAddress); // デバッグ用
                             
                             // 郵便番号、国名、都道府県を除去
                             fallbackAddress = fallbackAddress.replace(/〒?\d{3}-?\d{4}\s*,?\s*/, ''); // 郵便番号
@@ -903,9 +912,15 @@
                             fallbackAddress = fallbackAddress.replace(/愛知県\s*,?\s*/, ''); // 都道府県
                             fallbackAddress = fallbackAddress.replace(/,\s*/g, '').replace(/\s+/g, '').trim();
                             
+                            console.log('フォールバック処理後:', fallbackAddress); // デバッグ用
                             addressField.value = fallbackAddress;
+                            console.log('フォールバック住所をフィールドに設定:', fallbackAddress); // デバッグ用
                         }
+                    } else {
+                        console.log('住所フィールドに既に値があるため、自動入力をスキップします'); // デバッグ用
                     }
+                } else {
+                    console.log('住所データが取得できませんでした'); // デバッグ用
                 }
             } catch (error) {
                 console.log('住所取得エラー:', error);
