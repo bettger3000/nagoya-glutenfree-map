@@ -257,11 +257,17 @@
                     <label>Google Sheets URL *</label>
                     <input type="url" id="spreadsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
                     <div class="help-text">
-                        <strong>設定方法:</strong><br>
-                        1. Google Sheetsでスプレッドシートを作成<br>
-                        2. 「ファイル」→「共有」→「ウェブに公開」<br>
-                        3. 「リンク」タブで「CSV」形式を選択<br>
-                        4. 公開されたURLをここに貼り付け
+                        <strong>設定方法（どちらでもOK）:</strong><br>
+                        <strong>方法1（簡単）:</strong> 共有URLをそのまま貼り付け<br>
+                        • Google Sheetsの「共有」ボタンから取得したURLを使用<br>
+                        • 例: https://docs.google.com/spreadsheets/d/.../edit?usp=sharing<br><br>
+                        
+                        <strong>方法2（従来）:</strong> ウェブ公開URL<br>
+                        1. Google Sheetsで「ファイル」→「共有」→「ウェブに公開」<br>
+                        2. 「リンク」タブで「CSV」形式を選択<br>
+                        3. 公開されたURLを貼り付け<br><br>
+                        
+                        <strong>💡 どちらの方法でも自動でCSV形式に変換されます！</strong>
                     </div>
                 </div>
                 
@@ -670,14 +676,34 @@
                 
                 // CSVのURLに変換
                 const csvUrl = convertToCSVUrl(url);
-                console.log('CSV URL:', csvUrl);
+                console.log('テスト用CSV URL:', csvUrl);
                 
-                const response = await fetch(csvUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // CORSエラーを回避するためプロキシを使用
+                let csvText;
+                
+                try {
+                    // 直接アクセスを試行
+                    const response = await fetch(csvUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    csvText = await response.text();
+                    console.log('直接アクセステスト成功');
+                } catch (directError) {
+                    console.log('直接アクセステスト失敗、プロキシを使用:', directError.message);
+                    
+                    // プロキシ経由でアクセス
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(csvUrl)}`;
+                    const proxyResponse = await fetch(proxyUrl);
+                    
+                    if (!proxyResponse.ok) {
+                        throw new Error(`Proxy error! status: ${proxyResponse.status}`);
+                    }
+                    
+                    const proxyData = await proxyResponse.json();
+                    csvText = proxyData.contents;
+                    console.log('プロキシアクセステスト成功');
                 }
-                
-                const csvText = await response.text();
                 const rows = parseCSV(csvText);
                 
                 if (rows.length < 2) {
@@ -710,13 +736,35 @@
                 showStatus('スプレッドシートからデータを読み込み中...', 'success');
                 
                 const csvUrl = convertToCSVUrl(spreadsheetUrl);
-                const response = await fetch(csvUrl);
+                console.log('CSVダウンロードURL:', csvUrl);
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // CORSエラーを回避するためプロキシを使用
+                let response;
+                let csvText;
+                
+                try {
+                    // 直接アクセスを試行
+                    response = await fetch(csvUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    csvText = await response.text();
+                    console.log('直接アクセス成功');
+                } catch (directError) {
+                    console.log('直接アクセス失敗、プロキシを使用:', directError.message);
+                    
+                    // プロキシ経由でアクセス
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(csvUrl)}`;
+                    const proxyResponse = await fetch(proxyUrl);
+                    
+                    if (!proxyResponse.ok) {
+                        throw new Error(`Proxy error! status: ${proxyResponse.status}`);
+                    }
+                    
+                    const proxyData = await proxyResponse.json();
+                    csvText = proxyData.contents;
+                    console.log('プロキシアクセス成功');
                 }
-                
-                const csvText = await response.text();
                 const rows = parseCSV(csvText);
                 
                 if (rows.length < 2) {
@@ -760,24 +808,50 @@
         
         // Google SheetsのURLをCSV URLに変換
         function convertToCSVUrl(url) {
-            // Google SheetsのURLパターンを検出して変換
-            if (url.includes('docs.google.com/spreadsheets')) {
-                // 既にCSV URLの場合はそのまま返す
-                if (url.includes('/export?format=csv')) {
-                    return url;
+            try {
+                console.log('変換前URL:', url);
+                
+                // Google SheetsのURLパターンを検出して変換
+                if (url.includes('docs.google.com/spreadsheets')) {
+                    // 既にCSV URLの場合はそのまま返す
+                    if (url.includes('/export?format=csv')) {
+                        console.log('既にCSV URLです');
+                        return url;
+                    }
+                    
+                    // スプレッドシートIDを抽出（複数のパターンに対応）
+                    let spreadsheetId = null;
+                    
+                    // パターン1: /spreadsheets/d/{ID}/edit
+                    let match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                    if (match) {
+                        spreadsheetId = match[1];
+                    }
+                    
+                    if (spreadsheetId) {
+                        // シートのGIDを抽出（指定されている場合）
+                        let gid = '0'; // デフォルトは最初のシート
+                        
+                        // URLからgidパラメータを抽出
+                        const gidMatch = url.match(/[#&]gid=([0-9]+)/);
+                        if (gidMatch) {
+                            gid = gidMatch[1];
+                        }
+                        
+                        const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+                        console.log('変換後CSV URL:', csvUrl);
+                        return csvUrl;
+                    }
                 }
                 
-                // 通常のGoogle Sheets URLからスプレッドシートIDを抽出
-                const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-                if (match) {
-                    const spreadsheetId = match[1];
-                    const sheetName = localStorage.getItem('sheetName') || 'シート1';
-                    return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=0`;
-                }
+                // その他のCSV URLやHTTP URLはそのまま返す
+                console.log('変換不要、そのまま返します');
+                return url;
+                
+            } catch (error) {
+                console.error('URL変換エラー:', error);
+                return url;
             }
-            
-            // その他のCSV URLはそのまま返す
-            return url;
         }
         
         // CSV文字列をパース
