@@ -3,6 +3,7 @@ let map;
 let markers = [];
 let storesData = [];
 let currentFilter = 'all';
+let userLocation = null;
 
 // カテゴリー別の色とアイコン
 const categoryStyles = {
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initMap();
     await loadStores();
     setupEventListeners();
+    requestUserLocation();
 });
 
 // 地図の初期化
@@ -136,7 +138,18 @@ function updateStoreList(stores) {
     const listContent = document.getElementById('storeListContent');
     listContent.innerHTML = '';
     
-    stores.forEach(store => {
+    // 現在地がある場合は距離でソート
+    let sortedStores = [...stores];
+    if (userLocation) {
+        sortedStores = sortedStores
+            .map(store => ({
+                ...store,
+                distance: store.lat && store.lng ? calculateDistance(userLocation.lat, userLocation.lng, store.lat, store.lng) : Infinity
+            }))
+            .sort((a, b) => a.distance - b.distance);
+    }
+    
+    sortedStores.forEach(store => {
         const card = document.createElement('div');
         card.className = 'store-card';
         card.innerHTML = `
@@ -152,6 +165,11 @@ function updateStoreList(stores) {
                 <div class="store-info">
                     <i class="fas fa-clock"></i> ${store.hours}
                 </div>
+                ${userLocation && store.distance !== Infinity ? `
+                <div class="store-info store-distance">
+                    <i class="fas fa-route"></i> ${formatDistance(store.distance)}
+                </div>
+                ` : ''}
             </div>
         `;
         card.onclick = () => {
@@ -411,6 +429,62 @@ function extractInstagramUsername(url) {
     }
 }
 
+// 現在地を取得
+function requestUserLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // 現在地マーカーを追加
+                L.marker([userLocation.lat, userLocation.lng], {
+                    icon: L.divIcon({
+                        html: '<div class="user-location-marker"><i class="fas fa-user"></i></div>',
+                        className: 'user-location-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+                }).addTo(map).bindPopup('現在地');
+                
+                // 店舗リストを更新（距離順にソート）
+                filterStores();
+            },
+            (error) => {
+                console.log('現在地を取得できませんでした:', error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    }
+}
+
+// 2点間の距離を計算（km）
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // 地球の半径（km）
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// 距離をフォーマット
+function formatDistance(distance) {
+    if (distance < 1) {
+        return Math.round(distance * 1000) + 'm';
+    } else {
+        return distance.toFixed(1) + 'km';
+    }
+}
+
 // カスタムマーカーのスタイル（CSSに追加）
 const markerStyles = document.createElement('style');
 markerStyles.textContent = `
@@ -481,6 +555,30 @@ markerStyles.textContent = `
     .popup-detail-btn:hover {
         background: #ffb6c1;
         transform: translateY(-2px);
+    }
+    
+    /* 現在地マーカー */
+    .user-location-marker {
+        width: 30px;
+        height: 30px;
+        background: #4285f4;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        border: 3px solid white;
+    }
+    
+    .user-location-marker i {
+        color: white;
+        font-size: 14px;
+    }
+    
+    /* 距離表示 */
+    .store-distance {
+        color: #4285f4;
+        font-weight: bold;
     }
 `;
 document.head.appendChild(markerStyles);
