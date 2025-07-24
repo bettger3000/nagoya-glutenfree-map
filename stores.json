@@ -1,6 +1,28 @@
 {
   "stores": [
     {
+      "id": 1,
+      "name": "Creperiz Stand.Nagoya",
+      "category": "スイーツ",
+      "address": "名古屋市中区大須３丁目３０−２５ 合点承知ビル 1階",
+      "lat": 35.1602,
+      "lng": 136.9085,
+      "hours": "",
+      "closed": "なし",
+      "tel": "",
+      "description": "",
+      "glutenFreeType": "",
+      "takeout": false,
+      "seats": 0,
+      "nacoComment": "",
+      "website": "",
+      "instagram": "",
+      "imageUrl": "",
+      "imageUrl2": "",
+      "imageUrl3": "",
+      "googleMapsUrl": ""
+    },
+    {
       "id": 8,
       "name": "みちのり亭",
       "category": "和食",

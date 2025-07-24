@@ -296,9 +296,11 @@
         <div class="controls">
             <button class="btn" onclick="showAddModal()">➕ 新しい店舗を追加</button>
             <button class="btn" onclick="loadFromSpreadsheet()">📊 スプレッドシートから読み込み</button>
+            <button class="btn" onclick="loadFromSpreadsheetReplace()" style="background-color: #ff9800; color: white;">⚠️ スプレッドシートで置き換え</button>
             <button class="btn" onclick="showSpreadsheetSettings()">⚙️ スプレッドシート設定</button>
             <button class="btn btn-success" onclick="saveToGitHubDirect()">🚀 GitHubに直接保存</button>
             <button class="btn" onclick="saveToGitHub()">💾 ファイルダウンロード</button>
+            <button class="btn" onclick="reloadStoresData()">🔄 最新データを読み込み</button>
         </div>
         
         <!-- 現在のスプレッドシート設定表示 -->
@@ -356,20 +358,25 @@
                 <p>Google Sheetsから店舗データを読み込む設定を行います。</p>
                 
                 <div class="form-group">
-                    <label>Google Sheets URL *</label>
+                    <label>Google Sheets URL</label>
                     <input type="url" id="spreadsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
                     <div class="help-text">
-                        <strong>設定方法（どちらでもOK）:</strong><br>
-                        <strong>方法1（簡単）:</strong> 共有URLをそのまま貼り付け<br>
-                        • Google Sheetsの「共有」ボタンから取得したURLを使用<br>
+                        <strong>🔧 設定方法:</strong><br>
+                        <strong>1. スプレッドシートを共有可能にする</strong><br>
+                        • Google Sheetsの「共有」ボタンをクリック<br>
+                        • 「一般的なアクセス」を「リンクを知っている全員」に変更<br>
+                        • 権限は「閲覧者」でOK<br><br>
+                        
+                        <strong>2. URLをコピー</strong><br>
+                        • 共有画面でURLをコピーして上記欄に貼り付け<br>
                         • 例: https://docs.google.com/spreadsheets/d/.../edit?usp=sharing<br><br>
                         
-                        <strong>方法2（従来）:</strong> ウェブ公開URL<br>
-                        1. Google Sheetsで「ファイル」→「共有」→「ウェブに公開」<br>
-                        2. 「リンク」タブで「CSV」形式を選択<br>
-                        3. 公開されたURLを貼り付け<br><br>
+                        <strong>📋 スプレッドシートの形式:</strong><br>
+                        • 1行目：ヘッダー（名前, カテゴリー, 住所, 緯度, 経度, 営業時間, 定休日, 電話番号, 説明, グルテンフリータイプ, テイクアウト, 席数, nacoコメント, ウェブサイト, Instagram, 画像URL, 画像URL2, 画像URL3, GoogleマップURL）<br>
+                        • 2行目以降：店舗データ<br><br>
                         
-                        <strong>💡 どちらの方法でも自動でCSV形式に変換されます！</strong>
+                        <strong>⚠️ エラーが出る場合:</strong><br>
+                        「ファイル」→「共有」→「ウェブに公開」を試してください
                     </div>
                 </div>
                 
@@ -443,13 +450,13 @@
             
             <form id="storeForm">
                 <div class="form-group">
-                    <label>店舗名 *</label>
-                    <input type="text" id="storeName" required>
+                    <label>店舗名</label>
+                    <input type="text" id="storeName">
                 </div>
                 
                 <div class="form-group">
-                    <label>カテゴリー *</label>
-                    <select id="storeCategory" required>
+                    <label>カテゴリー</label>
+                    <select id="storeCategory">
                         <option value="">選択してください</option>
                         <option value="和食">和食</option>
                         <option value="洋食">洋食</option>
@@ -461,13 +468,13 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>住所 *</label>
-                    <input type="text" id="storeAddress" required>
+                    <label>住所</label>
+                    <input type="text" id="storeAddress">
                 </div>
                 
                 <div class="form-group">
-                    <label>Googleマップリンク *</label>
-                    <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." required onpaste="handleGoogleMapsUrlPaste(event)">
+                    <label>Googleマップリンク</label>
+                    <input type="url" id="storeGoogleMapsUrl" placeholder="https://www.google.com/maps/place/..." onpaste="handleGoogleMapsUrlPaste(event)">
                     <button type="button" class="btn" onclick="extractFromGoogleMaps()" id="extractBtn">🔍 住所と座標を自動取得</button>
                     <div class="help-text">
                         📱 <strong>座標取得方法（推奨順）:</strong><br>
@@ -479,16 +486,16 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>緯度 *</label>
-                    <input type="number" id="storeLat" step="0.0001" required placeholder="例: 35.1709" onchange="handleCoordinateChange()">
+                    <label>緯度</label>
+                    <input type="number" id="storeLat" step="0.0001" placeholder="例: 35.1709" onchange="handleCoordinateChange()">
                     <div class="help-text">
                         📍 Googleマップで右クリック→「この場所について」で取得した座標を入力可能
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>経度 *</label>
-                    <input type="number" id="storeLng" step="0.0001" required placeholder="例: 136.8833" onchange="handleCoordinateChange()">
+                    <label>経度</label>
+                    <input type="number" id="storeLng" step="0.0001" placeholder="例: 136.8833" onchange="handleCoordinateChange()">
                 </div>
                 
                 <div class="form-group">
@@ -661,12 +668,65 @@
         // 店舗データを読み込み
         async function loadStoresData() {
             try {
-                const response = await fetch('stores.json');
+                console.log('店舗データを読み込み中...');
+                // 強力なキャッシュバスティング（メインサイトと同じ方式）
+                const timestamp = new Date().getTime();
+                const randomId = Math.random().toString(36).substring(7);
+                const response = await fetch(`stores.json?v=${timestamp}&r=${randomId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log('読み込んだデータ:', data);
+                console.log('JSONファイルのstores配列:', data.stores);
+                
+                if (!data.stores || !Array.isArray(data.stores)) {
+                    throw new Error('stores配列が見つかりません');
+                }
+                
                 storesData = data.stores;
+                console.log('店舗数:', storesData.length);
+                console.log('店舗リスト:', storesData.map(s => s.name));
+                
+                if (storesData.length === 0) {
+                    console.warn('店舗データが空です');
+                    showStatus('店舗データが空です', 'warning');
+                    return;
+                }
+                
+                if (storesData.length < 6) {
+                    console.warn(`期待される店舗数は6件ですが、${storesData.length}件しか読み込めませんでした`);
+                    showStatus(`警告: ${storesData.length}件の店舗データを読み込みました（期待値: 6件）`, 'warning');
+                } else {
+                    showStatus(`${storesData.length}件の店舗データを読み込みました`, 'success');
+                }
+                
                 renderTable();
+                console.log('店舗データを読み込みました:', storesData.length, '件');
             } catch (error) {
-                showStatus('店舗データの読み込みに失敗しました', 'error');
+                console.error('店舗データ読み込みエラー:', error);
+                console.error('エラー詳細:', error.message);
+                showStatus('店舗データの読み込みに失敗しました: ' + error.message, 'error');
+            }
+        }
+
+        // 最新データを手動で再読み込み
+        async function reloadStoresData() {
+            showStatus('最新データを読み込み中...', 'success');
+            try {
+                await loadStoresData();
+                showStatus('最新データを読み込みました。', 'success');
+            } catch (error) {
+                showStatus('データの読み込みに失敗しました', 'error');
             }
         }
         
@@ -788,7 +848,7 @@
             closeModal();
         });
         
-        // スプレッドシートから読み込み
+        // スプレッドシートから読み込み（追加モード）
         function loadFromSpreadsheet() {
             const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
             
@@ -797,7 +857,27 @@
                 return;
             }
             
-            importFromSpreadsheet();
+            importFromSpreadsheet(false); // false = 追加モード
+        }
+        
+        // スプレッドシートで既存データを置き換え（置き換えモード）
+        function loadFromSpreadsheetReplace() {
+            const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
+            
+            if (!spreadsheetUrl) {
+                document.getElementById('spreadsheetModal').style.display = 'block';
+                return;
+            }
+            
+            const confirmed = confirm(
+                '⚠️ 注意：この操作は既存のすべての店舗データを削除し、\n' +
+                'スプレッドシートのデータで置き換えます。\n\n' +
+                '本当に実行しますか？'
+            );
+            
+            if (confirmed) {
+                importFromSpreadsheet(true); // true = 置き換えモード
+            }
         }
         
         // スプレッドシート設定を保存
@@ -887,11 +967,11 @@
         }
         
         // スプレッドシートから実際にインポート
-        async function importFromSpreadsheet() {
+        async function importFromSpreadsheet(replaceMode = false) {
             const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
             
             if (!spreadsheetUrl) {
-                showStatus('スプレッドシート設定が見つかりません', 'error');
+                showStatus('スプレッドシート設定が見つかりません。設定を行ってください。', 'error');
                 return;
             }
             
@@ -901,34 +981,66 @@
                 const csvUrl = convertToCSVUrl(spreadsheetUrl);
                 console.log('CSVダウンロードURL:', csvUrl);
                 
-                // CORSエラーを回避するためプロキシを使用
-                let response;
+                // 複数の方法でアクセスを試行
                 let csvText;
+                let accessMethod = '';
                 
+                // 方法1: 直接アクセス
                 try {
-                    // 直接アクセスを試行
-                    response = await fetch(csvUrl);
+                    const response = await fetch(csvUrl);
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                     csvText = await response.text();
+                    accessMethod = '直接アクセス';
                     console.log('直接アクセス成功');
                 } catch (directError) {
-                    console.log('直接アクセス失敗、プロキシを使用:', directError.message);
+                    console.log('直接アクセス失敗:', directError.message);
                     
-                    // プロキシ経由でアクセス
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(csvUrl)}`;
-                    const proxyResponse = await fetch(proxyUrl);
-                    
-                    if (!proxyResponse.ok) {
-                        throw new Error(`Proxy error! status: ${proxyResponse.status}`);
+                    // 方法2: Published URLに変換を試行
+                    try {
+                        const publishedUrl = convertToPublishedCSVUrl(spreadsheetUrl);
+                        if (publishedUrl !== csvUrl) {
+                            console.log('Published URL試行:', publishedUrl);
+                            const response = await fetch(publishedUrl);
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                            csvText = await response.text();
+                            accessMethod = 'Published URL';
+                            console.log('Published URLアクセス成功');
+                        } else {
+                            throw new Error('Published URL変換なし');
+                        }
+                    } catch (publishedError) {
+                        console.log('Published URLアクセス失敗:', publishedError.message);
+                        
+                        // 方法3: プロキシ経由でアクセス
+                        try {
+                            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(csvUrl)}`;
+                            const proxyResponse = await fetch(proxyUrl);
+                            
+                            if (!proxyResponse.ok) {
+                                throw new Error(`Proxy HTTP ${proxyResponse.status}: ${proxyResponse.statusText}`);
+                            }
+                            
+                            const proxyData = await proxyResponse.json();
+                            
+                            if (proxyData.status && proxyData.status.http_code && proxyData.status.http_code >= 400) {
+                                throw new Error(`Google Sheets HTTP ${proxyData.status.http_code}: ${proxyData.status.error || 'アクセス権限がありません'}`);
+                            }
+                            
+                            csvText = proxyData.contents;
+                            accessMethod = 'プロキシ経由';
+                            console.log('プロキシアクセス成功');
+                        } catch (proxyError) {
+                            console.log('プロキシアクセス失敗:', proxyError.message);
+                            throw new Error(`すべてのアクセス方法が失敗しました。スプレッドシートが公開されているか、「ウェブに公開」設定が有効になっているか確認してください。最後のエラー: ${proxyError.message}`);
+                        }
                     }
-                    
-                    const proxyData = await proxyResponse.json();
-                    csvText = proxyData.contents;
-                    console.log('プロキシアクセス成功');
                 }
-                console.log('取得したCSVテキスト（最初の500文字）:', csvText.substring(0, 500));
+                
+                console.log(`${accessMethod}で取得したCSVテキスト（最初の500文字）:`, csvText.substring(0, 500));
                 
                 const rows = parseCSV(csvText);
                 console.log('パース後の行数:', rows.length);
@@ -947,27 +1059,50 @@
                     throw new Error('有効なデータが見つかりませんでした。必須フィールド（店舗名、カテゴリー、住所）を確認してください');
                 }
                 
-                // 確認ダイアログを表示
-                const shouldReplace = confirm(
-                    `${importedStores.length}件の店舗データが見つかりました。\n` +
-                    '現在のデータを置き換えますか？\n' +
-                    '（「キャンセル」を選ぶと既存データに追加されます）'
-                );
+                let addedCount = 0;
                 
-                if (shouldReplace) {
-                    // 既存データを置き換え
-                    storesData = importedStores;
-                } else {
-                    // 既存データに追加（IDの重複を避ける）
-                    const maxId = Math.max(...storesData.map(s => s.id), 0);
-                    importedStores.forEach((store, index) => {
-                        store.id = maxId + index + 1;
-                        storesData.push(store);
+                if (replaceMode) {
+                    // 置き換えモード：既存データを全て削除してスプレッドシートデータに置き換え
+                    storesData = importedStores.map((store, index) => {
+                        store.id = index + 1;
+                        return store;
                     });
+                    addedCount = importedStores.length;
+                    console.log(`${importedStores.length}件のデータで既存データを置き換え`);
+                } else {
+                    // 追加モード：既存データに追加（重複を避ける）
+                    const maxId = Math.max(...storesData.map(s => s.id), 0);
+                    
+                    importedStores.forEach((newStore, index) => {
+                        // 同じ名前と住所の店舗が既に存在するかチェック
+                        const isDuplicate = storesData.some(existingStore => 
+                            existingStore.name === newStore.name && 
+                            existingStore.address === newStore.address
+                        );
+                        
+                        if (!isDuplicate) {
+                            newStore.id = maxId + addedCount + 1;
+                            storesData.push(newStore);
+                            addedCount++;
+                        }
+                    });
+                    
+                    console.log(`${importedStores.length}件中${addedCount}件を追加（重複${importedStores.length - addedCount}件をスキップ）`);
                 }
                 
                 renderTable();
-                showStatus(`スプレッドシートから${importedStores.length}件のデータを読み込みました`, 'success');
+                
+                if (replaceMode) {
+                    showStatus(`既存データを削除し、スプレッドシートから${importedStores.length}件のデータで置き換えました。保存する場合は「GitHubに直接保存」ボタンをクリックしてください。`, 'success');
+                } else {
+                    if (addedCount === 0) {
+                        showStatus(`スプレッドシートから${importedStores.length}件のデータを確認しましたが、すべて重複のためスキップしました。`, 'warning');
+                    } else if (addedCount < importedStores.length) {
+                        showStatus(`スプレッドシートから${addedCount}件の新しいデータを追加しました（重複${importedStores.length - addedCount}件をスキップ）。保存する場合は「GitHubに直接保存」ボタンをクリックしてください。`, 'success');
+                    } else {
+                        showStatus(`スプレッドシートから${addedCount}件のデータを追加しました。保存する場合は「GitHubに直接保存」ボタンをクリックしてください。`, 'success');
+                    }
+                }
                 
             } catch (error) {
                 console.error('スプレッドシート読み込みエラー:', error);
@@ -1013,9 +1148,13 @@
                             gid = gidMatch[1];
                         }
                         
-                        const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+                        // より確実なCSV URLを生成（usp=sharingパラメータを追加）
+                        const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}&usp=sharing`;
                         console.log('変換後CSV URL:', csvUrl);
                         return csvUrl;
+                    } else {
+                        // スプレッドシートIDが抽出できない場合のエラー
+                        throw new Error('Google SheetsのURLからスプレッドシートIDを抽出できませんでした。正しいURLを入力してください。');
                     }
                 }
                 
@@ -1025,11 +1164,43 @@
                 
             } catch (error) {
                 console.error('URL変換エラー:', error);
+                throw error; // エラーを上位に伝播
+            }
+        }
+
+        // Google SheetsのURLをPublished CSV URLに変換（ウェブに公開されたスプレッドシート用）
+        function convertToPublishedCSVUrl(url) {
+            try {
+                console.log('Published URL変換前:', url);
+                
+                if (url.includes('docs.google.com/spreadsheets')) {
+                    // スプレッドシートIDを抽出
+                    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                    if (match) {
+                        const spreadsheetId = match[1];
+                        
+                        // シートのGIDを抽出（指定されている場合）
+                        let gid = '0';
+                        const gidMatch = url.match(/[#&]gid=([0-9]+)/);
+                        if (gidMatch) {
+                            gid = gidMatch[1];
+                        }
+                        
+                        // Published CSV URLを生成（ウェブに公開設定が必要）
+                        const publishedCsvUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-${spreadsheetId}/pub?gid=${gid}&single=true&output=csv`;
+                        console.log('変換後Published CSV URL:', publishedCsvUrl);
+                        return publishedCsvUrl;
+                    }
+                }
+                
+                return url;
+            } catch (error) {
+                console.error('Published URL変換エラー:', error);
                 return url;
             }
         }
         
-        // CSV文字列をパース
+        // CSV文字列をパース（改良版）
         function parseCSV(csvText) {
             try {
                 console.log('CSVパース開始');
@@ -1039,32 +1210,61 @@
                 const result = [];
                 
                 for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-                    const line = lines[lineIndex];
-                    if (line.trim()) {
-                        // 簡易的なCSVパース（カンマ区切り、ダブルクォート対応）
+                    const line = lines[lineIndex].trim();
+                    if (line) {
+                        console.log(`行 ${lineIndex + 1} 原文:`, line);
+                        
+                        // より堅牢なCSVパース
                         const row = [];
                         let current = '';
                         let inQuotes = false;
+                        let i = 0;
                         
-                        for (let i = 0; i < line.length; i++) {
+                        while (i < line.length) {
                             const char = line[i];
                             
-                            if (char === '"' && (i === 0 || line[i-1] === ',')) {
-                                inQuotes = true;
-                            } else if (char === '"' && inQuotes && (i === line.length - 1 || line[i+1] === ',')) {
-                                inQuotes = false;
+                            if (char === '"') {
+                                if (!inQuotes) {
+                                    // クォート開始
+                                    inQuotes = true;
+                                } else {
+                                    // クォート内でダブルクォートの場合をチェック
+                                    if (i + 1 < line.length && line[i + 1] === '"') {
+                                        // エスケープされたクォート
+                                        current += '"';
+                                        i++; // 次のクォートをスキップ
+                                    } else {
+                                        // クォート終了
+                                        inQuotes = false;
+                                    }
+                                }
                             } else if (char === ',' && !inQuotes) {
-                                row.push(current.trim());
+                                // フィールド区切り
+                                row.push(current);
                                 current = '';
                             } else {
                                 current += char;
                             }
+                            i++;
                         }
-                        row.push(current.trim());
-                        result.push(row);
+                        
+                        // 最後のフィールドを追加
+                        row.push(current);
+                        
+                        // 各フィールドのクリーンアップ
+                        const cleanedRow = row.map(field => {
+                            let cleaned = field.trim();
+                            // 先頭と末尾のクォートを除去
+                            if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                                cleaned = cleaned.slice(1, -1);
+                            }
+                            return cleaned;
+                        });
+                        
+                        result.push(cleanedRow);
                         
                         if (lineIndex < 3) {
-                            console.log(`行 ${lineIndex + 1}:`, row);
+                            console.log(`行 ${lineIndex + 1} パース結果:`, cleanedRow);
                         }
                     }
                 }
@@ -1089,37 +1289,52 @@
                 
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
-                    console.log(`行 ${i + 1} 処理中:`, row.slice(0, 5)); // 最初の5列のみ表示
+                    console.log(`行 ${i + 1} 処理中:`, row);
+                    console.log(`行 ${i + 1} の長さ: ${row.length}`);
                     
-                    // 必須フィールドのチェック
-                    if (!row[0] || !row[1] || !row[2]) {
+                    // 空行をスキップ
+                    if (!row || row.length === 0 || row.every(cell => !cell || cell.trim() === '')) {
+                        console.log(`行 ${i + 1}: 空行のためスキップ`);
+                        continue;
+                    }
+                    
+                    // 必須フィールドのチェック（改良版）
+                    const name = (row[0] || '').toString().trim();
+                    const category = (row[1] || '').toString().trim();
+                    const address = (row[2] || '').toString().trim();
+                    
+                    console.log(`行 ${i + 1} 必須フィールド確認:`);
+                    console.log(`  店舗名: "${name}" (長さ: ${name.length})`);
+                    console.log(`  カテゴリー: "${category}" (長さ: ${category.length})`);
+                    console.log(`  住所: "${address}" (長さ: ${address.length})`);
+                    
+                    if (!name || !category || !address) {
                         console.log(`行 ${i + 1}: 必須フィールド（店舗名、カテゴリー、住所）が不足しています`);
-                        console.log(`  店舗名: "${row[0]}", カテゴリー: "${row[1]}", 住所: "${row[2]}"`);
                         continue;
                     }
                 
-                const store = {
-                    id: i, // 仮のID（後で調整される）
-                    name: row[0] || '',
-                    category: row[1] || '',
-                    address: row[2] || '',
-                    lat: parseFloat(row[3]) || 0,
-                    lng: parseFloat(row[4]) || 0,
-                    hours: row[5] || '',
-                    closed: row[6] || 'なし',
-                    tel: row[7] || '',
-                    description: row[8] || '',
-                    glutenFreeType: row[9] || '',
-                    takeout: row[10] === 'TRUE' || row[10] === 'true' || row[10] === '○' || row[10] === '1',
-                    seats: parseInt(row[11]) || 0,
-                    nacoComment: row[12] || '',
-                    website: row[13] || '',
-                    instagram: row[14] || '',
-                    imageUrl: row[15] || '',
-                    imageUrl2: row[16] || '',
-                    imageUrl3: row[17] || '',
-                    googleMapsUrl: row[18] || ''
-                };
+                    const store = {
+                        id: i, // 仮のID（後で調整される）
+                        name: name,
+                        category: category,
+                        address: address,
+                        lat: parseFloat(row[3]) || 0,
+                        lng: parseFloat(row[4]) || 0,
+                        hours: (row[5] || '').toString().trim(),
+                        closed: (row[6] || 'なし').toString().trim(),
+                        tel: (row[7] || '').toString().trim(),
+                        description: (row[8] || '').toString().trim(),
+                        glutenFreeType: (row[9] || '').toString().trim(),
+                        takeout: ['TRUE', 'true', '○', '1', 'YES', 'yes'].includes((row[10] || '').toString().trim()),
+                        seats: parseInt(row[11]) || 0,
+                        nacoComment: (row[12] || '').toString().trim(),
+                        website: (row[13] || '').toString().trim(),
+                        instagram: (row[14] || '').toString().trim(),
+                        imageUrl: (row[15] || '').toString().trim(),
+                        imageUrl2: (row[16] || '').toString().trim(),
+                        imageUrl3: (row[17] || '').toString().trim(),
+                        googleMapsUrl: (row[18] || '').toString().trim()
+                    };
                 
                 stores.push(store);
                 console.log(`行 ${i + 1} 変換完了: ${store.name}`);
@@ -1241,6 +1456,31 @@
             showStatus('GitHubに保存中...', 'success');
             
             try {
+                // データ整合性チェック
+                if (!storesData || !Array.isArray(storesData)) {
+                    throw new Error('保存するデータが無効です（storesDataが空または配列ではありません）');
+                }
+                
+                if (storesData.length === 0) {
+                    throw new Error('保存するデータが空です。データが失われる可能性があります。');
+                }
+                
+                console.log(`保存前チェック: ${storesData.length}件の店舗データ`);
+                console.log('保存対象の店舗:', storesData.map(s => `ID:${s.id} - ${s.name}`));
+                
+                if (storesData.length < 6) {
+                    const confirmed = confirm(
+                        `⚠️ 警告: 現在のデータは${storesData.length}件のみです。\n` +
+                        `通常は6件の店舗データがあります。\n\n` +
+                        `このまま保存すると既存データが失われる可能性があります。\n` +
+                        `本当に保存しますか？`
+                    );
+                    if (!confirmed) {
+                        showStatus('保存がキャンセルされました', 'warning');
+                        return;
+                    }
+                }
+                
                 const jsonData = {
                     stores: storesData
                 };
@@ -1281,6 +1521,16 @@
                 
                 if (updateResponse.ok) {
                     showStatus('GitHubに保存完了！数分後にマップに反映されます。', 'success');
+                    
+                    // 保存後に最新データを再読み込み（3秒後）
+                    setTimeout(async () => {
+                        try {
+                            await loadStoresData();
+                            showStatus('最新データを再読み込みしました。', 'success');
+                        } catch (error) {
+                            console.warn('データ再読み込みエラー:', error);
+                        }
+                    }, 3000);
                 } else {
                     const error = await updateResponse.json();
                     throw new Error(error.message || 'GitHubへの保存に失敗しました');
@@ -1302,10 +1552,7 @@
             
             localStorage.setItem('githubToken', token);
             closeGitHubModal();
-            showStatus('GitHubトークンを保存しました', 'success');
-            
-            // 自動で保存を実行
-            saveToGitHubDirect();
+            showStatus('GitHubトークンを保存しました。「GitHubに直接保存」ボタンで保存してください。', 'success');
         }
         
         // GitHubモーダルを閉じる
@@ -1316,6 +1563,33 @@
         
         // GitHubに保存（ファイルダウンロード）
         function saveToGitHub() {
+            // データ整合性チェック
+            if (!storesData || !Array.isArray(storesData)) {
+                showStatus('保存するデータが無効です（storesDataが空または配列ではありません）', 'error');
+                return;
+            }
+            
+            if (storesData.length === 0) {
+                showStatus('保存するデータが空です。データが失われる可能性があります。', 'error');
+                return;
+            }
+            
+            console.log(`保存前チェック: ${storesData.length}件の店舗データ`);
+            console.log('保存対象の店舗:', storesData.map(s => `ID:${s.id} - ${s.name}`));
+            
+            if (storesData.length < 6) {
+                const confirmed = confirm(
+                    `⚠️ 警告: 現在のデータは${storesData.length}件のみです。\n` +
+                    `通常は6件の店舗データがあります。\n\n` +
+                    `このまま保存すると既存データが失われる可能性があります。\n` +
+                    `本当に保存しますか？`
+                );
+                if (!confirmed) {
+                    showStatus('保存がキャンセルされました', 'warning');
+                    return;
+                }
+            }
+            
             const jsonData = {
                 stores: storesData
             };
