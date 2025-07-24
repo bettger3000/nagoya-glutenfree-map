@@ -361,8 +361,13 @@ function showStoreDetail(storeId) {
         
         ${store.nacoComment ? `
         <div class="naco-comment">
-            <h3>nacoのおすすめポイント</h3>
-            <p>${store.nacoComment}</p>
+            <div class="naco-comment-header">
+                <img src="03-A_0.png" alt="nacoキャラクター" class="naco-character-small">
+                <h3>nacoのおすすめポイント</h3>
+            </div>
+            <div class="naco-comment-content">
+                <p>${store.nacoComment}</p>
+            </div>
         </div>
         ` : ''}
         

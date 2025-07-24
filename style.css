@@ -386,15 +386,57 @@ header .subtitle {
 .naco-comment {
     background: linear-gradient(135deg, rgba(255, 182, 193, 0.2) 0%, rgba(152, 216, 200, 0.2) 100%);
     border-radius: 15px;
-    padding: 15px;
+    padding: 20px;
     margin-top: 20px;
     border-left: 4px solid var(--primary-pink);
+    position: relative;
+    overflow: hidden;
+}
+
+.naco-comment-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.naco-character-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-pink);
+    background: white;
+    padding: 2px;
+    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+    flex-shrink: 0;
+    animation: nacoFloat 3s ease-in-out infinite;
 }
 
 .naco-comment h3 {
     color: var(--primary-pink);
     font-size: 16px;
-    margin-bottom: 8px;
+    margin: 0;
+    font-weight: bold;
+}
+
+.naco-comment-content {
+    margin-left: 52px;
+    line-height: 1.6;
+}
+
+.naco-comment-content p {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+/* nacoキャラクターの浮遊アニメーション */
+@keyframes nacoFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
 }
 
 .store-links {
@@ -537,5 +579,30 @@ header .subtitle {
     
     .modal-additional-images .modal-image {
         height: 120px;
+    }
+    
+    /* モバイル画面でのnacoコメント */
+    .naco-comment {
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .naco-comment-header {
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .naco-character-small {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .naco-comment h3 {
+        font-size: 15px;
+    }
+    
+    .naco-comment-content {
+        margin-left: 45px;
+        font-size: 14px;
     }
 }
