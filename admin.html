@@ -233,6 +233,53 @@
             </div>
         </div>
         
+        <!-- スプレッドシート設定モーダル -->
+        <div id="spreadsheetModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeSpreadsheetModal()">&times;</span>
+                <h2>スプレッドシート連携設定</h2>
+                <p>Google Sheetsから店舗データを読み込む設定を行います。</p>
+                
+                <div class="form-group">
+                    <label>Google Sheets URL *</label>
+                    <input type="url" id="spreadsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+                    <div class="help-text">
+                        <strong>設定方法:</strong><br>
+                        1. Google Sheetsでスプレッドシートを作成<br>
+                        2. 「ファイル」→「共有」→「ウェブに公開」<br>
+                        3. 「リンク」タブで「CSV」形式を選択<br>
+                        4. 公開されたURLをここに貼り付け
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>シート名（オプション）</label>
+                    <input type="text" id="sheetName" placeholder="シート1" value="シート1">
+                    <div class="help-text">
+                        読み込みたいシートの名前（デフォルト：シート1）
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <h3>スプレッドシートの列構成</h3>
+                    <div class="help-text">
+                        <strong>必要な列（この順番で配置してください）:</strong><br>
+                        A列: 店舗名, B列: カテゴリー, C列: 住所, D列: 緯度, E列: 経度<br>
+                        F列: 営業時間, G列: 定休日, H列: 電話番号, I列: 店舗説明<br>
+                        J列: GF対応, K列: テイクアウト, L列: 席数, M列: nacoコメント<br>
+                        N列: ウェブサイト, O列: Instagram, P列: メイン画像URL<br>
+                        Q列: 追加画像URL1, R列: 追加画像URL2, S列: GoogleマップURL<br><br>
+                        <strong>注意:</strong> 1行目は列名、2行目から実際のデータを入力してください
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="saveSpreadsheetSettings()">設定を保存</button>
+                <button class="btn" onclick="testSpreadsheetConnection()">接続テスト</button>
+                <button class="btn" onclick="createSpreadsheetTemplate()">📊 テンプレート作成</button>
+                <button class="btn" onclick="closeSpreadsheetModal()">キャンセル</button>
+            </div>
+        </div>
+        
         <div id="status" class="status"></div>
         
         <div class="table-container">
@@ -408,7 +455,21 @@
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
             loadStoresData();
+            loadSpreadsheetSettings();
         });
+        
+        // スプレッドシート設定を読み込み
+        function loadSpreadsheetSettings() {
+            const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
+            const sheetName = localStorage.getItem('sheetName');
+            
+            if (spreadsheetUrl) {
+                document.getElementById('spreadsheetUrl').value = spreadsheetUrl;
+            }
+            if (sheetName) {
+                document.getElementById('sheetName').value = sheetName;
+            }
+        }
         
         // 店舗データを読み込み
         async function loadStoresData() {
@@ -540,9 +601,269 @@
             closeModal();
         });
         
-        // スプレッドシートから読み込み（将来の拡張用）
+        // スプレッドシートから読み込み
         function loadFromSpreadsheet() {
-            showStatus('スプレッドシート連携機能は準備中です', 'error');
+            const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
+            
+            if (!spreadsheetUrl) {
+                document.getElementById('spreadsheetModal').style.display = 'block';
+                return;
+            }
+            
+            importFromSpreadsheet();
+        }
+        
+        // スプレッドシート設定を保存
+        function saveSpreadsheetSettings() {
+            const url = document.getElementById('spreadsheetUrl').value;
+            const sheetName = document.getElementById('sheetName').value || 'シート1';
+            
+            if (!url) {
+                showStatus('スプレッドシートURLを入力してください', 'error');
+                return;
+            }
+            
+            localStorage.setItem('spreadsheetUrl', url);
+            localStorage.setItem('sheetName', sheetName);
+            closeSpreadsheetModal();
+            showStatus('スプレッドシート設定を保存しました', 'success');
+        }
+        
+        // スプレッドシート接続テスト
+        async function testSpreadsheetConnection() {
+            const url = document.getElementById('spreadsheetUrl').value;
+            
+            if (!url) {
+                showStatus('スプレッドシートURLを入力してください', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('接続テスト中...', 'success');
+                
+                // CSVのURLに変換
+                const csvUrl = convertToCSVUrl(url);
+                console.log('CSV URL:', csvUrl);
+                
+                const response = await fetch(csvUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                if (rows.length < 2) {
+                    throw new Error('スプレッドシートにデータが見つかりません');
+                }
+                
+                showStatus(`接続成功！${rows.length - 1}行のデータが見つかりました`, 'success');
+                
+            } catch (error) {
+                console.error('接続テストエラー:', error);
+                showStatus(`接続テストに失敗しました: ${error.message}`, 'error');
+            }
+        }
+        
+        // スプレッドシートモーダルを閉じる
+        function closeSpreadsheetModal() {
+            document.getElementById('spreadsheetModal').style.display = 'none';
+        }
+        
+        // スプレッドシートから実際にインポート
+        async function importFromSpreadsheet() {
+            const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
+            
+            if (!spreadsheetUrl) {
+                showStatus('スプレッドシート設定が見つかりません', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('スプレッドシートからデータを読み込み中...', 'success');
+                
+                const csvUrl = convertToCSVUrl(spreadsheetUrl);
+                const response = await fetch(csvUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                if (rows.length < 2) {
+                    throw new Error('スプレッドシートにデータが見つかりません');
+                }
+                
+                // CSVデータを店舗データに変換
+                const importedStores = convertCSVToStores(rows);
+                
+                if (importedStores.length === 0) {
+                    throw new Error('有効なデータが見つかりませんでした');
+                }
+                
+                // 確認ダイアログを表示
+                const shouldReplace = confirm(
+                    `${importedStores.length}件の店舗データが見つかりました。\n` +
+                    '現在のデータを置き換えますか？\n' +
+                    '（「キャンセル」を選ぶと既存データに追加されます）'
+                );
+                
+                if (shouldReplace) {
+                    // 既存データを置き換え
+                    storesData = importedStores;
+                } else {
+                    // 既存データに追加（IDの重複を避ける）
+                    const maxId = Math.max(...storesData.map(s => s.id), 0);
+                    importedStores.forEach((store, index) => {
+                        store.id = maxId + index + 1;
+                        storesData.push(store);
+                    });
+                }
+                
+                renderTable();
+                showStatus(`スプレッドシートから${importedStores.length}件のデータを読み込みました`, 'success');
+                
+            } catch (error) {
+                console.error('スプレッドシート読み込みエラー:', error);
+                showStatus(`スプレッドシートの読み込みに失敗しました: ${error.message}`, 'error');
+            }
+        }
+        
+        // Google SheetsのURLをCSV URLに変換
+        function convertToCSVUrl(url) {
+            // Google SheetsのURLパターンを検出して変換
+            if (url.includes('docs.google.com/spreadsheets')) {
+                // 既にCSV URLの場合はそのまま返す
+                if (url.includes('/export?format=csv')) {
+                    return url;
+                }
+                
+                // 通常のGoogle Sheets URLからスプレッドシートIDを抽出
+                const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                if (match) {
+                    const spreadsheetId = match[1];
+                    const sheetName = localStorage.getItem('sheetName') || 'シート1';
+                    return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=0`;
+                }
+            }
+            
+            // その他のCSV URLはそのまま返す
+            return url;
+        }
+        
+        // CSV文字列をパース
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const result = [];
+            
+            for (let line of lines) {
+                if (line.trim()) {
+                    // 簡易的なCSVパース（カンマ区切り、ダブルクォート対応）
+                    const row = [];
+                    let current = '';
+                    let inQuotes = false;
+                    
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        
+                        if (char === '"' && (i === 0 || line[i-1] === ',')) {
+                            inQuotes = true;
+                        } else if (char === '"' && inQuotes && (i === line.length - 1 || line[i+1] === ',')) {
+                            inQuotes = false;
+                        } else if (char === ',' && !inQuotes) {
+                            row.push(current.trim());
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    row.push(current.trim());
+                    result.push(row);
+                }
+            }
+            
+            return result;
+        }
+        
+        // CSVデータを店舗データに変換
+        function convertCSVToStores(rows) {
+            const stores = [];
+            const headers = rows[0]; // 1行目はヘッダー
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                
+                // 必須フィールドのチェック
+                if (!row[0] || !row[1] || !row[2]) {
+                    console.log(`行 ${i + 1}: 必須フィールド（店舗名、カテゴリー、住所）が不足しています`);
+                    continue;
+                }
+                
+                const store = {
+                    id: i, // 仮のID（後で調整される）
+                    name: row[0] || '',
+                    category: row[1] || '',
+                    address: row[2] || '',
+                    lat: parseFloat(row[3]) || 0,
+                    lng: parseFloat(row[4]) || 0,
+                    hours: row[5] || '',
+                    closed: row[6] || 'なし',
+                    tel: row[7] || '',
+                    description: row[8] || '',
+                    glutenFreeType: row[9] || '',
+                    takeout: row[10] === 'TRUE' || row[10] === 'true' || row[10] === '○' || row[10] === '1',
+                    seats: parseInt(row[11]) || 0,
+                    nacoComment: row[12] || '',
+                    website: row[13] || '',
+                    instagram: row[14] || '',
+                    imageUrl: row[15] || '',
+                    imageUrl2: row[16] || '',
+                    imageUrl3: row[17] || '',
+                    googleMapsUrl: row[18] || ''
+                };
+                
+                stores.push(store);
+            }
+            
+            return stores;
+        }
+        
+        // スプレッドシートテンプレートを作成
+        function createSpreadsheetTemplate() {
+            const headers = [
+                '店舗名', 'カテゴリー', '住所', '緯度', '経度',
+                '営業時間', '定休日', '電話番号', '店舗説明',
+                'GF対応', 'テイクアウト', '席数', 'nacoコメント',
+                'ウェブサイト', 'Instagram', 'メイン画像URL',
+                '追加画像URL1', '追加画像URL2', 'GoogleマップURL'
+            ];
+            
+            // サンプルデータを追加
+            const sampleData = [
+                'サンプル店舗', '和食', '名古屋市中区栄1-1-1', '35.1685', '136.9098',
+                '11:00-21:00', '月曜日', '052-123-4567', 'グルテンフリー対応のお店です',
+                '完全GF', 'TRUE', '20', '美味しいお店です！',
+                'https://example.com', 'https://instagram.com/example', 'https://example.com/image1.jpg',
+                'https://example.com/image2.jpg', 'https://example.com/image3.jpg', 'https://maps.google.com/...'
+            ];
+            
+            // CSV形式でデータを作成
+            const csvContent = [headers, sampleData]
+                .map(row => row.map(cell => `"${cell}"`).join(','))
+                .join('\n');
+            
+            // CSVファイルとしてダウンロード
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'glutenfree_map_template.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showStatus('テンプレートCSVファイルをダウンロードしました。Google Sheetsにインポートしてご利用ください。', 'success');
         }
         
         // GitHubに直接保存
