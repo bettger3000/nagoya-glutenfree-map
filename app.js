@@ -147,6 +147,15 @@ function showStoreDetail(storeId) {
             <span class="store-category category-${store.category}">${store.category}</span>
         </div>
         
+        ${(store.imageUrl2 || store.imageUrl3) ? `<div class="modal-additional-images">
+            ${store.imageUrl2 ? `<div class="modal-image">
+                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" onerror="this.parentElement.style.display='none'">
+            </div>` : ''}
+            ${store.imageUrl3 ? `<div class="modal-image">
+                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" onerror="this.parentElement.style.display='none'">
+            </div>` : ''}
+        </div>` : ''}
+        
         <div class="modal-info">
             <div class="modal-info-item">
                 <i class="fas fa-map-marker-alt"></i>

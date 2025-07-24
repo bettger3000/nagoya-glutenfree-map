@@ -369,10 +369,26 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>店舗画像URL</label>
+                    <label>メイン画像URL</label>
                     <input type="url" id="storeImageUrl" placeholder="https://example.com/image.jpg">
                     <div class="help-text">
-                        📸 <strong>画像について:</strong><br>
+                        📸 <strong>メイン画像:</strong> リストと詳細画面の最初に表示される画像
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>追加画像URL 1</label>
+                    <input type="url" id="storeImageUrl2" placeholder="https://example.com/image2.jpg">
+                    <div class="help-text">
+                        📸 <strong>追加画像1:</strong> 詳細画面でメイン画像の下に表示されます
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>追加画像URL 2</label>
+                    <input type="url" id="storeImageUrl3" placeholder="https://example.com/image3.jpg">
+                    <div class="help-text">
+                        📸 <strong>追加画像2:</strong> 詳細画面で最後に表示されます<br>
                         • 無料画像サイト（Unsplash等）のURLを使用可能<br>
                         • 推奨サイズ：400x300px以上<br>
                         • 空欄の場合は画像なしで表示されます
@@ -461,6 +477,8 @@
             document.getElementById('storeWebsite').value = store.website || '';
             document.getElementById('storeInstagram').value = store.instagram || '';
             document.getElementById('storeImageUrl').value = store.imageUrl || '';
+            document.getElementById('storeImageUrl2').value = store.imageUrl2 || '';
+            document.getElementById('storeImageUrl3').value = store.imageUrl3 || '';
             document.getElementById('storeGoogleMapsUrl').value = store.googleMapsUrl || '';
             
             document.getElementById('storeModal').style.display = 'block';
@@ -502,6 +520,8 @@
                 website: document.getElementById('storeWebsite').value || '',
                 instagram: document.getElementById('storeInstagram').value || '',
                 imageUrl: document.getElementById('storeImageUrl').value || '',
+                imageUrl2: document.getElementById('storeImageUrl2').value || '',
+                imageUrl3: document.getElementById('storeImageUrl3').value || '',
                 googleMapsUrl: document.getElementById('storeGoogleMapsUrl').value || ''
             };
             
