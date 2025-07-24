@@ -131,6 +131,28 @@
       "imageUrl2": "",
       "imageUrl3": "",
       "googleMapsUrl": "https://www.google.com/maps/place/%E6%88%90%E5%9F%8E%E7%9F%B3%E4%BA%95+%E5%90%8D%E5%8F%A4%E5%B1%8B+%E8%BF%91%E9%89%84%E3%83%91%E3%83%83%E3%82%BB%E5%BA%97/@35.1683183,136.8747521,16z/data=!3m1!5s0x600376dde8d37791:0xdb78b1eb8f33a38!4m7!3m6!1s0x60037706e0ef0681:0x7d88586dc20831a4!8m2!3d35.1692165!4d136.8842713!15sCgzmiJDln47nn7PkupUiA4gBAVoPIg3miJDln44g55-z5LqVkgELc3VwZXJtYXJrZXSqAXIKDS9nLzExZzZxbDRsbmIKCy9nLzEyMWI3Nm5tCgwvZy8xMmxsNDJrcGMQASoRIg3miJDln44g55-z5LqVKAgyHhABIhoyHiMaKPNhkzNpaDB9KbTXmrBOSzQuRUByqTIREAIiDeaIkOWfjiDnn7PkupXgAQA!16s%2Fg%2F1vlk1hgd?entry=tts&g_ep=EgoyMDI1MDcyMC4wIPu8ASoASAFQAw%3D%3D&skid=dbcac1c6-e69c-43c1-9c53-4568bf0aab80"
+    },
+    {
+      "id": 13,
+      "name": "ダモンデ ミールシフォン＆スイーツ",
+      "category": "スイーツ",
+      "address": "名古屋市中区錦２丁目１１−２７ ＴＨ錦ビル 1F",
+      "lat": 35.1711,
+      "lng": 136.9001,
+      "hours": "11:00-18:00",
+      "closed": "日曜",
+      "tel": "0522119333",
+      "description": "",
+      "glutenFreeType": "",
+      "takeout": false,
+      "seats": 0,
+      "nacoComment": "",
+      "website": "https://da-monde.co.jp/",
+      "instagram": "",
+      "imageUrl": "",
+      "imageUrl2": "",
+      "imageUrl3": "",
+      "googleMapsUrl": ""
     }
   ]
 }
