@@ -75,7 +75,7 @@ header .subtitle {
 /* コントロールエリア */
 .controls {
     background: var(--white);
-    padding: 20px;
+    padding: 15px 20px;
     box-shadow: 0 2px 10px var(--shadow);
     position: sticky;
     top: 0;
@@ -149,7 +149,7 @@ header .subtitle {
 /* メインコンテンツ */
 .main-content {
     display: flex;
-    height: calc(100vh - 250px);
+    height: calc(100vh - 220px);
     position: relative;
 }
 
@@ -488,26 +488,56 @@ header .subtitle {
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
+    /* ヘッダーのコンパクト化 */
+    header {
+        padding: 10px 15px;
+    }
+    
     .header-content {
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
     }
     
     .naco-character {
-        width: 70px;
-        height: 70px;
+        width: 50px;
+        height: 50px;
     }
     
     .header-text {
-        text-align: center;
+        text-align: left;
     }
     
     header h1 {
-        font-size: 22px;
+        font-size: 18px;
+        margin-bottom: 2px;
     }
     
+    header .subtitle {
+        font-size: 12px;
+    }
+    
+    /* コントロールエリアのコンパクト化 */
+    .controls {
+        padding: 10px 15px;
+    }
+    
+    .search-box {
+        margin-bottom: 10px;
+    }
+    
+    #searchInput {
+        height: 36px;
+        font-size: 14px;
+        padding-left: 35px;
+    }
+    
+    .search-box i {
+        font-size: 14px;
+    }
+    
+    /* 地図エリアを最大化 */
     .main-content {
-        height: calc(100vh - 280px);
+        height: calc(100vh - 160px);
     }
     
     .store-list {
@@ -516,11 +546,12 @@ header .subtitle {
         left: 0;
         right: 0;
         width: 100%;
-        height: 50vh;
+        height: 40vh;
         transform: translateY(100%);
         transition: transform 0.3s;
         z-index: 999;
         border-radius: 20px 20px 0 0;
+        padding: 15px;
     }
     
     .store-list.show {
@@ -529,6 +560,10 @@ header .subtitle {
     
     .mobile-list-toggle {
         display: block;
+        bottom: 10px;
+        right: 10px;
+        padding: 10px 15px;
+        font-size: 14px;
     }
     
     #map {
@@ -538,11 +573,21 @@ header .subtitle {
     .category-filters {
         overflow-x: auto;
         white-space: nowrap;
-        padding-bottom: 10px;
+        padding-bottom: 5px;
+        gap: 5px;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
     }
     
     .filter-btn {
         flex-shrink: 0;
+        padding: 5px 10px;
+        font-size: 12px;
+        border-width: 1px;
+    }
+    
+    .filter-btn i {
+        font-size: 12px;
     }
     
     .store-links {

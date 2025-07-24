@@ -37,15 +37,50 @@ function initMap() {
 async function loadStores() {
     try {
         console.log('店舗データを読み込み中...');
-        const response = await fetch('stores.json');
+        // 強力なキャッシュバスティング
+        const timestamp = new Date().getTime();
+        const randomId = Math.random().toString(36).substring(7);
+        const response = await fetch(`stores.json?v=${timestamp}&r=${randomId}`, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
         console.log('読み込んだデータ:', data);
+        console.log('JSONファイルのstores配列:', data.stores);
+        
+        if (!data.stores || !Array.isArray(data.stores)) {
+            throw new Error('stores配列が見つかりません');
+        }
+        
         storesData = data.stores;
         console.log('店舗数:', storesData.length);
+        console.log('店舗リスト:', storesData.map(s => s.name));
+        
+        if (storesData.length === 0) {
+            console.warn('店舗データが空です');
+            return;
+        }
+        
+        if (storesData.length < 6) {
+            console.warn(`期待される店舗数は6件ですが、${storesData.length}件しか読み込めませんでした`);
+            console.warn('GitHub Pagesのキャッシュが古い可能性があります。5-10分後に再度お試しください。');
+        }
+        
         displayStores(storesData);
         updateStoreList(storesData);
+        console.log('店舗データの読み込み完了');
     } catch (error) {
         console.error('店舗データの読み込みに失敗しました:', error);
+        console.error('エラー詳細:', error.message);
     }
 }
 
@@ -407,6 +442,18 @@ markerStyles.textContent = `
         transform: rotate(45deg);
         color: white;
         font-size: 16px;
+    }
+    
+    /* モバイルでマーカーを小さく */
+    @media (max-width: 768px) {
+        .custom-marker {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .custom-marker i {
+            font-size: 14px;
+        }
     }
     
     .popup-content {
