@@ -193,6 +193,19 @@
         #extractBtn:hover:not(:disabled) {
             background: #45a049;
         }
+        
+        .template-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .template-buttons .btn {
+            flex: 1;
+            min-width: 150px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -263,19 +276,33 @@
                 <div class="form-group">
                     <h3>スプレッドシートの列構成</h3>
                     <div class="help-text">
+                        <strong>📋 簡単3ステップでデータ管理：</strong><br>
+                        1️⃣ 下のボタンでテンプレートをダウンロード<br>
+                        2️⃣ Google Sheetsにインポートしてデータを編集<br>
+                        3️⃣ 「ファイル」→「共有」→「ウェブに公開」でCSV形式で公開<br><br>
+                        
                         <strong>必要な列（この順番で配置してください）:</strong><br>
                         A列: 店舗名, B列: カテゴリー, C列: 住所, D列: 緯度, E列: 経度<br>
                         F列: 営業時間, G列: 定休日, H列: 電話番号, I列: 店舗説明<br>
                         J列: GF対応, K列: テイクアウト, L列: 席数, M列: nacoコメント<br>
                         N列: ウェブサイト, O列: Instagram, P列: メイン画像URL<br>
                         Q列: 追加画像URL1, R列: 追加画像URL2, S列: GoogleマップURL<br><br>
+                        
+                        <strong>💡 文字化けする場合：</strong><br>
+                        • Mac：CSVテンプレート（推奨）を使用<br>
+                        • Windows Excel：Excelテンプレートを使用<br>
+                        • Google Sheets：どちらでも正常に動作<br><br>
+                        
                         <strong>注意:</strong> 1行目は列名、2行目から実際のデータを入力してください
                     </div>
                 </div>
                 
                 <button class="btn btn-success" onclick="saveSpreadsheetSettings()">設定を保存</button>
                 <button class="btn" onclick="testSpreadsheetConnection()">接続テスト</button>
-                <button class="btn" onclick="createSpreadsheetTemplate()">📊 テンプレート作成</button>
+                <div class="template-buttons">
+                    <button class="btn" onclick="createSpreadsheetTemplate()">📊 CSV テンプレート（推奨）</button>
+                    <button class="btn" onclick="createExcelTemplate()">📈 Excel テンプレート</button>
+                </div>
                 <button class="btn" onclick="closeSpreadsheetModal()">キャンセル</button>
             </div>
         </div>
@@ -849,21 +876,80 @@
                 'https://example.com/image2.jpg', 'https://example.com/image3.jpg', 'https://maps.google.com/...'
             ];
             
-            // CSV形式でデータを作成
+            // CSV形式でデータを作成（ダブルクォートで囲む）
             const csvContent = [headers, sampleData]
-                .map(row => row.map(cell => `"${cell}"`).join(','))
-                .join('\n');
+                .map(row => row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(','))
+                .join('\r\n');
             
-            // CSVファイルとしてダウンロード
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            // BOM（Byte Order Mark）付きUTF-8でエンコード（Mac/Excel対応）
+            const bom = '\uFEFF';
+            const csvWithBom = bom + csvContent;
+            
+            // Blobを作成（Mac対応のためにBOM付きUTF-8を指定）
+            const blob = new Blob([csvWithBom], { 
+                type: 'text/csv;charset=utf-8;' 
+            });
+            
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = 'glutenfree_map_template.csv';
+            
+            // リンクを一時的にDOMに追加してクリック（Safari対応）
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
+            
             URL.revokeObjectURL(url);
             
-            showStatus('テンプレートCSVファイルをダウンロードしました。Google Sheetsにインポートしてご利用ください。', 'success');
+            showStatus('テンプレートCSVファイルをダウンロードしました。Mac/Excel/Google Sheetsで正しく表示されます。', 'success');
+        }
+        
+        // Excelテンプレートを作成
+        function createExcelTemplate() {
+            const headers = [
+                '店舗名', 'カテゴリー', '住所', '緯度', '経度',
+                '営業時間', '定休日', '電話番号', '店舗説明',
+                'GF対応', 'テイクアウト', '席数', 'nacoコメント',
+                'ウェブサイト', 'Instagram', 'メイン画像URL',
+                '追加画像URL1', '追加画像URL2', 'GoogleマップURL'
+            ];
+            
+            // サンプルデータを追加
+            const sampleData = [
+                'サンプル店舗', '和食', '名古屋市中区栄1-1-1', '35.1685', '136.9098',
+                '11:00-21:00', '月曜日', '052-123-4567', 'グルテンフリー対応のお店です',
+                '完全GF', 'TRUE', '20', '美味しいお店です！',
+                'https://example.com', 'https://instagram.com/example', 'https://example.com/image1.jpg',
+                'https://example.com/image2.jpg', 'https://example.com/image3.jpg', 'https://maps.google.com/...'
+            ];
+            
+            // Excel用のタブ区切り形式で作成
+            const tsvContent = [headers, sampleData]
+                .map(row => row.join('\t'))
+                .join('\r\n');
+            
+            // BOM付きUTF-16LE（Excel最適化）
+            const bom = '\uFEFF';
+            const tsvWithBom = bom + tsvContent;
+            
+            // Excel形式のBlobを作成
+            const blob = new Blob([tsvWithBom], { 
+                type: 'application/vnd.ms-excel;charset=utf-16le;' 
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'glutenfree_map_template.xls';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            
+            showStatus('Excelテンプレートファイルをダウンロードしました。Excelで直接開けます。', 'success');
         }
         
         // GitHubに直接保存
