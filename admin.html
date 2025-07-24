@@ -206,6 +206,84 @@
             min-width: 150px;
             font-size: 14px;
         }
+        
+        /* 現在の設定表示エリア */
+        .current-config {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin: 20px 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .config-header {
+            background: linear-gradient(135deg, #98d8c8 0%, #ffb6c1 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .config-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .btn-small {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-small:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .config-content {
+            padding: 20px;
+        }
+        
+        .config-item {
+            margin-bottom: 15px;
+        }
+        
+        .config-item label {
+            display: block;
+            font-weight: bold;
+            color: #4a4a4a;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .config-value {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 14px;
+            word-break: break-all;
+            color: #666;
+        }
+        
+        .config-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .config-actions .btn {
+            flex: 1;
+            min-width: 120px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -218,8 +296,32 @@
         <div class="controls">
             <button class="btn" onclick="showAddModal()">➕ 新しい店舗を追加</button>
             <button class="btn" onclick="loadFromSpreadsheet()">📊 スプレッドシートから読み込み</button>
+            <button class="btn" onclick="showSpreadsheetSettings()">⚙️ スプレッドシート設定</button>
             <button class="btn btn-success" onclick="saveToGitHubDirect()">🚀 GitHubに直接保存</button>
             <button class="btn" onclick="saveToGitHub()">💾 ファイルダウンロード</button>
+        </div>
+        
+        <!-- 現在のスプレッドシート設定表示 -->
+        <div id="currentSpreadsheetInfo" class="current-config" style="display: none;">
+            <div class="config-header">
+                <h3>📋 現在のスプレッドシート設定</h3>
+                <button class="btn-small" onclick="toggleSpreadsheetInfo()">非表示</button>
+            </div>
+            <div class="config-content">
+                <div class="config-item">
+                    <label>設定済みURL:</label>
+                    <div id="currentUrl" class="config-value"></div>
+                </div>
+                <div class="config-item">
+                    <label>シート名:</label>
+                    <div id="currentSheet" class="config-value"></div>
+                </div>
+                <div class="config-actions">
+                    <button class="btn" onclick="testCurrentConnection()">🔍 接続テスト</button>
+                    <button class="btn" onclick="showSpreadsheetSettings()">✏️ 設定変更</button>
+                    <button class="btn" onclick="clearSpreadsheetSettings()" style="background: #dc3545;">🗑️ 設定削除</button>
+                </div>
+            </div>
         </div>
         
         <!-- GitHub設定モーダル -->
@@ -489,6 +591,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadStoresData();
             loadSpreadsheetSettings();
+            updateCurrentConfigDisplay();
         });
         
         // スプレッドシート設定を読み込み
@@ -501,6 +604,57 @@
             }
             if (sheetName) {
                 document.getElementById('sheetName').value = sheetName;
+            }
+        }
+        
+        // 現在の設定表示を更新
+        function updateCurrentConfigDisplay() {
+            const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
+            const sheetName = localStorage.getItem('sheetName') || 'シート1';
+            const configInfo = document.getElementById('currentSpreadsheetInfo');
+            
+            if (spreadsheetUrl) {
+                document.getElementById('currentUrl').textContent = spreadsheetUrl;
+                document.getElementById('currentSheet').textContent = sheetName;
+                configInfo.style.display = 'block';
+            } else {
+                configInfo.style.display = 'none';
+            }
+        }
+        
+        // スプレッドシート設定画面を表示
+        function showSpreadsheetSettings() {
+            loadSpreadsheetSettings(); // 現在の設定を読み込み
+            document.getElementById('spreadsheetModal').style.display = 'block';
+        }
+        
+        // 設定情報の表示/非表示切り替え
+        function toggleSpreadsheetInfo() {
+            const configInfo = document.getElementById('currentSpreadsheetInfo');
+            configInfo.style.display = 'none';
+        }
+        
+        // 現在の設定で接続テスト
+        async function testCurrentConnection() {
+            const spreadsheetUrl = localStorage.getItem('spreadsheetUrl');
+            
+            if (!spreadsheetUrl) {
+                showStatus('スプレッドシート設定が見つかりません', 'error');
+                return;
+            }
+            
+            // 既存のテスト機能を使用
+            document.getElementById('spreadsheetUrl').value = spreadsheetUrl;
+            await testSpreadsheetConnection();
+        }
+        
+        // スプレッドシート設定を削除
+        function clearSpreadsheetSettings() {
+            if (confirm('スプレッドシート設定を削除しますか？')) {
+                localStorage.removeItem('spreadsheetUrl');
+                localStorage.removeItem('sheetName');
+                updateCurrentConfigDisplay();
+                showStatus('スプレッドシート設定を削除しました', 'success');
             }
         }
         
@@ -658,6 +812,7 @@
             
             localStorage.setItem('spreadsheetUrl', url);
             localStorage.setItem('sheetName', sheetName);
+            updateCurrentConfigDisplay(); // 表示を更新
             closeSpreadsheetModal();
             showStatus('スプレッドシート設定を保存しました', 'success');
         }
