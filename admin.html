@@ -859,13 +859,21 @@
                     csvText = proxyData.contents;
                     console.log('プロキシアクセステスト成功');
                 }
+                console.log('接続テスト - 取得したCSVテキスト（最初の500文字）:', csvText.substring(0, 500));
+                
                 const rows = parseCSV(csvText);
+                console.log('接続テスト - パース後の行数:', rows.length);
+                console.log('接続テスト - 最初の3行:', rows.slice(0, 3));
                 
                 if (rows.length < 2) {
                     throw new Error('スプレッドシートにデータが見つかりません');
                 }
                 
-                showStatus(`接続成功！${rows.length - 1}行のデータが見つかりました`, 'success');
+                // 接続テストでも店舗データ変換をテスト
+                const testStores = convertCSVToStores(rows);
+                console.log('接続テスト - 変換テスト結果:', testStores.length);
+                
+                showStatus(`接続成功！${rows.length - 1}行のデータ、${testStores.length}件の有効な店舗データが見つかりました`, 'success');
                 
             } catch (error) {
                 console.error('接続テストエラー:', error);
@@ -920,17 +928,23 @@
                     csvText = proxyData.contents;
                     console.log('プロキシアクセス成功');
                 }
+                console.log('取得したCSVテキスト（最初の500文字）:', csvText.substring(0, 500));
+                
                 const rows = parseCSV(csvText);
+                console.log('パース後の行数:', rows.length);
+                console.log('最初の3行:', rows.slice(0, 3));
                 
                 if (rows.length < 2) {
-                    throw new Error('スプレッドシートにデータが見つかりません');
+                    throw new Error(`スプレッドシートにデータが見つかりません。行数: ${rows.length}`);
                 }
                 
                 // CSVデータを店舗データに変換
                 const importedStores = convertCSVToStores(rows);
+                console.log('変換後の店舗数:', importedStores.length);
+                console.log('最初の店舗データ:', importedStores[0]);
                 
                 if (importedStores.length === 0) {
-                    throw new Error('有効なデータが見つかりませんでした');
+                    throw new Error('有効なデータが見つかりませんでした。必須フィールド（店舗名、カテゴリー、住所）を確認してください');
                 }
                 
                 // 確認ダイアログを表示
@@ -957,6 +971,12 @@
                 
             } catch (error) {
                 console.error('スプレッドシート読み込みエラー:', error);
+                console.error('エラーの詳細:', {
+                    message: error.message,
+                    stack: error.stack,
+                    spreadsheetUrl: spreadsheetUrl,
+                    csvUrl: convertToCSVUrl(spreadsheetUrl)
+                });
                 showStatus(`スプレッドシートの読み込みに失敗しました: ${error.message}`, 'error');
             }
         }
@@ -1011,51 +1031,72 @@
         
         // CSV文字列をパース
         function parseCSV(csvText) {
-            const lines = csvText.split('\n');
-            const result = [];
-            
-            for (let line of lines) {
-                if (line.trim()) {
-                    // 簡易的なCSVパース（カンマ区切り、ダブルクォート対応）
-                    const row = [];
-                    let current = '';
-                    let inQuotes = false;
-                    
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
+            try {
+                console.log('CSVパース開始');
+                const lines = csvText.split('\n');
+                console.log('分割後の行数:', lines.length);
+                
+                const result = [];
+                
+                for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+                    const line = lines[lineIndex];
+                    if (line.trim()) {
+                        // 簡易的なCSVパース（カンマ区切り、ダブルクォート対応）
+                        const row = [];
+                        let current = '';
+                        let inQuotes = false;
                         
-                        if (char === '"' && (i === 0 || line[i-1] === ',')) {
-                            inQuotes = true;
-                        } else if (char === '"' && inQuotes && (i === line.length - 1 || line[i+1] === ',')) {
-                            inQuotes = false;
-                        } else if (char === ',' && !inQuotes) {
-                            row.push(current.trim());
-                            current = '';
-                        } else {
-                            current += char;
+                        for (let i = 0; i < line.length; i++) {
+                            const char = line[i];
+                            
+                            if (char === '"' && (i === 0 || line[i-1] === ',')) {
+                                inQuotes = true;
+                            } else if (char === '"' && inQuotes && (i === line.length - 1 || line[i+1] === ',')) {
+                                inQuotes = false;
+                            } else if (char === ',' && !inQuotes) {
+                                row.push(current.trim());
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        row.push(current.trim());
+                        result.push(row);
+                        
+                        if (lineIndex < 3) {
+                            console.log(`行 ${lineIndex + 1}:`, row);
                         }
                     }
-                    row.push(current.trim());
-                    result.push(row);
                 }
+                
+                console.log('CSVパース完了、結果行数:', result.length);
+                return result;
+                
+            } catch (error) {
+                console.error('CSVパースエラー:', error);
+                throw new Error(`CSVデータの解析に失敗しました: ${error.message}`);
             }
-            
-            return result;
         }
         
         // CSVデータを店舗データに変換
         function convertCSVToStores(rows) {
-            const stores = [];
-            const headers = rows[0]; // 1行目はヘッダー
-            
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
+            try {
+                console.log('店舗データ変換開始');
+                const stores = [];
+                const headers = rows[0]; // 1行目はヘッダー
+                console.log('ヘッダー行:', headers);
+                console.log('データ行数:', rows.length - 1);
                 
-                // 必須フィールドのチェック
-                if (!row[0] || !row[1] || !row[2]) {
-                    console.log(`行 ${i + 1}: 必須フィールド（店舗名、カテゴリー、住所）が不足しています`);
-                    continue;
-                }
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    console.log(`行 ${i + 1} 処理中:`, row.slice(0, 5)); // 最初の5列のみ表示
+                    
+                    // 必須フィールドのチェック
+                    if (!row[0] || !row[1] || !row[2]) {
+                        console.log(`行 ${i + 1}: 必須フィールド（店舗名、カテゴリー、住所）が不足しています`);
+                        console.log(`  店舗名: "${row[0]}", カテゴリー: "${row[1]}", 住所: "${row[2]}"`);
+                        continue;
+                    }
                 
                 const store = {
                     id: i, // 仮のID（後で調整される）
@@ -1081,9 +1122,16 @@
                 };
                 
                 stores.push(store);
+                console.log(`行 ${i + 1} 変換完了: ${store.name}`);
             }
             
+            console.log('店舗データ変換完了、変換された店舗数:', stores.length);
             return stores;
+            
+            } catch (error) {
+                console.error('店舗データ変換エラー:', error);
+                throw new Error(`店舗データの変換に失敗しました: ${error.message}`);
+            }
         }
         
         // スプレッドシートテンプレートを作成
