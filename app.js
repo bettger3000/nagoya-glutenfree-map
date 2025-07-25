@@ -297,19 +297,19 @@ function showStoreDetail(storeId) {
         <div class="route-section">
             <h4><i class="fas fa-route"></i> ルート案内</h4>
             <div class="route-buttons">
-                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'walking')">
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'walking', '${store.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-walking"></i>
                     <span>徒歩</span>
                 </button>
-                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'driving')">
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'driving', '${store.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-car"></i>
                     <span>車</span>
                 </button>
-                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'transit')">
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'transit', '${store.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-train"></i>
                     <span>公共交通</span>
                 </button>
-                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'bicycling')">
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'bicycling', '${store.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-bicycle"></i>
                     <span>自転車</span>
                 </button>
@@ -510,7 +510,7 @@ function formatDistance(distance) {
 }
 
 // Google Mapsでルート案内を開く
-function openGoogleMapsRoute(destLat, destLng, travelMode) {
+function openGoogleMapsRoute(destLat, destLng, travelMode, storeName) {
     let modeParam = '';
     switch(travelMode) {
         case 'driving':
@@ -529,14 +529,19 @@ function openGoogleMapsRoute(destLat, destLng, travelMode) {
             modeParam = 'driving';
     }
     
+    // 店舗名と座標をURLエンコード
+    const encodedStoreName = encodeURIComponent(storeName);
+    // 座標付きの店舗名で、より正確な検索結果を得る
+    const destination = `${destLat},${destLng}+(${encodedStoreName})`;
+    
     // 現在地がある場合は現在地から、ない場合は名古屋駅から
     if (userLocation) {
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destination}&travelmode=${modeParam}`;
         window.open(url, '_blank');
     } else {
         // 名古屋駅を起点に
         const nagoyaStation = { lat: 35.1709, lng: 136.8815 };
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${destination}&travelmode=${modeParam}`;
         window.open(url, '_blank');
     }
 }
