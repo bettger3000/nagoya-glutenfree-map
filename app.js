@@ -292,6 +292,30 @@ function showStoreDetail(storeId) {
                 <i class="fas fa-map"></i> Google マップで開く
             </a>
         </div>
+        
+        ${store.lat && store.lng ? `
+        <div class="route-section">
+            <h4><i class="fas fa-route"></i> ルート案内</h4>
+            <div class="route-buttons">
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'walking')">
+                    <i class="fas fa-walking"></i>
+                    <span>徒歩</span>
+                </button>
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'driving')">
+                    <i class="fas fa-car"></i>
+                    <span>車</span>
+                </button>
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'transit')">
+                    <i class="fas fa-train"></i>
+                    <span>公共交通</span>
+                </button>
+                <button class="route-btn" onclick="openGoogleMapsRoute(${store.lat}, ${store.lng}, 'bicycling')">
+                    <i class="fas fa-bicycle"></i>
+                    <span>自転車</span>
+                </button>
+            </div>
+        </div>
+        ` : ''}
     `;
     
     modal.style.display = 'block';
@@ -485,6 +509,38 @@ function formatDistance(distance) {
     }
 }
 
+// Google Mapsでルート案内を開く
+function openGoogleMapsRoute(destLat, destLng, travelMode) {
+    let modeParam = '';
+    switch(travelMode) {
+        case 'driving':
+            modeParam = 'driving';
+            break;
+        case 'walking':
+            modeParam = 'walking';
+            break;
+        case 'bicycling':
+            modeParam = 'bicycling';
+            break;
+        case 'transit':
+            modeParam = 'transit';
+            break;
+        default:
+            modeParam = 'driving';
+    }
+    
+    // 現在地がある場合は現在地から、ない場合は名古屋駅から
+    if (userLocation) {
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
+        window.open(url, '_blank');
+    } else {
+        // 名古屋駅を起点に
+        const nagoyaStation = { lat: 35.1709, lng: 136.8815 };
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
+        window.open(url, '_blank');
+    }
+}
+
 // カスタムマーカーのスタイル（CSSに追加）
 const markerStyles = document.createElement('style');
 markerStyles.textContent = `
@@ -579,6 +635,72 @@ markerStyles.textContent = `
     .store-distance {
         color: #4285f4;
         font-weight: bold;
+    }
+    
+    /* ルート案内セクション */
+    .route-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    
+    .route-section h4 {
+        color: #4a4a4a;
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+    
+    .route-section h4 i {
+        color: var(--primary-green);
+        margin-right: 8px;
+    }
+    
+    .route-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .route-btn {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        font-size: 14px;
+        color: #4a4a4a;
+    }
+    
+    .route-btn:hover {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .route-btn i {
+        font-size: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .route-buttons {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .route-btn {
+            padding: 10px;
+            font-size: 13px;
+        }
+        
+        .route-btn i {
+            font-size: 18px;
+        }
     }
 `;
 document.head.appendChild(markerStyles);
