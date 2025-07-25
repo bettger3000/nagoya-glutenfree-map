@@ -4,6 +4,7 @@ let markers = [];
 let storesData = [];
 let currentFilter = 'all';
 let userLocation = null;
+let favorites = [];
 
 // カテゴリー別の色とアイコン
 const categoryStyles = {
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadStores();
     setupEventListeners();
     requestUserLocation();
+    loadFavorites();
 });
 
 // 地図の初期化
@@ -79,6 +81,7 @@ async function loadStores() {
         
         displayStores(storesData);
         updateStoreList(storesData);
+        updateFavoriteCount();
         console.log('店舗データの読み込み完了');
     } catch (error) {
         console.error('店舗データの読み込みに失敗しました:', error);
@@ -153,6 +156,11 @@ function updateStoreList(stores) {
         const card = document.createElement('div');
         card.className = 'store-card';
         card.innerHTML = `
+            <button class="favorite-btn ${isFavorite(store.id) ? 'active' : ''}" 
+                    data-store-id="${store.id}" 
+                    onclick="event.stopPropagation(); toggleFavorite(${store.id})">
+                <i class="${isFavorite(store.id) ? 'fas' : 'far'} fa-heart"></i>
+            </button>
             <div class="store-card-image">
                 <img src="${store.imageUrl || ''}" alt="${store.name}" onerror="this.style.display='none'">
             </div>
@@ -196,7 +204,15 @@ function showStoreDetail(storeId) {
             ${store.imageUrl ? `<div class="modal-image">
                 <img src="${store.imageUrl}" alt="${store.name}" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
-            <h2>${store.name}</h2>
+            <div class="modal-title-section">
+                <h2>${store.name}</h2>
+                <button class="favorite-btn modal-favorite ${isFavorite(store.id) ? 'active' : ''}" 
+                        data-store-id="${store.id}" 
+                        onclick="toggleFavorite(${store.id})">
+                    <i class="${isFavorite(store.id) ? 'fas' : 'far'} fa-heart"></i>
+                    <span>${isFavorite(store.id) ? 'お気に入り済み' : 'お気に入りに追加'}</span>
+                </button>
+            </div>
             <span class="store-category category-${store.category}">${store.category}</span>
         </div>
         
@@ -377,7 +393,10 @@ function filterStores() {
     let filteredStores = storesData;
     
     // カテゴリーフィルター
-    if (currentFilter !== 'all') {
+    if (currentFilter === 'favorites') {
+        // お気に入りフィルター
+        filteredStores = filteredStores.filter(store => isFavorite(store.id));
+    } else if (currentFilter !== 'all') {
         filteredStores = filteredStores.filter(store => store.category === currentFilter);
     }
     
@@ -392,6 +411,9 @@ function filterStores() {
     
     displayStores(filteredStores);
     updateStoreList(filteredStores);
+    
+    // お気に入りフィルターの件数を更新
+    updateFavoriteCount();
 }
 
 // Instagram アプリで開く関数
@@ -506,6 +528,73 @@ function formatDistance(distance) {
         return Math.round(distance * 1000) + 'm';
     } else {
         return distance.toFixed(1) + 'km';
+    }
+}
+
+// お気に入りをローカルストレージから読み込み
+function loadFavorites() {
+    const stored = localStorage.getItem('glutenFreeFavorites');
+    if (stored) {
+        favorites = JSON.parse(stored);
+    }
+}
+
+// お気に入りを保存
+function saveFavorites() {
+    localStorage.setItem('glutenFreeFavorites', JSON.stringify(favorites));
+}
+
+// お気に入りの追加/削除
+function toggleFavorite(storeId) {
+    const index = favorites.indexOf(storeId);
+    if (index > -1) {
+        favorites.splice(index, 1);
+    } else {
+        favorites.push(storeId);
+    }
+    saveFavorites();
+    
+    // UIを更新
+    updateFavoriteButtons();
+    if (currentFilter === 'favorites') {
+        filterStores();
+    }
+}
+
+// お気に入りかどうかチェック
+function isFavorite(storeId) {
+    return favorites.includes(storeId);
+}
+
+// お気に入りボタンの状態を更新
+function updateFavoriteButtons() {
+    document.querySelectorAll('.favorite-btn').forEach(btn => {
+        const storeId = parseInt(btn.dataset.storeId);
+        if (isFavorite(storeId)) {
+            btn.classList.add('active');
+            if (btn.classList.contains('modal-favorite')) {
+                btn.innerHTML = '<i class="fas fa-heart"></i><span>お気に入り済み</span>';
+            } else {
+                btn.innerHTML = '<i class="fas fa-heart"></i>';
+            }
+        } else {
+            btn.classList.remove('active');
+            if (btn.classList.contains('modal-favorite')) {
+                btn.innerHTML = '<i class="far fa-heart"></i><span>お気に入りに追加</span>';
+            } else {
+                btn.innerHTML = '<i class="far fa-heart"></i>';
+            }
+        }
+    });
+}
+
+// お気に入り数を更新
+function updateFavoriteCount() {
+    const favoriteBtn = document.querySelector('.favorites-filter');
+    if (favoriteBtn && favorites.length > 0) {
+        favoriteBtn.innerHTML = `<i class="fas fa-heart"></i> お気に入り (${favorites.length})`;
+    } else if (favoriteBtn) {
+        favoriteBtn.innerHTML = '<i class="fas fa-heart"></i> お気に入り';
     }
 }
 
@@ -640,6 +729,73 @@ markerStyles.textContent = `
     .store-distance {
         color: #4285f4;
         font-weight: bold;
+    }
+    
+    /* お気に入りボタン */
+    .favorite-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        z-index: 10;
+        color: #999;
+        font-size: 18px;
+    }
+    
+    .favorite-btn:hover {
+        transform: scale(1.1);
+        border-color: #ff69b4;
+        color: #ff69b4;
+    }
+    
+    .favorite-btn.active {
+        color: #ff69b4;
+        border-color: #ff69b4;
+        background: #fff0f5;
+    }
+    
+    .store-card {
+        position: relative;
+    }
+    
+    /* モーダル内のお気に入りボタン */
+    .modal-favorite {
+        position: static;
+        width: auto;
+        height: auto;
+        padding: 8px 16px;
+        border-radius: 20px;
+        display: inline-flex;
+        gap: 8px;
+        margin-left: 15px;
+    }
+    
+    .modal-title-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    /* お気に入りフィルターボタン */
+    .favorites-filter {
+        background: #fff0f5;
+        border-color: #ff69b4;
+        color: #ff69b4;
+    }
+    
+    .favorites-filter.active {
+        background: #ff69b4;
+        color: white;
     }
     
     /* ルート案内セクション */
