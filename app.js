@@ -618,20 +618,33 @@ function openGoogleMapsRoute(destLat, destLng, travelMode, storeName) {
             modeParam = 'driving';
     }
     
-    // 店舗名と座標をURLエンコード
-    const encodedStoreName = encodeURIComponent(storeName);
-    // 座標付きの店舗名で、より正確な検索結果を得る
-    const destination = `${destLat},${destLng}+(${encodedStoreName})`;
+    // 店舗の住所を取得
+    const store = storesData.find(s => s.name === storeName);
+    const address = store ? store.address : '';
     
     // 現在地がある場合は現在地から、ない場合は名古屋駅から
     if (userLocation) {
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destination}&travelmode=${modeParam}`;
-        window.open(url, '_blank');
+        // 住所を使ってより正確な検索
+        if (address) {
+            const encodedAddress = encodeURIComponent(address);
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodedAddress}&travelmode=${modeParam}`;
+            window.open(url, '_blank');
+        } else {
+            // 住所がない場合は座標を使用
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
+            window.open(url, '_blank');
+        }
     } else {
         // 名古屋駅を起点に
         const nagoyaStation = { lat: 35.1709, lng: 136.8815 };
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${destination}&travelmode=${modeParam}`;
-        window.open(url, '_blank');
+        if (address) {
+            const encodedAddress = encodeURIComponent(address);
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${encodedAddress}&travelmode=${modeParam}`;
+            window.open(url, '_blank');
+        } else {
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
+            window.open(url, '_blank');
+        }
     }
 }
 
