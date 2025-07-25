@@ -618,33 +618,38 @@ function openGoogleMapsRoute(destLat, destLng, travelMode, storeName) {
             modeParam = 'driving';
     }
     
-    // 店舗の住所を取得
+    // 店舗情報を取得
     const store = storesData.find(s => s.name === storeName);
-    const address = store ? store.address : '';
+    
+    // 店舗名をシンプルにする（括弧内の説明を除去）
+    let searchQuery = storeName;
+    if (storeName.includes('（')) {
+        searchQuery = storeName.split('（')[0];
+    }
+    
+    // 店舗のGoogle Maps URLがある場合は、そこからPlace IDを抽出する可能性も考慮
+    if (store && store.googleMapsUrl) {
+        // Google Maps URLから直接ルート案内を作成
+        const placeMatch = store.googleMapsUrl.match(/place\/([^\/]+)/);
+        if (placeMatch) {
+            const placeName = decodeURIComponent(placeMatch[1]);
+            searchQuery = placeName;
+        }
+    }
+    
+    // 検索クエリに住所を追加して精度を上げる
+    const fullQuery = store && store.address ? `${searchQuery} ${store.address}` : searchQuery;
+    const encodedQuery = encodeURIComponent(fullQuery);
     
     // 現在地がある場合は現在地から、ない場合は名古屋駅から
     if (userLocation) {
-        // 住所を使ってより正確な検索
-        if (address) {
-            const encodedAddress = encodeURIComponent(address);
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodedAddress}&travelmode=${modeParam}`;
-            window.open(url, '_blank');
-        } else {
-            // 住所がない場合は座標を使用
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
-            window.open(url, '_blank');
-        }
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodedQuery}&travelmode=${modeParam}`;
+        window.open(url, '_blank');
     } else {
         // 名古屋駅を起点に
         const nagoyaStation = { lat: 35.1709, lng: 136.8815 };
-        if (address) {
-            const encodedAddress = encodeURIComponent(address);
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${encodedAddress}&travelmode=${modeParam}`;
-            window.open(url, '_blank');
-        } else {
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${destLat},${destLng}&travelmode=${modeParam}`;
-            window.open(url, '_blank');
-        }
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${nagoyaStation.lat},${nagoyaStation.lng}&destination=${encodedQuery}&travelmode=${modeParam}`;
+        window.open(url, '_blank');
     }
 }
 
