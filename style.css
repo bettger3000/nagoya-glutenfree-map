@@ -292,12 +292,21 @@ header .subtitle {
     right: 20px;
     font-size: 30px;
     cursor: pointer;
-    color: #999;
-    transition: color 0.3s;
+    color: var(--white);
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    z-index: 10;
 }
 
 .close-btn:hover {
-    color: var(--primary-pink);
+    background: var(--primary-pink);
+    transform: scale(1.1);
 }
 
 /* モーダル内コンテンツ */
@@ -362,6 +371,17 @@ header .subtitle {
     color: var(--primary-green);
     margin-right: 10px;
     width: 20px;
+}
+
+.phone-link {
+    color: var(--primary-green);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.phone-link:hover {
+    color: var(--primary-pink);
+    text-decoration: underline;
 }
 
 .gf-badge {
