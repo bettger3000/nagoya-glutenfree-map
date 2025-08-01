@@ -4,7 +4,6 @@ let markers = [];
 let storesData = [];
 let currentFilter = 'all';
 let userLocation = null;
-let favorites = [];
 
 // カテゴリー別の色とアイコン
 const categoryStyles = {
@@ -22,7 +21,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadStores();
     setupEventListeners();
     requestUserLocation();
-    loadFavorites();
 });
 
 // 地図の初期化
@@ -81,7 +79,6 @@ async function loadStores() {
         
         displayStores(storesData);
         updateStoreList(storesData);
-        updateFavoriteCount();
         console.log('店舗データの読み込み完了');
     } catch (error) {
         console.error('店舗データの読み込みに失敗しました:', error);
@@ -156,13 +153,8 @@ function updateStoreList(stores) {
         const card = document.createElement('div');
         card.className = 'store-card';
         card.innerHTML = `
-            <button class="favorite-btn ${isFavorite(store.id) ? 'active' : ''}" 
-                    data-store-id="${store.id}" 
-                    onclick="event.stopPropagation(); toggleFavorite(${store.id})">
-                <i class="${isFavorite(store.id) ? 'fas' : 'far'} fa-heart"></i>
-            </button>
             <div class="store-card-image">
-                <img src="${store.imageUrl || ''}" alt="${store.name}" onerror="this.style.display='none'">
+                <img src="${store.imageUrl || ''}" alt="${store.name}" onclick="event.stopPropagation(); openImageLightbox('${store.imageUrl}', '${store.name}')" onerror="this.style.display='none'">
             </div>
             <div class="store-card-content">
                 <h4>${store.name}</h4>
@@ -202,26 +194,20 @@ function showStoreDetail(storeId) {
     modalContent.innerHTML = `
         <div class="modal-header">
             ${store.imageUrl ? `<div class="modal-image">
-                <img src="${store.imageUrl}" alt="${store.name}" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl}" alt="${store.name}" onclick="openImageLightbox('${store.imageUrl}', '${store.name}')" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
             <div class="modal-title-section">
                 <h2>${store.name}</h2>
-                <button class="favorite-btn modal-favorite ${isFavorite(store.id) ? 'active' : ''}" 
-                        data-store-id="${store.id}" 
-                        onclick="toggleFavorite(${store.id})">
-                    <i class="${isFavorite(store.id) ? 'fas' : 'far'} fa-heart"></i>
-                    <span>${isFavorite(store.id) ? 'お気に入り済み' : 'お気に入りに追加'}</span>
-                </button>
             </div>
             <span class="store-category category-${store.category}">${store.category}</span>
         </div>
         
         ${(store.imageUrl2 || store.imageUrl3) ? `<div class="modal-additional-images">
             ${store.imageUrl2 ? `<div class="modal-image">
-                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" onclick="openImageLightbox('${store.imageUrl2}', '${store.name} - 画像2')" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
             ${store.imageUrl3 ? `<div class="modal-image">
-                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" onclick="openImageLightbox('${store.imageUrl3}', '${store.name} - 画像3')" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
         </div>` : ''}
         
@@ -244,7 +230,7 @@ function showStoreDetail(storeId) {
             ${store.tel ? `
             <div class="modal-info-item">
                 <i class="fas fa-phone"></i>
-                <span>${store.tel}</span>
+                <a href="tel:${store.tel}" class="phone-link">${store.tel}</a>
             </div>
             ` : ''}
             
@@ -393,10 +379,7 @@ function filterStores() {
     let filteredStores = storesData;
     
     // カテゴリーフィルター
-    if (currentFilter === 'favorites') {
-        // お気に入りフィルター
-        filteredStores = filteredStores.filter(store => isFavorite(store.id));
-    } else if (currentFilter !== 'all') {
+    if (currentFilter !== 'all') {
         filteredStores = filteredStores.filter(store => store.category === currentFilter);
     }
     
@@ -412,8 +395,6 @@ function filterStores() {
     displayStores(filteredStores);
     updateStoreList(filteredStores);
     
-    // お気に入りフィルターの件数を更新
-    updateFavoriteCount();
 }
 
 // Instagram アプリで開く関数
@@ -531,70 +512,62 @@ function formatDistance(distance) {
     }
 }
 
-// お気に入りをローカルストレージから読み込み
-function loadFavorites() {
-    const stored = localStorage.getItem('glutenFreeFavorites');
-    if (stored) {
-        favorites = JSON.parse(stored);
-    }
-}
 
-// お気に入りを保存
-function saveFavorites() {
-    localStorage.setItem('glutenFreeFavorites', JSON.stringify(favorites));
-}
-
-// お気に入りの追加/削除
-function toggleFavorite(storeId) {
-    const index = favorites.indexOf(storeId);
-    if (index > -1) {
-        favorites.splice(index, 1);
-    } else {
-        favorites.push(storeId);
-    }
-    saveFavorites();
+// 画像ライトボックスを開く
+function openImageLightbox(imageUrl, altText) {
+    if (!imageUrl) return;
     
-    // UIを更新
-    updateFavoriteButtons();
-    if (currentFilter === 'favorites') {
-        filterStores();
+    // ライトボックスが既に存在する場合は削除
+    const existingLightbox = document.getElementById('imageLightbox');
+    if (existingLightbox) {
+        existingLightbox.remove();
     }
+    
+    // ライトボックス要素を作成
+    const lightbox = document.createElement('div');
+    lightbox.id = 'imageLightbox';
+    lightbox.className = 'image-lightbox';
+    
+    lightbox.innerHTML = `
+        <div class="lightbox-backdrop" onclick="closeImageLightbox()"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeImageLightbox()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img src="${imageUrl}" alt="${altText}" class="lightbox-image">
+            <div class="lightbox-caption">${altText}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(lightbox);
+    
+    // フェードイン効果
+    setTimeout(() => {
+        lightbox.classList.add('show');
+    }, 10);
+    
+    // Escキーで閉じる
+    document.addEventListener('keydown', closeLightboxOnEscape);
 }
 
-// お気に入りかどうかチェック
-function isFavorite(storeId) {
-    return favorites.includes(storeId);
+// ライトボックスを閉じる
+function closeImageLightbox() {
+    const lightbox = document.getElementById('imageLightbox');
+    if (lightbox) {
+        lightbox.classList.remove('show');
+        setTimeout(() => {
+            lightbox.remove();
+        }, 300);
+    }
+    
+    // Escキーイベントリスナーを削除
+    document.removeEventListener('keydown', closeLightboxOnEscape);
 }
 
-// お気に入りボタンの状態を更新
-function updateFavoriteButtons() {
-    document.querySelectorAll('.favorite-btn').forEach(btn => {
-        const storeId = parseInt(btn.dataset.storeId);
-        if (isFavorite(storeId)) {
-            btn.classList.add('active');
-            if (btn.classList.contains('modal-favorite')) {
-                btn.innerHTML = '<i class="fas fa-heart"></i><span>お気に入り済み</span>';
-            } else {
-                btn.innerHTML = '<i class="fas fa-heart"></i>';
-            }
-        } else {
-            btn.classList.remove('active');
-            if (btn.classList.contains('modal-favorite')) {
-                btn.innerHTML = '<i class="far fa-heart"></i><span>お気に入りに追加</span>';
-            } else {
-                btn.innerHTML = '<i class="far fa-heart"></i>';
-            }
-        }
-    });
-}
-
-// お気に入り数を更新
-function updateFavoriteCount() {
-    const favoriteBtn = document.querySelector('.favorites-filter');
-    if (favoriteBtn && favorites.length > 0) {
-        favoriteBtn.innerHTML = `<i class="fas fa-heart"></i> お気に入り (${favorites.length})`;
-    } else if (favoriteBtn) {
-        favoriteBtn.innerHTML = '<i class="fas fa-heart"></i> お気に入り';
+// Escキーでライトボックスを閉じる
+function closeLightboxOnEscape(event) {
+    if (event.key === 'Escape') {
+        closeImageLightbox();
     }
 }
 
@@ -749,71 +722,118 @@ markerStyles.textContent = `
         font-weight: bold;
     }
     
-    /* お気に入りボタン */
-    .favorite-btn {
+    
+    /* 画像ライトボックス */
+    .image-lightbox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .image-lightbox.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .lightbox-backdrop {
         position: absolute;
-        top: 10px;
-        right: 10px;
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        cursor: pointer;
+    }
+    
+    .lightbox-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90vw;
+        max-height: 90vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+    }
+    
+    .lightbox-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        color: white;
+        font-size: 18px;
         cursor: pointer;
         transition: all 0.3s;
-        z-index: 10;
-        color: #999;
-        font-size: 18px;
+        z-index: 10001;
     }
     
-    .favorite-btn:hover {
+    .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.3);
         transform: scale(1.1);
-        border-color: #ff69b4;
-        color: #ff69b4;
     }
     
-    .favorite-btn.active {
-        color: #ff69b4;
-        border-color: #ff69b4;
-        background: #fff0f5;
+    .lightbox-image {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     
-    .store-card {
-        position: relative;
-    }
-    
-    /* モーダル内のお気に入りボタン */
-    .modal-favorite {
-        position: static;
-        width: auto;
-        height: auto;
+    .lightbox-caption {
+        color: white;
+        margin-top: 15px;
+        font-size: 16px;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.5);
         padding: 8px 16px;
         border-radius: 20px;
-        display: inline-flex;
-        gap: 8px;
-        margin-left: 15px;
     }
     
-    .modal-title-section {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
+    /* モバイル対応 */
+    @media (max-width: 768px) {
+        .lightbox-content {
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+        
+        .lightbox-close {
+            top: -40px;
+            width: 35px;
+            height: 35px;
+            font-size: 16px;
+        }
+        
+        .lightbox-image {
+            max-height: 75vh;
+        }
+        
+        .lightbox-caption {
+            font-size: 14px;
+            margin-top: 10px;
+        }
     }
     
-    /* お気に入りフィルターボタン */
-    .favorites-filter {
-        background: #fff0f5;
-        border-color: #ff69b4;
-        color: #ff69b4;
+    /* 画像クリック可能な表示 */
+    .modal-image img, .store-card-image img {
+        cursor: pointer;
+        transition: transform 0.2s;
     }
     
-    .favorites-filter.active {
-        background: #ff69b4;
-        color: white;
+    .modal-image img:hover, .store-card-image img:hover {
+        transform: scale(1.02);
     }
     
     /* ルート案内セクション */
