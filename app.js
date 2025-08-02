@@ -154,7 +154,7 @@ function updateStoreList(stores) {
         card.className = 'store-card';
         card.innerHTML = `
             <div class="store-card-image">
-                <img src="${store.imageUrl || ''}" alt="${store.name}" onclick="event.stopPropagation(); openImageLightbox('${store.imageUrl}', '${store.name}')" onerror="this.style.display='none'">
+                <img src="${store.imageUrl || ''}" alt="${store.name}" onclick="event.stopPropagation(); openImageLightbox('${store.imageUrl}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.style.display='none'">
             </div>
             <div class="store-card-content">
                 <h4>${store.name}</h4>
@@ -194,7 +194,7 @@ function showStoreDetail(storeId) {
     modalContent.innerHTML = `
         <div class="modal-header">
             ${store.imageUrl ? `<div class="modal-image">
-                <img src="${store.imageUrl}" alt="${store.name}" onclick="openImageLightbox('${store.imageUrl}', '${store.name}')" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl}" alt="${store.name}" onclick="openImageLightbox('${store.imageUrl}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
             <div class="modal-title-section">
                 <h2>${store.name}</h2>
@@ -205,10 +205,10 @@ function showStoreDetail(storeId) {
         
         ${(store.imageUrl2 || store.imageUrl3) ? `<div class="modal-additional-images">
             ${store.imageUrl2 ? `<div class="modal-image">
-                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" onclick="openImageLightbox('${store.imageUrl2}', '${store.name} - 画像2')" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" onclick="openImageLightbox('${store.imageUrl2}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
             ${store.imageUrl3 ? `<div class="modal-image">
-                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" onclick="openImageLightbox('${store.imageUrl3}', '${store.name} - 画像3')" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" onclick="openImageLightbox('${store.imageUrl3}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
         </div>` : ''}
         
