@@ -79,6 +79,7 @@ async function loadStores() {
         
         displayStores(storesData);
         updateStoreList(storesData);
+        updateSearchResults(storesData.length, '');
         console.log('店舗データの読み込み完了');
     } catch (error) {
         console.error('店舗データの読み込みに失敗しました:', error);
@@ -386,6 +387,48 @@ function setupEventListeners() {
     });
 }
 
+// エリア検索用のキーワードマッピング
+const areaKeywords = {
+    // 東京エリア
+    '渋谷': ['渋谷区', '神宮前', '表参道', '原宿'],
+    '吉祥寺': ['武蔵野市', '吉祥寺'],
+    '新宿': ['新宿区'],
+    '池袋': ['豊島区'],
+    '銀座': ['中央区', '銀座'],
+    '浅草': ['台東区', '浅草'],
+    
+    // 名古屋エリア
+    '名古屋駅': ['名古屋市中村区', '名駅', 'ゲートタワー', 'ゲートウォーク'],
+    '大須': ['大須'],
+    '栄': ['中区栄', '錦'],
+    '千種': ['千種区'],
+    '中区': ['名古屋市中区'],
+    '西区': ['名古屋市西区', '浄心'],
+    '昭和区': ['名古屋市昭和区', '御器所'],
+    '名東区': ['名古屋市名東区'],
+    '中川区': ['名古屋市中川区', '荒子']
+};
+
+// エリア検索の判定
+function matchesAreaSearch(store, searchTerm) {
+    const address = store.address.toLowerCase();
+    const name = store.name.toLowerCase();
+    
+    // 直接的な住所マッチ
+    if (address.includes(searchTerm) || name.includes(searchTerm)) {
+        return true;
+    }
+    
+    // エリアキーワードでのマッチ
+    for (const [area, keywords] of Object.entries(areaKeywords)) {
+        if (area.includes(searchTerm) || searchTerm.includes(area)) {
+            return keywords.some(keyword => address.includes(keyword.toLowerCase()));
+        }
+    }
+    
+    return false;
+}
+
 // フィルタリング機能
 function filterStores() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -397,18 +440,45 @@ function filterStores() {
         filteredStores = filteredStores.filter(store => store.category === currentFilter);
     }
     
-    // 検索フィルター
+    // 検索フィルター（エリア検索を含む）
     if (searchTerm) {
         filteredStores = filteredStores.filter(store => 
             store.name.toLowerCase().includes(searchTerm) ||
-            store.address.toLowerCase().includes(searchTerm) ||
-            store.description.toLowerCase().includes(searchTerm)
+            store.description.toLowerCase().includes(searchTerm) ||
+            store.glutenFreeType.toLowerCase().includes(searchTerm) ||
+            matchesAreaSearch(store, searchTerm)
         );
     }
     
     displayStores(filteredStores);
     updateStoreList(filteredStores);
+    updateSearchResults(filteredStores.length, searchTerm);
+}
+
+// 検索結果表示の更新
+function updateSearchResults(count, searchTerm) {
+    let resultElement = document.getElementById('searchResults');
+    if (!resultElement) {
+        resultElement = document.createElement('div');
+        resultElement.id = 'searchResults';
+        resultElement.className = 'search-results';
+        
+        const storeList = document.querySelector('.store-list');
+        const storeListH3 = storeList.querySelector('h3');
+        storeListH3.parentNode.insertBefore(resultElement, storeListH3.nextSibling);
+    }
     
+    if (searchTerm && searchTerm.trim()) {
+        if (count === 0) {
+            resultElement.innerHTML = `<p class="no-results">「${searchTerm}」の検索結果: 該当する店舗が見つかりません</p>`;
+        } else {
+            resultElement.innerHTML = `<p class="search-count">「${searchTerm}」の検索結果: ${count}件の店舗</p>`;
+        }
+        resultElement.style.display = 'block';
+    } else {
+        resultElement.innerHTML = `<p class="total-count">全${count}件の店舗</p>`;
+        resultElement.style.display = 'block';
+    }
 }
 
 // Instagram アプリで開く関数

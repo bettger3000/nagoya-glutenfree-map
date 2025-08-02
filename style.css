@@ -176,6 +176,33 @@ header .subtitle {
     font-size: 20px;
 }
 
+/* 検索結果表示 */
+.search-results {
+    margin-bottom: 15px;
+    padding: 10px 0;
+}
+
+.search-results p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-dark);
+}
+
+.search-count {
+    color: var(--primary-green);
+    font-weight: 500;
+}
+
+.total-count {
+    color: var(--text-dark);
+    opacity: 0.8;
+}
+
+.no-results {
+    color: #ff6b6b;
+    font-weight: 500;
+}
+
 /* 店舗カード */
 .store-card {
     background: var(--bg-cream);
