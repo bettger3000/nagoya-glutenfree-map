@@ -468,6 +468,8 @@ function filterStores() {
 
 // エリア検索時に地図を移動する関数
 function zoomToArea(searchTerm, filteredStores) {
+    console.log('zoomToArea called with:', searchTerm);
+    
     // エリアの中心座標を定義
     const areaCenters = {
         // 東京エリア
@@ -497,7 +499,12 @@ function zoomToArea(searchTerm, filteredStores) {
     // エリア名にマッチする座標があるか確認
     for (const [area, coords] of Object.entries(areaCenters)) {
         if (searchTerm.includes(area.toLowerCase())) {
-            map.setView([coords.lat, coords.lng], coords.zoom);
+            console.log('Moving map to:', area, coords);
+            // アニメーション付きで地図を移動
+            map.flyTo([coords.lat, coords.lng], coords.zoom, {
+                duration: 1.5,
+                easeLinearity: 0.5
+            });
             return;
         }
     }
