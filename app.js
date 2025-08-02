@@ -748,7 +748,9 @@ markerStyles.textContent = `
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.9);
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         cursor: pointer;
     }
     
@@ -757,17 +759,19 @@ markerStyles.textContent = `
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        max-width: 90vw;
-        max-height: 90vh;
+        width: 80vw;
+        height: 80vh;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
+        padding: 20px;
     }
     
     .lightbox-close {
         position: absolute;
-        top: -50px;
-        right: 0;
+        top: 20px;
+        right: 20px;
         background: rgba(255, 255, 255, 0.2);
         border: none;
         border-radius: 50%;
@@ -786,44 +790,54 @@ markerStyles.textContent = `
     }
     
     .lightbox-image {
+        width: auto;
+        height: auto;
         max-width: 100%;
-        max-height: 80vh;
+        max-height: calc(100% - 60px);
         object-fit: contain;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        background-color: white;
+        padding: 10px;
     }
     
     .lightbox-caption {
         color: white;
-        margin-top: 15px;
+        margin-top: 20px;
         font-size: 16px;
         text-align: center;
-        background: rgba(0, 0, 0, 0.5);
-        padding: 8px 16px;
-        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 25px;
+        max-width: 80%;
+        line-height: 1.4;
     }
     
     /* モバイル対応 */
     @media (max-width: 768px) {
         .lightbox-content {
-            max-width: 95vw;
-            max-height: 95vh;
+            width: 90vw;
+            height: 85vh;
+            padding: 15px;
         }
         
         .lightbox-close {
-            top: -40px;
+            top: 10px;
+            right: 10px;
             width: 35px;
             height: 35px;
             font-size: 16px;
         }
         
         .lightbox-image {
-            max-height: 75vh;
+            max-height: calc(100% - 50px);
+            padding: 8px;
         }
         
         .lightbox-caption {
             font-size: 14px;
-            margin-top: 10px;
+            margin-top: 15px;
+            padding: 8px 16px;
         }
     }
     
