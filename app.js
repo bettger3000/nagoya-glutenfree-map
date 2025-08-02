@@ -198,7 +198,7 @@ function showStoreDetail(storeId) {
             </div>` : ''}
             <div class="modal-title-section">
                 <h2>${store.name}</h2>
-                ${store.visitedByNaco ? '<span class="naco-visited-badge" title="nacoさん訪問済み"><img src="naco-character.png.png" alt="naco訪問済み" class="naco-visited-icon"></span>' : ''}
+                ${store.visitedByNaco ? '<span class="naco-visited-badge" title="nacoさん訪問済み"><img src="naco-visited-icon.png" alt="naco訪問済み" class="naco-visited-icon"><span class="naco-visited-text">naco訪問済み</span></span>' : ''}
             </div>
             <span class="store-category category-${store.category}">${store.category}</span>
         </div>
