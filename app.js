@@ -411,6 +411,12 @@ const areaKeywords = {
 
 // エリア検索の判定
 function matchesAreaSearch(store, searchTerm) {
+    // areaKeywordsが定義されているか確認
+    if (typeof areaKeywords === 'undefined') {
+        console.warn('areaKeywords is not defined');
+        return false;
+    }
+    
     const address = store.address.toLowerCase();
     const name = store.name.toLowerCase();
     
@@ -421,7 +427,7 @@ function matchesAreaSearch(store, searchTerm) {
     
     // エリアキーワードでのマッチ
     for (const [area, keywords] of Object.entries(areaKeywords)) {
-        if (area.includes(searchTerm) || searchTerm.includes(area)) {
+        if (area.toLowerCase().includes(searchTerm) || searchTerm.includes(area.toLowerCase())) {
             return keywords.some(keyword => address.includes(keyword.toLowerCase()));
         }
     }
@@ -501,10 +507,18 @@ function zoomToArea(searchTerm, filteredStores) {
         if (searchTerm.includes(area.toLowerCase())) {
             console.log('Moving map to:', area, coords);
             // アニメーション付きで地図を移動
-            map.flyTo([coords.lat, coords.lng], coords.zoom, {
-                duration: 1.5,
-                easeLinearity: 0.5
-            });
+            try {
+                if (map && typeof map.flyTo === 'function') {
+                    map.flyTo([coords.lat, coords.lng], coords.zoom, {
+                        duration: 1.5,
+                        easeLinearity: 0.5
+                    });
+                } else {
+                    console.warn('Map is not ready or flyTo is not available');
+                }
+            } catch (error) {
+                console.error('Error moving map:', error);
+            }
             return;
         }
     }
