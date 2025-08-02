@@ -353,6 +353,29 @@
       "imageUrl2": "https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5d241a80-e318-4291-bb2e-1f210a0000c5/img/d393af60-51c2-013e-2382-0a58a9feac02/IMG_1004%E3%81%AE%E3%82%B3%E3%83%92%E3%82%9A%E3%83%BC_800-thumbnail.jpg",
       "imageUrl3": "https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5d241a80-e318-4291-bb2e-1f210a0000c5/img/f4858fa0-51c2-013e-2387-0a58a9feac02/IMG_1009%E3%81%AE%E3%82%B3%E3%83%92%E3%82%9A%E3%83%BC_800-thumbnail.jpg",
       "googleMapsUrl": "https://www.google.co.jp/maps/place/I'm+donut%EF%BC%9F%EF%BC%88%E3%82%A2%E3%82%A4%E3%83%A0%E3%83%89%E3%83%BC%E3%83%8A%E3%83%84%EF%BC%9F%EF%BC%89%E3%82%B0%E3%83%AB%E3%83%86%E3%83%B3%E3%83%95%E3%83%AA%E3%83%BC/@35.6616998,139.7065425,18z/data=!4m14!1m7!3m6!1s0x60188b0009506cc3:0x8546a81e39abb70a!2zSSdtIGRvbnV077yf77yI44Ki44Kk44Og44OJ44O844OK44OE77yf77yJ44Kw44Or44OG44Oz44OV44Oq44O8!8m2!3d35.6615373!4d139.7077059!16s%2Fg%2F11yfj5hw3t!3m5!1s0x60188b0009506cc3:0x8546a81e39abb70a!8m2!3d35.6615373!4d139.7077059!16s%2Fg%2F11yfj5hw3t?hl=ja&entry=ttu&g_ep=EgoyMDI1MDczMC4wIKXMDSoASAFQAw%3D%3D"
+    },
+    {
+      "id": 23,
+      "name": "genuine gluten free Where is a dog?",
+      "category": "カフェ",
+      "address": "東京都武蔵野市吉祥寺本町２丁目２４−９ SUNO Ecru 103",
+      "lat": 35.7039,
+      "lng": 139.5724,
+      "hours": "月〜金　\t 12時00分～15時00分 17時00分～20時00分／土日\t 12時00分～20時00分",
+      "closed": "なし",
+      "tel": "0422272812",
+      "description": "元々パンが大好きだったのでこうしてパンが食べられることができるのがとても幸せでした。食事の前に、食パンの試食をくださります。初めて食べた時は、小麦不使用でもこんなに美味しいんだ？！ととても驚きました。テイクアウトのパンもあります。「テイクアウトだけでも大丈夫ですよ！」と店主さんが仰っていました。\n小麦のコンタミも気にせずに食べられるので重度のアレルギーお持ちの方でも安心して食べられると思います！\n（aoさんのコメント）",
+      "glutenFreeType": "完全GF",
+      "takeout": false,
+      "seats": 0,
+      "nacoComment": "",
+      "visitedByNaco": false,
+      "website": "",
+      "instagram": "https://www.instagram.com/im.donut.gluten.free/",
+      "imageUrl": "https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5d241a80-e318-4291-bb2e-1f210a0000c5/img/53deb400-51cd-013e-2483-0a58a9feac02/IMG_6678_Original%E3%81%AE%E3%82%B3%E3%83%92%E3%82%9A%E3%83%BC_800-thumbnail.jpg",
+      "imageUrl2": "https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5d241a80-e318-4291-bb2e-1f210a0000c5/img/53dbacb0-51cd-013e-2482-0a58a9feac02/IMG_6677_Original%E3%81%AE%E3%82%B3%E3%83%92%E3%82%9A%E3%83%BC_800-thumbnail.jpg",
+      "imageUrl3": "https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5d241a80-e318-4291-bb2e-1f210a0000c5/img/53df95b0-51cd-013e-2484-0a58a9feac02/8E6BF0AD-CCAF-4177-99C6-FE83BBBBA638%E3%81%AE%E3%82%B3%E3%83%92%E3%82%9A%E3%83%BC_800-thumbnail.jpg",
+      "googleMapsUrl": "https://www.google.co.jp/maps/place/genuine+gluten+free+Where+is+a+dog%3F/@35.703938,139.572354,17z/data=!3m1!4b1!4m6!3m5!1s0x60188d1d5e0a91ad:0x9dde2f2c02dcdf77!8m2!3d35.7039337!4d139.5749289!16s%2Fg%2F11f1w87rd4?hl=ja&entry=ttu&g_ep=EgoyMDI1MDcyOS4wIKXMDSoASAFQAw%3D%3D"
     }
   ]
 }
