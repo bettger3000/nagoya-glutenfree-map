@@ -154,7 +154,7 @@ function updateStoreList(stores) {
         card.className = 'store-card';
         card.innerHTML = `
             <div class="store-card-image">
-                <img src="${store.imageUrl || ''}" alt="${store.name}" onclick="event.stopPropagation(); openImageLightbox('${store.imageUrl}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.style.display='none'">
+                <img src="${store.imageUrl || ''}" alt="${store.name}" class="clickable-image" data-image-url="${store.imageUrl || ''}" data-alt-text="${store.name}" onclick="event.stopPropagation();" onerror="this.style.display='none'">
             </div>
             <div class="store-card-content">
                 <h4>${store.name}</h4>
@@ -194,7 +194,7 @@ function showStoreDetail(storeId) {
     modalContent.innerHTML = `
         <div class="modal-header">
             ${store.imageUrl ? `<div class="modal-image">
-                <img src="${store.imageUrl}" alt="${store.name}" onclick="openImageLightbox('${store.imageUrl}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl}" alt="${store.name}" class="clickable-image" data-image-url="${store.imageUrl}" data-alt-text="${store.name}" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
             <div class="modal-title-section">
                 <h2>${store.name}</h2>
@@ -205,10 +205,10 @@ function showStoreDetail(storeId) {
         
         ${(store.imageUrl2 || store.imageUrl3) ? `<div class="modal-additional-images">
             ${store.imageUrl2 ? `<div class="modal-image">
-                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" onclick="openImageLightbox('${store.imageUrl2}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl2}" alt="${store.name} - 画像2" class="clickable-image" data-image-url="${store.imageUrl2}" data-alt-text="${store.name} - 画像2" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
             ${store.imageUrl3 ? `<div class="modal-image">
-                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" onclick="openImageLightbox('${store.imageUrl3}', '${store.name.replace(/'/g, "\\\\'")}')" onerror="this.parentElement.style.display='none'">
+                <img src="${store.imageUrl3}" alt="${store.name} - 画像3" class="clickable-image" data-image-url="${store.imageUrl3}" data-alt-text="${store.name} - 画像3" onerror="this.parentElement.style.display='none'">
             </div>` : ''}
         </div>` : ''}
         
@@ -335,6 +335,19 @@ function setupEventListeners() {
             currentFilter = this.dataset.category;
             filterStores();
         });
+    });
+    
+    // 画像クリックイベントをdocumentに委譲
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('clickable-image')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const imageUrl = e.target.dataset.imageUrl;
+            const altText = e.target.dataset.altText;
+            if (imageUrl) {
+                openImageLightbox(imageUrl, altText);
+            }
+        }
     });
     
     // 検索機能
@@ -517,6 +530,9 @@ function formatDistance(distance) {
 // 画像ライトボックスを開く
 function openImageLightbox(imageUrl, altText) {
     if (!imageUrl) return;
+    
+    console.log('Opening lightbox for:', altText);
+    console.log('Image URL:', imageUrl);
     
     // ライトボックスが既に存在する場合は削除
     const existingLightbox = document.getElementById('imageLightbox');
@@ -792,8 +808,8 @@ markerStyles.textContent = `
     .lightbox-image {
         width: auto;
         height: auto;
-        max-width: 90vw;
-        max-height: 85vh;
+        max-width: min(1200px, 90vw);
+        max-height: 90vh;
         object-fit: contain;
         border-radius: 10px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -841,6 +857,27 @@ markerStyles.textContent = `
             padding: 8px 16px;
             position: absolute;
             bottom: 20px;
+        }
+    }
+    
+    /* PC版用の大きな画像表示 */
+    @media (min-width: 1024px) {
+        .lightbox-image {
+            max-width: min(1400px, 85vw);
+            max-height: 85vh;
+        }
+        
+        .lightbox-caption {
+            font-size: 20px;
+            padding: 15px 30px;
+        }
+    }
+    
+    /* 大画面用 */
+    @media (min-width: 1440px) {
+        .lightbox-image {
+            max-width: min(1600px, 80vw);
+            max-height: 85vh;
         }
     }
     
