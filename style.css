@@ -291,7 +291,7 @@ header .subtitle {
     position: absolute;
     top: 15px;
     right: 20px;
-    font-size: 30px;
+    font-size: 28px;
     cursor: pointer;
     color: var(--white);
     background: rgba(0, 0, 0, 0.6);
@@ -303,6 +303,9 @@ header .subtitle {
     justify-content: center;
     transition: all 0.3s;
     z-index: 10;
+    line-height: 1;
+    padding: 0;
+    text-align: center;
 }
 
 .close-btn:hover {
