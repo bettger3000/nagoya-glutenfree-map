@@ -759,26 +759,26 @@ markerStyles.textContent = `
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 95vw;
-        height: 90vh;
+        width: 100vw;
+        height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 10px;
+        padding: 0;
     }
     
     .lightbox-close {
         position: absolute;
         top: 20px;
         right: 20px;
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.6);
         border: none;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         color: white;
-        font-size: 18px;
+        font-size: 24px;
         cursor: pointer;
         transition: all 0.3s;
         z-index: 10001;
@@ -792,8 +792,8 @@ markerStyles.textContent = `
     .lightbox-image {
         width: auto;
         height: auto;
-        max-width: calc(100% - 20px);
-        max-height: calc(100% - 80px);
+        max-width: 90vw;
+        max-height: 85vh;
         object-fit: contain;
         border-radius: 10px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -801,14 +801,16 @@ markerStyles.textContent = `
     
     .lightbox-caption {
         color: white;
-        margin-top: 20px;
-        font-size: 16px;
+        margin-top: 15px;
+        font-size: 18px;
         text-align: center;
         background: rgba(0, 0, 0, 0.7);
-        padding: 10px 20px;
+        padding: 12px 24px;
         border-radius: 25px;
         max-width: 80%;
         line-height: 1.4;
+        position: absolute;
+        bottom: 30px;
     }
     
     /* モバイル対応 */
