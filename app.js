@@ -878,8 +878,8 @@ markerStyles.textContent = `
     .lightbox-image {
         width: auto;
         height: auto;
-        max-width: min(1200px, 90vw);
-        max-height: 90vh;
+        max-width: min(1600px, 92vw);
+        max-height: 85vh;
         object-fit: contain;
         border-radius: 10px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -888,15 +888,18 @@ markerStyles.textContent = `
     .lightbox-caption {
         color: white;
         margin-top: 15px;
-        font-size: 18px;
+        font-size: 20px;
         text-align: center;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 12px 24px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 15px 30px;
         border-radius: 25px;
-        max-width: 80%;
+        max-width: 85%;
         line-height: 1.4;
         position: absolute;
-        bottom: 30px;
+        bottom: 40px;
+        font-weight: 500;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
     }
     
     /* モバイル対応 */
@@ -917,36 +920,38 @@ markerStyles.textContent = `
         }
         
         .lightbox-image {
-            max-width: 95vw;
-            max-height: 85vh;
+            max-width: 96vw;
+            max-height: 80vh;
         }
         
         .lightbox-caption {
-            font-size: 14px;
+            font-size: 16px;
             margin-top: 10px;
-            padding: 8px 16px;
+            padding: 12px 20px;
             position: absolute;
-            bottom: 20px;
+            bottom: 25px;
+            font-weight: 500;
         }
     }
     
     /* PC版用の大きな画像表示 */
     @media (min-width: 1024px) {
         .lightbox-image {
-            max-width: min(1400px, 85vw);
-            max-height: 85vh;
+            max-width: min(1700px, 88vw);
+            max-height: 88vh;
         }
         
         .lightbox-caption {
-            font-size: 20px;
-            padding: 15px 30px;
+            font-size: 22px;
+            padding: 18px 35px;
+            font-weight: 500;
         }
     }
     
     /* 大画面用 */
     @media (min-width: 1440px) {
         .lightbox-image {
-            max-width: min(1600px, 80vw);
+            max-width: min(1800px, 85vw);
             max-height: 85vh;
         }
     }
