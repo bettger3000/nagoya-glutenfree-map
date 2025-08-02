@@ -37,6 +37,7 @@
       "takeout": false,
       "seats": 28,
       "nacoComment": "私のお店です",
+      "visitedByNaco": true,
       "website": "https://gf-michinori.jp/pages/michinori-tei",
       "instagram": "https://www.instagram.com/gf_michinori_tei/",
       "imageUrl": "https://cdn.shopify.com/s/files/1/0681/0838/6625/files/DSC073d97.png?v=1731828352",
