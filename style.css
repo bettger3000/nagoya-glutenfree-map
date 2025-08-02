@@ -320,6 +320,35 @@ header .subtitle {
     margin-bottom: 20px;
 }
 
+.modal-title-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* naco訪問済みバッジ */
+.naco-visited-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.naco-visited-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    padding: 3px;
+    background: rgba(255, 182, 193, 0.2);
+    border: 2px solid var(--primary-pink);
+    opacity: 0.8;
+    transition: all 0.3s;
+}
+
+.naco-visited-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
 .modal-image {
     width: 100%;
     height: 200px;

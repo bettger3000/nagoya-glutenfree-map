@@ -548,6 +548,12 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="storeVisitedByNaco"> naco訪問済み
+                    </label>
+                </div>
+                
+                <div class="form-group">
                     <label>ウェブサイト</label>
                     <input type="url" id="storeWebsite" placeholder="https://example.com">
                 </div>
@@ -782,6 +788,7 @@
             document.getElementById('storeTakeout').checked = store.takeout;
             document.getElementById('storeSeats').value = store.seats;
             document.getElementById('storeComment').value = store.nacoComment;
+            document.getElementById('storeVisitedByNaco').checked = store.visitedByNaco || false;
             document.getElementById('storeWebsite').value = store.website || '';
             document.getElementById('storeInstagram').value = store.instagram || '';
             document.getElementById('storeImageUrl').value = store.imageUrl || '';
@@ -825,6 +832,7 @@
                 takeout: document.getElementById('storeTakeout').checked,
                 seats: parseInt(document.getElementById('storeSeats').value) || 0,
                 nacoComment: document.getElementById('storeComment').value || '',
+                visitedByNaco: document.getElementById('storeVisitedByNaco').checked,
                 website: document.getElementById('storeWebsite').value || '',
                 instagram: document.getElementById('storeInstagram').value || '',
                 imageUrl: document.getElementById('storeImageUrl').value || '',
@@ -1328,12 +1336,13 @@
                         takeout: ['TRUE', 'true', '○', '1', 'YES', 'yes'].includes((row[10] || '').toString().trim()),
                         seats: parseInt(row[11]) || 0,
                         nacoComment: (row[12] || '').toString().trim(),
-                        website: (row[13] || '').toString().trim(),
-                        instagram: (row[14] || '').toString().trim(),
-                        imageUrl: (row[15] || '').toString().trim(),
-                        imageUrl2: (row[16] || '').toString().trim(),
-                        imageUrl3: (row[17] || '').toString().trim(),
-                        googleMapsUrl: (row[18] || '').toString().trim()
+                        visitedByNaco: ['TRUE', 'true', '○', '1', 'YES', 'yes'].includes((row[13] || '').toString().trim()),
+                        website: (row[14] || '').toString().trim(),
+                        instagram: (row[15] || '').toString().trim(),
+                        imageUrl: (row[16] || '').toString().trim(),
+                        imageUrl2: (row[17] || '').toString().trim(),
+                        imageUrl3: (row[18] || '').toString().trim(),
+                        googleMapsUrl: (row[19] || '').toString().trim()
                     };
                 
                 stores.push(store);
