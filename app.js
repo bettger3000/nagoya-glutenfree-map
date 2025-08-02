@@ -17,22 +17,78 @@ const categoryStyles = {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async function() {
-    initMap();
+    // 現在地取得を最初に試みる
+    await initMapWithUserLocation();
     await loadStores();
     setupEventListeners();
-    requestUserLocation();
 });
 
-// 地図の初期化
-function initMap() {
-    // 名古屋市の中心座標
-    map = L.map('map').setView([35.1815, 136.9066], 12);
+// 地図の初期化（デフォルト座標）
+function initMap(centerLat = 35.1815, centerLng = 136.9066, zoom = 12) {
+    map = L.map('map').setView([centerLat, centerLng], zoom);
     
     // OpenStreetMapタイルを追加（パステル調のスタイル）
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         opacity: 0.9
     }).addTo(map);
+}
+
+// 現在地を取得してから地図を初期化
+async function initMapWithUserLocation() {
+    return new Promise((resolve) => {
+        if (navigator.geolocation) {
+            // タイムアウトを設定（3秒以内に位置情報を取得）
+            const timeoutId = setTimeout(() => {
+                console.log('現在地取得タイムアウト。デフォルト位置で初期化');
+                initMap();
+                resolve();
+            }, 3000);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    clearTimeout(timeoutId);
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    console.log('現在地を取得:', userLocation);
+                    
+                    // 現在地を中心に地図を初期化
+                    initMap(userLocation.lat, userLocation.lng, 13);
+                    
+                    // 現在地マーカーを追加
+                    L.marker([userLocation.lat, userLocation.lng], {
+                        icon: L.divIcon({
+                            html: '<div class="user-location-marker"><i class="fas fa-user"></i></div>',
+                            className: 'user-location-icon',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        })
+                    }).addTo(map).bindPopup('現在地');
+                    
+                    resolve();
+                },
+                (error) => {
+                    clearTimeout(timeoutId);
+                    console.log('現在地取得エラー:', error.message);
+                    // エラーの場合はデフォルト位置で初期化
+                    initMap();
+                    resolve();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 3000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            console.log('Geolocation APIが利用できません');
+            initMap();
+            resolve();
+        }
+    });
 }
 
 // 店舗データの読み込み
@@ -819,8 +875,14 @@ function extractInstagramUsername(url) {
     }
 }
 
-// 現在地を取得
+// 現在地を更新（初期化後の再取得用）
 function requestUserLocation() {
+    // 既に現在地が取得済みの場合は何もしない
+    if (userLocation) {
+        filterStores();
+        return;
+    }
+    
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
