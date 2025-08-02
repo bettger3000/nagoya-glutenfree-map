@@ -448,11 +448,67 @@ function filterStores() {
             store.glutenFreeType.toLowerCase().includes(searchTerm) ||
             matchesAreaSearch(store, searchTerm)
         );
+        
+        // エリア検索の場合、地図をそのエリアに移動
+        zoomToArea(searchTerm, filteredStores);
+    } else {
+        // 検索がクリアされた場合、全店舗を表示
+        if (storesData.length > 0) {
+            const bounds = L.latLngBounds(
+                storesData.map(store => [store.location.lat, store.location.lng])
+            );
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+        }
     }
     
     displayStores(filteredStores);
     updateStoreList(filteredStores);
     updateSearchResults(filteredStores.length, searchTerm);
+}
+
+// エリア検索時に地図を移動する関数
+function zoomToArea(searchTerm, filteredStores) {
+    // エリアの中心座標を定義
+    const areaCenters = {
+        // 東京エリア
+        '渋谷': { lat: 35.6580, lng: 139.7016, zoom: 14 },
+        '原宿': { lat: 35.6721, lng: 139.7038, zoom: 14 },
+        '表参道': { lat: 35.6652, lng: 139.7123, zoom: 14 },
+        '吉祥寺': { lat: 35.7023, lng: 139.5803, zoom: 14 },
+        '武蔵野': { lat: 35.7181, lng: 139.5667, zoom: 13 },
+        '新宿': { lat: 35.6938, lng: 139.7034, zoom: 14 },
+        '銀座': { lat: 35.6717, lng: 139.7650, zoom: 14 },
+        '東京駅': { lat: 35.6812, lng: 139.7671, zoom: 14 },
+        '品川': { lat: 35.6284, lng: 139.7387, zoom: 14 },
+        
+        // 名古屋エリア
+        '名古屋駅': { lat: 35.1709, lng: 136.8815, zoom: 14 },
+        '名駅': { lat: 35.1709, lng: 136.8815, zoom: 14 },
+        '大須': { lat: 35.1599, lng: 136.9004, zoom: 14 },
+        '栄': { lat: 35.1698, lng: 136.9095, zoom: 14 },
+        '覚王山': { lat: 35.1674, lng: 136.9532, zoom: 14 },
+        '本山': { lat: 35.1625, lng: 136.9668, zoom: 14 },
+        '伏見': { lat: 35.1689, lng: 136.8999, zoom: 14 },
+        '金山': { lat: 35.1430, lng: 136.9006, zoom: 14 },
+        '千種': { lat: 35.1658, lng: 136.9467, zoom: 14 },
+        '今池': { lat: 35.1695, lng: 136.9360, zoom: 14 }
+    };
+    
+    // エリア名にマッチする座標があるか確認
+    for (const [area, coords] of Object.entries(areaCenters)) {
+        if (searchTerm.includes(area.toLowerCase())) {
+            map.setView([coords.lat, coords.lng], coords.zoom);
+            return;
+        }
+    }
+    
+    // エリア座標が見つからない場合、検索結果の店舗を全て表示できるようにズーム
+    if (filteredStores.length > 0) {
+        const bounds = L.latLngBounds(
+            filteredStores.map(store => [store.location.lat, store.location.lng])
+        );
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
 }
 
 // 検索結果表示の更新
