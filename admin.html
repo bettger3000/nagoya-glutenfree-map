@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理画面 - 名古屋グルテンフリーマップ</title>
+    <title>管理画面 - グルテンフリーマップ</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
@@ -289,7 +289,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🍰 名古屋グルテンフリーマップ管理画面</h1>
+            <h1>🍰 グルテンフリーマップ管理画面</h1>
             <p>店舗情報の追加・編集・削除ができます</p>
         </div>
         
@@ -1370,7 +1370,7 @@
             
             // サンプルデータを追加
             const sampleData = [
-                'サンプル店舗', '和食', '名古屋市中区栄1-1-1', '35.1685', '136.9098',
+                'サンプル店舗', '和食', '東京都渋谷区神南1-1-1', '35.6581', '139.7017',
                 '11:00-21:00', '月曜日', '052-123-4567', 'グルテンフリー対応のお店です',
                 '完全GF', 'TRUE', '20', '美味しいお店です！',
                 'https://example.com', 'https://instagram.com/example', 'https://example.com/image1.jpg',
@@ -1418,7 +1418,7 @@
             
             // サンプルデータを追加
             const sampleData = [
-                'サンプル店舗', '和食', '名古屋市中区栄1-1-1', '35.1685', '136.9098',
+                'サンプル店舗', '和食', '東京都渋谷区神南1-1-1', '35.6581', '139.7017',
                 '11:00-21:00', '月曜日', '052-123-4567', 'グルテンフリー対応のお店です',
                 '完全GF', 'TRUE', '20', '美味しいお店です！',
                 'https://example.com', 'https://instagram.com/example', 'https://example.com/image1.jpg',
@@ -1838,13 +1838,13 @@
                     }
                 }
                 
-                // 名古屋市周辺の座標範囲チェック（緯度34-36, 経度136-138）
-                if (lat >= 34 && lat <= 36 && lng >= 136 && lng <= 138) {
+                // 日本国内の座標範囲チェック（緯度24-46, 経度123-146）
+                if (lat >= 24 && lat <= 46 && lng >= 123 && lng <= 146) {
                     console.log('Plus Codeデコード完了:', { lat, lng });
                     return { lat, lng };
                 } else {
-                    console.log('Plus Codeの座標が名古屋市周辺ではありません:', { lat, lng });
-                    // 範囲外でも有効な座標として返す（他の地域の可能性）
+                    console.log('Plus Codeの座標が日本国内ではありません:', { lat, lng });
+                    // 範囲外でも有効な座標として返す（海外の可能性）
                     return { lat, lng };
                 }
                 
@@ -1984,8 +1984,8 @@
                 lat = Math.round(lat * 10000) / 10000;
                 lng = Math.round(lng * 10000) / 10000;
                 
-                // 名古屋市周辺の座標かチェック（緯度34.5-36, 経度136-138）
-                if (lat >= 34.5 && lat <= 36 && lng >= 136 && lng <= 138) {
+                // 日本国内の座標かチェック（緯度24-46, 経度123-146）
+                if (lat >= 24 && lat <= 46 && lng >= 123 && lng <= 146) {
                     document.getElementById('storeLat').value = lat;
                     document.getElementById('storeLng').value = lng;
                     
@@ -2031,7 +2031,7 @@
                 } else {
                     extractBtn.textContent = '🔍 住所と座標を自動取得';
                     extractBtn.disabled = false;
-                    showStatus('名古屋市周辺の座標ではないようです。確認してください。', 'error');
+                    showStatus('日本国内の座標ではないようです。確認してください。', 'error');
                 }
             } else {
                 extractBtn.textContent = '🔍 住所と座標を自動取得';
@@ -2146,7 +2146,7 @@
                 }
                 
                 // 最終的に店舗名を住所として使用
-                let fallbackAddress = placeName + ' 名古屋市';
+                let fallbackAddress = placeName;
                 console.log('フォールバック住所:', fallbackAddress);
                 addressField.value = fallbackAddress;
                 return fallbackAddress;
