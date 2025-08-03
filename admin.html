@@ -303,6 +303,7 @@
             <button class="btn" onclick="loadFromSpreadsheet()">📊 スプレッドシートから読み込み</button>
             <button class="btn" onclick="loadFromSpreadsheetReplace()" style="background-color: #ff9800; color: white;">⚠️ スプレッドシートで置き換え</button>
             <button class="btn" onclick="showSpreadsheetSettings()">⚙️ スプレッドシート設定</button>
+            <button class="btn" onclick="showVisitStatusModal()" style="background-color: #9c27b0; color: white;">🏆 訪問ステータス管理</button>
             <button class="btn btn-success" onclick="saveToGitHubDirect()">🚀 GitHubに直接保存</button>
             <button class="btn" onclick="saveToGitHub()">💾 ファイルダウンロード</button>
             <button class="btn" onclick="reloadStoresData()">🔄 最新データを読み込み</button>
@@ -438,6 +439,7 @@
                         <th>カテゴリー</th>
                         <th>住所</th>
                         <th>GF対応</th>
+                        <th>訪問ステータス</th>
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -754,6 +756,7 @@
                     <td><span class="category-badge category-${store.category}">${store.category}</span></td>
                     <td>${store.address}</td>
                     <td>${store.glutenFreeType}</td>
+                    <td>${getVisitStatusBadgeHTML(store.visitStatus)}</td>
                     <td>
                         <button class="btn" onclick="editStore(${store.id})">編集</button>
                         <button class="btn" onclick="deleteStore(${store.id})" style="background: #dc3545;">削除</button>
@@ -2386,6 +2389,228 @@
                 statusEl.style.display = 'none';
             }, 5000);
         }
+        
+        // 訪問ステータス関連の関数
+        function getVisitStatusBadgeHTML(status) {
+            if (!status) return '<span style="color: #999;">未設定</span>';
+            
+            switch (status) {
+                case 'naco':
+                    return '<span style="background-color: rgba(255, 0, 0, 0.1); color: #d32f2f; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: bold;">🔴 naco訪問済み</span>';
+                case 'member':
+                    return '<span style="background-color: rgba(255, 193, 7, 0.1); color: #f57c00; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: bold;">🟡 メンバー訪問済み</span>';
+                case 'unvisited':
+                    return '<span style="background-color: rgba(158, 158, 158, 0.1); color: #616161; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: bold;">🤍 未確認店舗</span>';
+                default:
+                    return '<span style="color: #999;">不明</span>';
+            }
+        }
+        
+        // 訪問ステータス管理モーダルを表示
+        function showVisitStatusModal() {
+            if (!storesData || storesData.length === 0) {
+                alert('店舗データが読み込まれていません。先に「最新データを読み込み」を実行してください。');
+                return;
+            }
+            
+            // モーダルHTML を動的に作成して表示
+            const modalHTML = `
+                <div id="visitStatusModal" class="modal" style="display: block;">
+                    <div class="modal-content" style="max-width: 1000px; max-height: 80vh; overflow-y: auto;">
+                        <span class="close-btn" onclick="closeVisitStatusModal()">&times;</span>
+                        <h2>🏆 訪問ステータス管理</h2>
+                        
+                        <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <h3>ステータスの説明</h3>
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                <div><strong>🔴 naco訪問済み</strong><br>nacoが実際に訪問し、確認済みの店舗（最高信頼度）</div>
+                                <div><strong>🟡 メンバー訪問済み</strong><br>ビヨグル倶楽部メンバーが訪問し、確認済みの店舗（信頼済み）</div>
+                                <div><strong>🤍 未確認店舗</strong><br>まだ誰も訪問していない、または確認が必要な店舗</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                            <h3>一括ステータス更新</h3>
+                            <div style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label>すべての店舗のステータスを変更:</label>
+                                    <select id="bulkStatus" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                        <option value="">選択してください</option>
+                                        <option value="naco">🔴 naco訪問済み</option>
+                                        <option value="member">🟡 メンバー訪問済み</option>
+                                        <option value="unvisited">🤍 未確認店舗</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1; min-width: 150px;">
+                                    <label>確認者:</label>
+                                    <input type="text" id="bulkChecker" placeholder="確認者名を入力" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+                                <button class="btn" onclick="bulkUpdateVisitStatus()" style="background-color: #2196f3;">一括更新</button>
+                            </div>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                            <thead>
+                                <tr style="background-color: #f5f5f5;">
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">店舗名</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">カテゴリー</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">現在のステータス</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">新しいステータス</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">確認者</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitStatusTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            // モーダルを body に追加
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // テーブルを描画
+            renderVisitStatusTable();
+        }
+        
+        // 訪問ステータステーブルを描画
+        function renderVisitStatusTable() {
+            const tbody = document.getElementById('visitStatusTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            storesData.forEach(store => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #ddd';
+                row.innerHTML = `
+                    <td style="padding: 12px;">
+                        <strong>${store.name}</strong><br>
+                        <small style="color: #666;">${store.address}</small>
+                    </td>
+                    <td style="padding: 12px;">
+                        <span style="background: #98d8c8; color: white; padding: 2px 6px; border-radius: 8px; font-size: 11px;">${store.category}</span>
+                    </td>
+                    <td style="padding: 12px;">
+                        ${getVisitStatusBadgeHTML(store.visitStatus)}
+                        ${store.checkedBy ? `<br><small>確認者: ${store.checkedBy}</small>` : ''}
+                        ${store.lastUpdate ? `<br><small>更新: ${store.lastUpdate}</small>` : ''}
+                    </td>
+                    <td style="padding: 12px;">
+                        <select id="status-${store.id}" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                            <option value="">変更しない</option>
+                            <option value="naco" ${store.visitStatus === 'naco' ? 'selected' : ''}>🔴 naco訪問済み</option>
+                            <option value="member" ${store.visitStatus === 'member' ? 'selected' : ''}>🟡 メンバー訪問済み</option>
+                            <option value="unvisited" ${store.visitStatus === 'unvisited' ? 'selected' : ''}>🤍 未確認店舗</option>
+                        </select>
+                    </td>
+                    <td style="padding: 12px;">
+                        <input type="text" id="checker-${store.id}" placeholder="確認者名" value="${store.checkedBy || ''}" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+                    </td>
+                    <td style="padding: 12px;">
+                        <button class="btn" onclick="updateStoreVisitStatus(${store.id})" style="padding: 4px 8px; font-size: 12px;">更新</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 個別店舗の訪問ステータス更新
+        function updateStoreVisitStatus(storeId) {
+            const statusSelect = document.getElementById(`status-${storeId}`);
+            const checkerInput = document.getElementById(`checker-${storeId}`);
+            
+            if (!statusSelect || !checkerInput) {
+                alert('要素が見つかりません');
+                return;
+            }
+            
+            const newStatus = statusSelect.value;
+            const checkerName = checkerInput.value.trim();
+            
+            if (!newStatus) {
+                alert('新しいステータスを選択してください');
+                return;
+            }
+            
+            if (!checkerName) {
+                alert('確認者名を入力してください');
+                return;
+            }
+            
+            // storesData内の該当店舗を更新
+            const store = storesData.find(s => s.id === storeId);
+            if (store) {
+                store.visitStatus = newStatus;
+                store.checkedBy = checkerName;
+                store.lastUpdate = new Date().toISOString().substring(0, 7); // YYYY-MM形式
+                
+                // テーブルを再描画
+                renderStoreTable();
+                renderVisitStatusTable();
+                
+                showStatus(`${store.name}のステータスを更新しました`, 'success');
+            } else {
+                alert('店舗が見つかりません');
+            }
+        }
+        
+        // 一括訪問ステータス更新
+        function bulkUpdateVisitStatus() {
+            const bulkStatus = document.getElementById('bulkStatus').value;
+            const bulkChecker = document.getElementById('bulkChecker').value.trim();
+            
+            if (!bulkStatus) {
+                alert('ステータスを選択してください');
+                return;
+            }
+            
+            if (!bulkChecker) {
+                alert('確認者名を入力してください');
+                return;
+            }
+            
+            if (!confirm(`全${storesData.length}件の店舗のステータスを「${getStatusDisplayName(bulkStatus)}」に変更しますか？`)) {
+                return;
+            }
+            
+            const currentDate = new Date().toISOString().substring(0, 7);
+            
+            storesData.forEach(store => {
+                store.visitStatus = bulkStatus;
+                store.checkedBy = bulkChecker;
+                store.lastUpdate = currentDate;
+            });
+            
+            // テーブルを再描画
+            renderStoreTable();
+            renderVisitStatusTable();
+            
+            showStatus(`全${storesData.length}件の店舗のステータスを一括更新しました`, 'success');
+            
+            // フォームをクリア
+            document.getElementById('bulkStatus').value = '';
+            document.getElementById('bulkChecker').value = '';
+        }
+        
+        // ステータス表示名を取得
+        function getStatusDisplayName(status) {
+            switch (status) {
+                case 'naco': return '🔴 naco訪問済み';
+                case 'member': return '🟡 メンバー訪問済み';
+                case 'unvisited': return '🤍 未確認店舗';
+                default: return '不明';
+            }
+        }
+        
+        // 訪問ステータスモーダルを閉じる
+        function closeVisitStatusModal() {
+            const modal = document.getElementById('visitStatusModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
     </script>
 </body>
 </html>
