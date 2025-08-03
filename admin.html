@@ -403,10 +403,24 @@
                 <div class="form-group">
                     <h3>スプレッドシートの列構成</h3>
                     <div class="help-text">
-                        <strong>📋 簡単3ステップでデータ管理：</strong><br>
+                        <strong>📋 簡単4ステップでデータ管理：</strong><br>
                         1️⃣ 下のボタンでテンプレートをダウンロード<br>
                         2️⃣ Google Sheetsにインポートしてデータを編集<br>
-                        3️⃣ 「ファイル」→「共有」→「ウェブに公開」でCSV形式で公開<br><br>
+                        3️⃣ <strong style="color: #9c27b0;">選択項目にドロップダウンを設定（推奨）</strong><br>
+                        4️⃣ 「ファイル」→「共有」→「ウェブに公開」でCSV形式で公開<br><br>
+                        
+                        <strong>🎯 ドロップダウン設定方法（Google Sheets）：</strong><br>
+                        • 列を選択 → 「データ」→「データの入力規則」<br>
+                        • カテゴリー列：和食,洋食,中華,イタリアン,フレンチ,カフェ,デザート,ベーカリー,その他<br>
+                        • GF対応列：完全GF,部分GF<br>
+                        • テイクアウト列：TRUE,FALSE<br>
+                        • 訪問ステータス列：naco,member,unvisited<br><br>
+                        
+                        <strong>📍 座標取得の優先順位：</strong><br>
+                        • <strong style="color: #d32f2f;">最優先：</strong> 緯度・経度列に手入力した座標<br>
+                        • <strong style="color: #f57c00;">次優先：</strong> GoogleマップURL列から自動抽出<br>
+                        • <strong style="color: #616161;">最後：</strong> 住所からのジオコーディング（管理画面で手動実行）<br>
+                        • 店名・住所は手入力必須、座標はGoogleマップから取得推奨<br><br>
                         
                         <strong>必要な列（この順番で配置してください）:</strong><br>
                         A列: 店舗名, B列: カテゴリー, C列: 住所, D列: 緯度, E列: 経度<br>
@@ -1336,6 +1350,58 @@
             }
         }
         
+        // GoogleマップURLから座標を抽出
+        function extractCoordinatesFromGoogleMapsUrl(url) {
+            try {
+                if (!url) return { lat: null, lng: null };
+                
+                console.log('GoogleマップURL解析中:', url);
+                
+                // パターン1: @緯度,経度,ズーム
+                let match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    console.log('パターン1で座標抽出:', lat, lng);
+                    return { lat, lng };
+                }
+                
+                // パターン2: !3d緯度!4d経度
+                match = url.match(/!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    console.log('パターン2で座標抽出:', lat, lng);
+                    return { lat, lng };
+                }
+                
+                // パターン3: q=緯度,経度
+                match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    console.log('パターン3で座標抽出:', lat, lng);
+                    return { lat, lng };
+                }
+                
+                // パターン4: ll=緯度,経度
+                match = url.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    console.log('パターン4で座標抽出:', lat, lng);
+                    return { lat, lng };
+                }
+                
+                console.log('GoogleマップURLから座標を抽出できませんでした');
+                return { lat: null, lng: null };
+                
+            } catch (error) {
+                console.error('GoogleマップURL解析エラー:', error);
+                return { lat: null, lng: null };
+            }
+        }
+
         // CSVデータを店舗データに変換
         function convertCSVToStores(rows) {
             try {
@@ -1371,13 +1437,45 @@
                         continue;
                     }
                 
+                    // 座標の優先順位処理
+                    let lat = 0;
+                    let lng = 0;
+                    
+                    // 1. スプレッドシートの手入力座標を最優先
+                    const inputLat = parseFloat(row[3]);
+                    const inputLng = parseFloat(row[4]);
+                    
+                    if (!isNaN(inputLat) && !isNaN(inputLng) && inputLat !== 0 && inputLng !== 0) {
+                        lat = inputLat;
+                        lng = inputLng;
+                        console.log(`行 ${i + 1}: 手入力座標を使用 (${lat}, ${lng})`);
+                    } else {
+                        // 2. GoogleマップURLから座標を抽出
+                        const googleMapsUrl = (row[22] || '').toString().trim();
+                        if (googleMapsUrl) {
+                            const extractedCoords = extractCoordinatesFromGoogleMapsUrl(googleMapsUrl);
+                            if (extractedCoords.lat && extractedCoords.lng) {
+                                lat = extractedCoords.lat;
+                                lng = extractedCoords.lng;
+                                console.log(`行 ${i + 1}: GoogleマップURLから座標を抽出 (${lat}, ${lng})`);
+                            } else {
+                                console.log(`行 ${i + 1}: GoogleマップURLから座標を抽出できませんでした`);
+                            }
+                        }
+                        
+                        // 3. 住所からのジオコーディングは管理画面で手動実行
+                        if (lat === 0 && lng === 0) {
+                            console.log(`行 ${i + 1}: 座標が取得できませんでした。管理画面で手動設定してください。`);
+                        }
+                    }
+
                     const store = {
                         id: i, // 仮のID（後で調整される）
                         name: name,
                         category: category,
                         address: address,
-                        lat: parseFloat(row[3]) || 0,
-                        lng: parseFloat(row[4]) || 0,
+                        lat: lat,
+                        lng: lng,
                         hours: (row[5] || '').toString().trim(),
                         closed: (row[6] || 'なし').toString().trim(),
                         tel: (row[7] || '').toString().trim(),
@@ -1425,6 +1523,18 @@
                 '追加画像URL1', '追加画像URL2', 'GoogleマップURL'
             ];
             
+            // 選択項目の説明を含むヘッダー行
+            const instructionHeaders = [
+                '入力例', 
+                '選択: 和食,洋食,中華,イタリアン,フレンチ,カフェ,デザート,ベーカリー,その他', 
+                '住所を入力', '緯度（数値）', '経度（数値）',
+                '営業時間', '定休日', '電話番号', '店舗説明',
+                '選択: 完全GF,部分GF', '選択: TRUE,FALSE', '席数（数値）', 'nacoのコメント', '選択: TRUE,FALSE',
+                '選択: naco,member,unvisited', '確認者名', 'YYYY-MM形式',
+                'ウェブサイトURL', 'InstagramURL', '画像URL',
+                '追加画像URL', '追加画像URL', 'GoogleマップURL'
+            ];
+            
             // サンプルデータを追加
             const sampleData = [
                 'サンプル店舗', '和食', '東京都渋谷区神南1-1-1', '35.6581', '139.7017',
@@ -1436,7 +1546,7 @@
             ];
             
             // CSV形式でデータを作成（ダブルクォートで囲む）
-            const csvContent = [headers, sampleData]
+            const csvContent = [headers, instructionHeaders, sampleData]
                 .map(row => row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(','))
                 .join('\r\n');
             
@@ -1461,7 +1571,7 @@
             
             URL.revokeObjectURL(url);
             
-            showStatus('テンプレートCSVファイルをダウンロードしました。Mac/Excel/Google Sheetsで正しく表示されます。', 'success');
+            showStatus('テンプレートCSVファイルをダウンロードしました。選択項目の指示が含まれています。Google Sheetsでドロップダウンを設定してください。', 'success');
         }
         
         // Excelテンプレートを作成
