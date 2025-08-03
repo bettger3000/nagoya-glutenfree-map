@@ -378,8 +378,14 @@
                         • 例: https://docs.google.com/spreadsheets/d/.../edit?usp=sharing<br><br>
                         
                         <strong>📋 スプレッドシートの形式:</strong><br>
-                        • 1行目：ヘッダー（名前, カテゴリー, 住所, 緯度, 経度, 営業時間, 定休日, 電話番号, 説明, グルテンフリータイプ, テイクアウト, 席数, nacoコメント, ウェブサイト, Instagram, 画像URL, 画像URL2, 画像URL3, GoogleマップURL）<br>
-                        • 2行目以降：店舗データ<br><br>
+                        • 1行目：ヘッダー（必須列）<br>
+                        • 列順：店舗名, カテゴリー, 住所, 緯度, 経度, 営業時間, 定休日, 電話番号, 店舗説明, GF対応, テイクアウト, 席数, nacoコメント, naco訪問済み(旧), <strong style="color: #9c27b0;">訪問ステータス</strong>, <strong style="color: #9c27b0;">確認者</strong>, <strong style="color: #9c27b0;">最終更新</strong>, ウェブサイト, Instagram, メイン画像URL, 追加画像URL1, 追加画像URL2, GoogleマップURL<br>
+                        • 2行目以降：店舗データ<br>
+                        <br>
+                        <strong>🆕 訪問ステータスについて:</strong><br>
+                        • <strong>訪問ステータス列:</strong> "naco", "member", "unvisited" のいずれかを入力<br>
+                        • <strong>確認者列:</strong> 確認した人の名前を入力<br>
+                        • <strong>最終更新列:</strong> YYYY-MM 形式で入力（例: 2024-12）<br><br>
                         
                         <strong>⚠️ エラーが出る場合:</strong><br>
                         「ファイル」→「共有」→「ウェブに公開」を試してください
@@ -1381,12 +1387,18 @@
                         seats: parseInt(row[11]) || 0,
                         nacoComment: (row[12] || '').toString().trim(),
                         visitedByNaco: ['TRUE', 'true', '○', '1', 'YES', 'yes'].includes((row[13] || '').toString().trim()),
-                        website: (row[14] || '').toString().trim(),
-                        instagram: (row[15] || '').toString().trim(),
-                        imageUrl: (row[16] || '').toString().trim(),
-                        imageUrl2: (row[17] || '').toString().trim(),
-                        imageUrl3: (row[18] || '').toString().trim(),
-                        googleMapsUrl: (row[19] || '').toString().trim()
+                        
+                        // 訪問ステータス関連のフィールド（新規追加）
+                        visitStatus: (row[14] || '').toString().trim() || undefined,
+                        checkedBy: (row[15] || '').toString().trim() || undefined,
+                        lastUpdate: (row[16] || '').toString().trim() || undefined,
+                        
+                        website: (row[17] || '').toString().trim(),
+                        instagram: (row[18] || '').toString().trim(),
+                        imageUrl: (row[19] || '').toString().trim(),
+                        imageUrl2: (row[20] || '').toString().trim(),
+                        imageUrl3: (row[21] || '').toString().trim(),
+                        googleMapsUrl: (row[22] || '').toString().trim()
                     };
                 
                 stores.push(store);
@@ -1407,7 +1419,8 @@
             const headers = [
                 '店舗名', 'カテゴリー', '住所', '緯度', '経度',
                 '営業時間', '定休日', '電話番号', '店舗説明',
-                'GF対応', 'テイクアウト', '席数', 'nacoコメント',
+                'GF対応', 'テイクアウト', '席数', 'nacoコメント', 'naco訪問済み(旧)',
+                '訪問ステータス', '確認者', '最終更新',
                 'ウェブサイト', 'Instagram', 'メイン画像URL',
                 '追加画像URL1', '追加画像URL2', 'GoogleマップURL'
             ];
@@ -1416,7 +1429,8 @@
             const sampleData = [
                 'サンプル店舗', '和食', '東京都渋谷区神南1-1-1', '35.6581', '139.7017',
                 '11:00-21:00', '月曜日', '052-123-4567', 'グルテンフリー対応のお店です',
-                '完全GF', 'TRUE', '20', '美味しいお店です！',
+                '完全GF', 'TRUE', '20', '美味しいお店です！', 'TRUE',
+                'naco', 'naco', '2024-12',
                 'https://example.com', 'https://instagram.com/example', 'https://example.com/image1.jpg',
                 'https://example.com/image2.jpg', 'https://example.com/image3.jpg', 'https://maps.google.com/...'
             ];
