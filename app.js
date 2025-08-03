@@ -900,9 +900,13 @@ function extractInstagramUsername(url) {
 
 // 訪問ステータスのバッジを取得
 function getVisitStatusBadge(store) {
-    if (!store.visitStatus) return '';
+    // 未入力時は自動的に「未確認店舗」として表示
+    let visitStatus = store.visitStatus;
+    if (!visitStatus || visitStatus === '') {
+        visitStatus = 'unvisited';
+    }
     
-    switch (store.visitStatus) {
+    switch (visitStatus) {
         case 'naco':
             return '<span class="visit-status-badge naco-badge" title="naco訪問済み">🔴</span>';
         case 'member':
@@ -910,7 +914,7 @@ function getVisitStatusBadge(store) {
         case 'unvisited':
             return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">🤍</span>';
         default:
-            return '';
+            return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">🤍</span>';
     }
 }
 

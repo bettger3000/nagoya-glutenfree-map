@@ -961,7 +961,7 @@
                 visitedByNaco: document.getElementById('storeVisitedByNaco').checked,
                 
                 // 訪問ステータス関連の情報
-                visitStatus: document.getElementById('storeVisitStatus').value || undefined,
+                visitStatus: document.getElementById('storeVisitStatus').value || 'unvisited', // 未入力時は「未確認店舗」
                 checkedBy: document.getElementById('storeCheckedBy').value || undefined,
                 lastUpdate: document.getElementById('storeVisitStatus').value ? new Date().toISOString().substring(0, 7) : undefined,
                 website: document.getElementById('storeWebsite').value || '',
@@ -1556,7 +1556,7 @@
                         visitedByNaco: ['TRUE', 'true', '○', '1', 'YES', 'yes'].includes((row[13] || '').toString().trim()),
                         
                         // 訪問ステータス関連のフィールド（新規追加）
-                        visitStatus: (row[14] || '').toString().trim() || undefined,
+                        visitStatus: (row[14] || '').toString().trim() || 'unvisited', // 未入力時は「未確認店舗」
                         checkedBy: (row[15] || '').toString().trim() || undefined,
                         lastUpdate: (row[16] || '').toString().trim() || undefined,
                         
@@ -2621,7 +2621,10 @@
         
         // 訪問ステータス関連の関数
         function getVisitStatusBadgeHTML(status) {
-            if (!status) return '<span style="color: #999;">未設定</span>';
+            // 未入力時は自動的に「未確認店舗」として表示
+            if (!status || status === '') {
+                status = 'unvisited';
+            }
             
             switch (status) {
                 case 'naco':
