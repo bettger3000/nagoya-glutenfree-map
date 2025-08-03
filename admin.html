@@ -1022,15 +1022,15 @@
                 console.log('接続テスト - パース後の行数:', rows.length);
                 console.log('接続テスト - 最初の3行:', rows.slice(0, 3));
                 
-                if (rows.length < 2) {
-                    throw new Error('スプレッドシートにデータが見つかりません');
+                if (rows.length < 3) {
+                    throw new Error('スプレッドシートにデータが見つかりません（3行目以降にデータを入力してください）');
                 }
                 
                 // 接続テストでも店舗データ変換をテスト
                 const testStores = convertCSVToStores(rows);
                 console.log('接続テスト - 変換テスト結果:', testStores.length);
                 
-                showStatus(`接続成功！${rows.length - 1}行のデータ、${testStores.length}件の有効な店舗データが見つかりました`, 'success');
+                showStatus(`接続成功！${rows.length - 2}行のデータ、${testStores.length}件の有効な店舗データが見つかりました（3行目以降から読み込み）`, 'success');
                 
             } catch (error) {
                 console.error('接続テストエラー:', error);
