@@ -1458,7 +1458,7 @@
                         console.log(`行 ${i + 1}: 手入力座標を使用 (${lat}, ${lng})`);
                     } else {
                         // 2. GoogleマップURLから座標を抽出
-                        const googleMapsUrl = (row[22] || '').toString().trim();
+                        const googleMapsUrl = (row[22] || '').toString().trim(); // W列は22番目（0から始まる）
                         if (googleMapsUrl) {
                             const extractedCoords = extractCoordinatesFromGoogleMapsUrl(googleMapsUrl);
                             if (extractedCoords.lat && extractedCoords.lng) {
@@ -1498,12 +1498,12 @@
                         checkedBy: (row[15] || '').toString().trim() || undefined,
                         lastUpdate: (row[16] || '').toString().trim() || undefined,
                         
-                        website: (row[17] || '').toString().trim(),
-                        instagram: (row[18] || '').toString().trim(),
-                        imageUrl: (row[19] || '').toString().trim(),
-                        imageUrl2: (row[20] || '').toString().trim(),
-                        imageUrl3: (row[21] || '').toString().trim(),
-                        googleMapsUrl: (row[22] || '').toString().trim()
+                        website: (row[17] || '').toString().trim(),        // R列
+                        instagram: (row[18] || '').toString().trim(),      // S列
+                        imageUrl: (row[19] || '').toString().trim(),       // T列：メイン画像URL
+                        imageUrl2: (row[20] || '').toString().trim(),      // U列：追加画像URL1
+                        imageUrl3: (row[21] || '').toString().trim(),      // V列：追加画像URL2
+                        googleMapsUrl: (row[22] || '').toString().trim()   // W列：GoogleマップURL
                     };
                 
                 stores.push(store);
