@@ -533,10 +533,13 @@ function filterStores() {
     } else {
         // 検索がクリアされた場合、全店舗を表示
         if (storesData.length > 0) {
-            const bounds = L.latLngBounds(
-                storesData.map(store => [store.location.lat, store.location.lng])
-            );
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+            const storesWithCoords = storesData.filter(store => store.lat && store.lng);
+            if (storesWithCoords.length > 0) {
+                const bounds = L.latLngBounds(
+                    storesWithCoords.map(store => [store.lat, store.lng])
+                );
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+            }
         }
     }
     
@@ -800,10 +803,13 @@ function zoomToArea(searchTerm, filteredStores) {
     
     // エリア座標が見つからない場合、検索結果の店舗を全て表示できるようにズーム
     if (filteredStores.length > 0) {
-        const bounds = L.latLngBounds(
-            filteredStores.map(store => [store.location.lat, store.location.lng])
-        );
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        const storesWithCoords = filteredStores.filter(store => store.lat && store.lng);
+        if (storesWithCoords.length > 0) {
+            const bounds = L.latLngBounds(
+                storesWithCoords.map(store => [store.lat, store.lng])
+            );
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }
     }
 }
 
