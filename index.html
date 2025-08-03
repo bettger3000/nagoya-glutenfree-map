@@ -68,6 +68,21 @@
                     <i class="fas fa-ice-cream"></i> スイーツ
                 </button>
             </div>
+            
+            <div class="visit-status-filters">
+                <button class="filter-btn active" data-visit-status="all">
+                    <i class="fas fa-list"></i> 全ステータス
+                </button>
+                <button class="filter-btn" data-visit-status="naco">
+                    🏆 naco訪問済み
+                </button>
+                <button class="filter-btn" data-visit-status="member">
+                    🥈 メンバー訪問済み
+                </button>
+                <button class="filter-btn" data-visit-status="unvisited">
+                    📍 未確認店舗
+                </button>
+            </div>
         </div>
 
         <!-- 地図とリストのコンテナ -->
@@ -99,6 +114,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- Custom JS -->
-    <script src="app.js?v=20250802-user-location"></script>
+    <script src="app.js?v=20250802-visit-status"></script>
 </body>
 </html>

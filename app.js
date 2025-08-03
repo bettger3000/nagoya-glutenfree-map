@@ -3,6 +3,7 @@ let map;
 let markers = [];
 let storesData = [];
 let currentFilter = 'all';
+let currentVisitStatus = 'all';
 let userLocation = null;
 
 // カテゴリー別の色とアイコン
@@ -214,7 +215,7 @@ function updateStoreList(stores) {
                 <img src="${store.imageUrl || ''}" alt="${store.name}" class="clickable-image" data-image-url="${store.imageUrl || ''}" data-alt-text="${store.name}" onclick="event.stopPropagation();" onerror="this.style.display='none'">
             </div>
             <div class="store-card-content">
-                <h4>${store.name}</h4>
+                <h4>${store.name} ${getVisitStatusBadge(store)}</h4>
                 <span class="store-category category-${store.category}">${store.category}</span>
                 <div class="store-info">
                     <i class="fas fa-map-marker-alt"></i> ${store.address}
@@ -384,12 +385,23 @@ function showStoreDetail(storeId) {
 // イベントリスナーの設定
 function setupEventListeners() {
     // カテゴリーフィルター
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('.category-filters .filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.category-filters .filter-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
             currentFilter = this.dataset.category;
+            filterStores();
+        });
+    });
+    
+    // 訪問ステータスフィルター
+    document.querySelectorAll('.visit-status-filters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.visit-status-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentVisitStatus = this.dataset.visitStatus;
             filterStores();
         });
     });
@@ -500,6 +512,11 @@ function filterStores() {
     // カテゴリーフィルター
     if (currentFilter !== 'all') {
         filteredStores = filteredStores.filter(store => store.category === currentFilter);
+    }
+    
+    // 訪問ステータスフィルター
+    if (currentVisitStatus !== 'all') {
+        filteredStores = filteredStores.filter(store => store.visitStatus === currentVisitStatus);
     }
     
     // 検索フィルター（エリア検索を含む）
@@ -872,6 +889,22 @@ function extractInstagramUsername(url) {
     } catch (error) {
         console.error('Instagram username extraction failed:', error);
         return null;
+    }
+}
+
+// 訪問ステータスのバッジを取得
+function getVisitStatusBadge(store) {
+    if (!store.visitStatus) return '';
+    
+    switch (store.visitStatus) {
+        case 'naco':
+            return '<span class="visit-status-badge naco-badge" title="naco訪問済み">🏆</span>';
+        case 'member':
+            return '<span class="visit-status-badge member-badge" title="メンバー訪問済み">🥈</span>';
+        case 'unvisited':
+            return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">📍</span>';
+        default:
+            return '';
     }
 }
 

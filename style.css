@@ -113,11 +113,12 @@ header .subtitle {
 }
 
 /* カテゴリーフィルター */
-.category-filters {
+.category-filters, .visit-status-filters {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     justify-content: center;
+    margin-bottom: 10px;
 }
 
 .filter-btn {
@@ -201,6 +202,32 @@ header .subtitle {
 .no-results {
     color: #ff6b6b;
     font-weight: 500;
+}
+
+/* 訪問ステータスバッジ */
+.visit-status-badge {
+    font-size: 18px;
+    margin-left: 8px;
+    display: inline-block;
+    opacity: 0.9;
+    transition: all 0.3s;
+}
+
+.visit-status-badge:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.naco-badge {
+    filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
+}
+
+.member-badge {
+    filter: drop-shadow(0 2px 4px rgba(192, 192, 192, 0.3));
+}
+
+.unvisited-badge {
+    filter: drop-shadow(0 2px 4px rgba(128, 128, 128, 0.3));
 }
 
 /* 店舗カード */
