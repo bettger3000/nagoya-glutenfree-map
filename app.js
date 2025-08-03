@@ -898,11 +898,11 @@ function getVisitStatusBadge(store) {
     
     switch (store.visitStatus) {
         case 'naco':
-            return '<span class="visit-status-badge naco-badge" title="naco訪問済み">🏆</span>';
+            return '<span class="visit-status-badge naco-badge" title="naco訪問済み">🔴</span>';
         case 'member':
-            return '<span class="visit-status-badge member-badge" title="メンバー訪問済み">🥈</span>';
+            return '<span class="visit-status-badge member-badge" title="メンバー訪問済み">🟡</span>';
         case 'unvisited':
-            return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">📍</span>';
+            return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">⚪</span>';
         default:
             return '';
     }
