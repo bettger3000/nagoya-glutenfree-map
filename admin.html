@@ -409,6 +409,11 @@
                         3️⃣ <strong style="color: #9c27b0;">選択項目にドロップダウンを設定（推奨）</strong><br>
                         4️⃣ 「ファイル」→「共有」→「ウェブに公開」でCSV形式で公開<br><br>
                         
+                        <strong>📝 重要：データ入力は3行目から</strong><br>
+                        • 1行目：ヘッダー（列名）<br>
+                        • 2行目：入力指示・選択肢<br>
+                        • <strong style="color: #9c27b0;">3行目以降：実際の店舗データ</strong><br><br>
+                        
                         <strong>🎯 ドロップダウン設定方法（Google Sheets）：</strong><br>
                         • 列を選択 → 「データ」→「データの入力規則」<br>
                         • カテゴリー列：和食,洋食,中華,イタリアン,フレンチ,カフェ,デザート,ベーカリー,その他<br>
@@ -1408,10 +1413,12 @@
                 console.log('店舗データ変換開始');
                 const stores = [];
                 const headers = rows[0]; // 1行目はヘッダー
+                const instructionRow = rows[1]; // 2行目は入力指示
                 console.log('ヘッダー行:', headers);
-                console.log('データ行数:', rows.length - 1);
+                console.log('指示行:', instructionRow);
+                console.log('データ行数:', rows.length - 2);
                 
-                for (let i = 1; i < rows.length; i++) {
+                for (let i = 2; i < rows.length; i++) {
                     const row = rows[i];
                     console.log(`行 ${i + 1} 処理中:`, row);
                     console.log(`行 ${i + 1} の長さ: ${row.length}`);
@@ -1470,7 +1477,7 @@
                     }
 
                     const store = {
-                        id: i, // 仮のID（後で調整される）
+                        id: i - 1, // 仮のID（3行目開始なのでi-1）
                         name: name,
                         category: category,
                         address: address,
