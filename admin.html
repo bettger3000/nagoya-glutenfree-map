@@ -1417,6 +1417,11 @@
             }
         }
         
+        // 座標を小数第4位で四捨五入
+        function roundCoordinate(coordinate) {
+            return Math.round(coordinate * 10000) / 10000;
+        }
+
         // GoogleマップURLから座標を抽出
         function extractCoordinatesFromGoogleMapsUrl(url) {
             try {
@@ -1427,36 +1432,36 @@
                 // パターン1: @緯度,経度,ズーム
                 let match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
                 if (match) {
-                    const lat = parseFloat(match[1]);
-                    const lng = parseFloat(match[2]);
-                    console.log('パターン1で座標抽出:', lat, lng);
+                    const lat = roundCoordinate(parseFloat(match[1]));
+                    const lng = roundCoordinate(parseFloat(match[2]));
+                    console.log('パターン1で座標抽出:', lat, lng, '(小数第4位で四捨五入済み)');
                     return { lat, lng };
                 }
                 
                 // パターン2: !3d緯度!4d経度
                 match = url.match(/!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/);
                 if (match) {
-                    const lat = parseFloat(match[1]);
-                    const lng = parseFloat(match[2]);
-                    console.log('パターン2で座標抽出:', lat, lng);
+                    const lat = roundCoordinate(parseFloat(match[1]));
+                    const lng = roundCoordinate(parseFloat(match[2]));
+                    console.log('パターン2で座標抽出:', lat, lng, '(小数第4位で四捨五入済み)');
                     return { lat, lng };
                 }
                 
                 // パターン3: q=緯度,経度
                 match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
                 if (match) {
-                    const lat = parseFloat(match[1]);
-                    const lng = parseFloat(match[2]);
-                    console.log('パターン3で座標抽出:', lat, lng);
+                    const lat = roundCoordinate(parseFloat(match[1]));
+                    const lng = roundCoordinate(parseFloat(match[2]));
+                    console.log('パターン3で座標抽出:', lat, lng, '(小数第4位で四捨五入済み)');
                     return { lat, lng };
                 }
                 
                 // パターン4: ll=緯度,経度
                 match = url.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
                 if (match) {
-                    const lat = parseFloat(match[1]);
-                    const lng = parseFloat(match[2]);
-                    console.log('パターン4で座標抽出:', lat, lng);
+                    const lat = roundCoordinate(parseFloat(match[1]));
+                    const lng = roundCoordinate(parseFloat(match[2]));
+                    console.log('パターン4で座標抽出:', lat, lng, '(小数第4位で四捨五入済み)');
                     return { lat, lng };
                 }
                 
@@ -1515,9 +1520,9 @@
                     const inputLng = parseFloat(row[4]);
                     
                     if (!isNaN(inputLat) && !isNaN(inputLng) && inputLat !== 0 && inputLng !== 0) {
-                        lat = inputLat;
-                        lng = inputLng;
-                        console.log(`行 ${i + 1}: 手入力座標を使用 (${lat}, ${lng})`);
+                        lat = roundCoordinate(inputLat);
+                        lng = roundCoordinate(inputLng);
+                        console.log(`行 ${i + 1}: 手入力座標を使用 (${lat}, ${lng}) - 小数第4位で四捨五入済み`);
                     } else {
                         // 2. GoogleマップURLから座標を抽出
                         const googleMapsUrl = (row[22] || '').toString().trim(); // W列は22番目（0から始まる）
@@ -2569,10 +2574,28 @@
         
         // 座標入力時の処理
         function handleCoordinateChange() {
-            const lat = document.getElementById('storeLat').value;
-            const lng = document.getElementById('storeLng').value;
+            const latInput = document.getElementById('storeLat');
+            const lngInput = document.getElementById('storeLng');
             
-            if (lat && lng) {
+            // 緯度の四捨五入
+            if (latInput.value) {
+                const roundedLat = roundCoordinate(parseFloat(latInput.value));
+                if (latInput.value != roundedLat) {
+                    latInput.value = roundedLat;
+                    console.log('緯度を小数第4位で四捨五入:', roundedLat);
+                }
+            }
+            
+            // 経度の四捨五入
+            if (lngInput.value) {
+                const roundedLng = roundCoordinate(parseFloat(lngInput.value));
+                if (lngInput.value != roundedLng) {
+                    lngInput.value = roundedLng;
+                    console.log('経度を小数第4位で四捨五入:', roundedLng);
+                }
+            }
+            
+            if (latInput.value && lngInput.value) {
                 // 両方の座標が入力されたら住所取得ボタンを有効化
                 document.getElementById('addressBtn').disabled = false;
             }
@@ -2589,8 +2612,8 @@
             }
             
             // 座標を小数第4位に四捨五入
-            lat = Math.round(lat * 10000) / 10000;
-            lng = Math.round(lng * 10000) / 10000;
+            lat = roundCoordinate(lat);
+            lng = roundCoordinate(lng);
             
             // 四捨五入した値をフィールドに反映
             document.getElementById('storeLat').value = lat;
