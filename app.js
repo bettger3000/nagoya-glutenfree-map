@@ -395,10 +395,10 @@ function setupEventListeners() {
         });
     });
     
-    // 訪問ステータスフィルター
-    document.querySelectorAll('.visit-status-filters .filter-btn').forEach(btn => {
+    // 訪問ステータスフィルター（店舗リスト内）
+    document.querySelectorAll('.visit-status-filters-inline .filter-btn-small').forEach(btn => {
         btn.addEventListener('click', function() {
-            document.querySelectorAll('.visit-status-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.visit-status-filters-inline .filter-btn-small').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
             currentVisitStatus = this.dataset.visitStatus;

@@ -113,7 +113,7 @@ header .subtitle {
 }
 
 /* カテゴリーフィルター */
-.category-filters, .visit-status-filters {
+.category-filters {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -228,6 +228,42 @@ header .subtitle {
 
 .unvisited-badge {
     filter: drop-shadow(0 2px 4px rgba(200, 200, 200, 0.3));
+}
+
+/* 店舗リスト内の訪問ステータスフィルター */
+.visit-status-filters-inline {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-btn-small {
+    background: var(--white);
+    border: 1px solid var(--primary-green);
+    padding: 4px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-dark);
+}
+
+.filter-btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.filter-btn-small.active {
+    background: var(--primary-green);
+    color: var(--white);
+}
+
+.filter-btn-small i {
+    font-size: 10px;
 }
 
 /* 店舗カード */

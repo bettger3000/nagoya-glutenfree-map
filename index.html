@@ -69,20 +69,6 @@
                 </button>
             </div>
             
-            <div class="visit-status-filters">
-                <button class="filter-btn active" data-visit-status="all">
-                    <i class="fas fa-list"></i> 全ステータス
-                </button>
-                <button class="filter-btn" data-visit-status="naco">
-                    🔴 naco訪問済み
-                </button>
-                <button class="filter-btn" data-visit-status="member">
-                    🟡 メンバー訪問済み
-                </button>
-                <button class="filter-btn" data-visit-status="unvisited">
-                    🤍 未確認店舗
-                </button>
-            </div>
         </div>
 
         <!-- 地図とリストのコンテナ -->
@@ -97,6 +83,23 @@
             <!-- 店舗リスト -->
             <div class="store-list" id="storeList">
                 <h3>店舗リスト</h3>
+                
+                <!-- 訪問ステータスフィルター -->
+                <div class="visit-status-filters-inline">
+                    <button class="filter-btn-small active" data-visit-status="all">
+                        <i class="fas fa-list"></i> 全て
+                    </button>
+                    <button class="filter-btn-small" data-visit-status="naco">
+                        🔴 naco
+                    </button>
+                    <button class="filter-btn-small" data-visit-status="member">
+                        🟡 メンバー
+                    </button>
+                    <button class="filter-btn-small" data-visit-status="unvisited">
+                        🤍 未確認
+                    </button>
+                </div>
+                
                 <div id="storeListContent"></div>
             </div>
         </div>
