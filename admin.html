@@ -555,9 +555,36 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>訪問ステータス</label>
+                    <select id="storeVisitStatus">
+                        <option value="">選択してください</option>
+                        <option value="naco">🔴 naco訪問済み</option>
+                        <option value="member">🟡 メンバー訪問済み</option>
+                        <option value="unvisited">🤍 未確認店舗</option>
+                    </select>
+                    <div class="help-text">
+                        🏆 <strong>ステータス説明:</strong><br>
+                        🔴 naco訪問済み: nacoが実際に訪問し、確認済みの店舗（最高信頼度）<br>
+                        🟡 メンバー訪問済み: ビヨグル倶楽部メンバーが訪問し、確認済みの店舗（信頼済み）<br>
+                        🤍 未確認店舗: まだ誰も訪問していない、または確認が必要な店舗
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>確認者</label>
+                    <input type="text" id="storeCheckedBy" placeholder="確認した人の名前を入力">
+                    <div class="help-text">
+                        訪問ステータスを設定した場合は確認者名も入力してください
+                    </div>
+                </div>
+                
+                <div class="form-group">
                     <label>
-                        <input type="checkbox" id="storeVisitedByNaco"> naco訪問済み
+                        <input type="checkbox" id="storeVisitedByNaco"> naco訪問済み（旧システム）
                     </label>
+                    <div class="help-text" style="color: #999; font-size: 12px;">
+                        ※ 新しい訪問ステータス機能をご利用ください
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -797,6 +824,10 @@
             document.getElementById('storeSeats').value = store.seats;
             document.getElementById('storeComment').value = store.nacoComment;
             document.getElementById('storeVisitedByNaco').checked = store.visitedByNaco || false;
+            
+            // 訪問ステータス関連のフィールドを設定
+            document.getElementById('storeVisitStatus').value = store.visitStatus || '';
+            document.getElementById('storeCheckedBy').value = store.checkedBy || '';
             document.getElementById('storeWebsite').value = store.website || '';
             document.getElementById('storeInstagram').value = store.instagram || '';
             document.getElementById('storeImageUrl').value = store.imageUrl || '';
@@ -841,6 +872,11 @@
                 seats: parseInt(document.getElementById('storeSeats').value) || 0,
                 nacoComment: document.getElementById('storeComment').value || '',
                 visitedByNaco: document.getElementById('storeVisitedByNaco').checked,
+                
+                // 訪問ステータス関連の情報
+                visitStatus: document.getElementById('storeVisitStatus').value || undefined,
+                checkedBy: document.getElementById('storeCheckedBy').value || undefined,
+                lastUpdate: document.getElementById('storeVisitStatus').value ? new Date().toISOString().substring(0, 7) : undefined,
                 website: document.getElementById('storeWebsite').value || '',
                 instagram: document.getElementById('storeInstagram').value || '',
                 imageUrl: document.getElementById('storeImageUrl').value || '',
