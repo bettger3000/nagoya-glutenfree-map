@@ -902,7 +902,7 @@ function getVisitStatusBadge(store) {
         case 'member':
             return '<span class="visit-status-badge member-badge" title="メンバー訪問済み">🟡</span>';
         case 'unvisited':
-            return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">⚪</span>';
+            return '<span class="visit-status-badge unvisited-badge" title="未確認店舗">🤍</span>';
         default:
             return '';
     }
