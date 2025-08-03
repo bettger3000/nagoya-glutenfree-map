@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>グルテンフリーマップ管理画面</title>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
+            background-color: #fef9f3;
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+
+        :root {
+            --primary-pink: #ffb6c1;
+            --primary-green: #98d8c8;
+            --bg-cream: #fef9f3;
+            --text-dark: #4a4a4a;
+            --white: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* ヘッダー */
+        header {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-green) 100%);
+            color: var(--white);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* メインコンテンツ */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .admin-section {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .section-title {
+            color: var(--primary-green);
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary-green);
+            padding-bottom: 10px;
+        }
+
+        /* 店舗一覧テーブル */
+        .stores-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .stores-table th,
+        .stores-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stores-table th {
+            background-color: var(--primary-green);
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .stores-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* 訪問ステータス選択 */
+        .status-select {
+            padding: 5px 10px;
+            border: 1px solid var(--primary-green);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.2);
+        }
+
+        /* ボタン */
+        .btn {
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: var(--primary-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* ステータスバッジ */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-naco {
+            background-color: rgba(255, 0, 0, 0.1);
+            color: #d32f2f;
+        }
+
+        .status-member {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #f57c00;
+        }
+
+        .status-unvisited {
+            background-color: rgba(158, 158, 158, 0.1);
+            color: #616161;
+        }
+
+        /* 入力フォーム */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--primary-green);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
+        }
+
+        /* 成功・エラーメッセージ */
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .stores-table {
+                font-size: 12px;
+            }
+            
+            .stores-table th,
+            .stores-table td {
+                padding: 8px 4px;
+            }
+        }
+
+        /* JSONプレビュー */
+        .json-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-cog"></i> グルテンフリーマップ管理画面</h1>
+        <p class="subtitle">訪問ステータス管理システム</p>
+    </header>
+
+    <div class="container">
+        <!-- ステータス説明 -->
+        <div class="admin-section">
+            <h2 class="section-title"><i class="fas fa-info-circle"></i> 訪問ステータスについて</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div>
+                    <strong>🔴 naco訪問済み</strong><br>
+                    nacoが実際に訪問し、確認済みの店舗（最高信頼度）
+                </div>
+                <div>
+                    <strong>🟡 メンバー訪問済み</strong><br>
+                    ビヨグル倶楽部メンバーが訪問し、確認済みの店舗（信頼済み）
+                </div>
+                <div>
+                    <strong>🤍 未確認店舗</strong><br>
+                    まだ誰も訪問していない、または確認が必要な店舗
+                </div>
+            </div>
+        </div>
+
+        <!-- 店舗一覧 -->
+        <div class="admin-section">
+            <h2 class="section-title"><i class="fas fa-store"></i> 店舗一覧・ステータス管理</h2>
+            
+            <div id="messageArea"></div>
+            
+            <table class="stores-table">
+                <thead>
+                    <tr>
+                        <th>店舗名</th>
+                        <th>カテゴリー</th>
+                        <th>現在のステータス</th>
+                        <th>新しいステータス</th>
+                        <th>確認者</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="storesTableBody">
+                    <!-- 店舗データがここに動的に挿入されます -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- バルク更新 -->
+        <div class="admin-section">
+            <h2 class="section-title"><i class="fas fa-edit"></i> 一括ステータス更新</h2>
+            
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
+                <div class="input-group" style="flex: 1; min-width: 200px;">
+                    <label>すべての店舗のステータスを変更:</label>
+                    <select id="bulkStatus" class="status-select">
+                        <option value="">選択してください</option>
+                        <option value="naco">🔴 naco訪問済み</option>
+                        <option value="member">🟡 メンバー訪問済み</option>
+                        <option value="unvisited">🤍 未確認店舗</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 150px;">
+                    <label>確認者:</label>
+                    <input type="text" id="bulkChecker" placeholder="確認者名を入力">
+                </div>
+                <button class="btn" onclick="bulkUpdateStatus()">
+                    <i class="fas fa-save"></i> 一括更新
+                </button>
+            </div>
+        </div>
+
+        <!-- JSONプレビュー -->
+        <div class="admin-section">
+            <h2 class="section-title"><i class="fas fa-code"></i> JSONプレビュー</h2>
+            <button class="btn" onclick="generateJSON()">
+                <i class="fas fa-refresh"></i> JSONを生成
+            </button>
+            <button class="btn" onclick="downloadJSON()" style="margin-left: 10px;">
+                <i class="fas fa-download"></i> JSONをダウンロード
+            </button>
+            <div id="jsonPreview" class="json-preview" style="margin-top: 15px;">
+                ここにJSONデータが表示されます
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
