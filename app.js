@@ -246,6 +246,16 @@ function showStoreDetail(storeId) {
     const store = storesData.find(s => s.id === storeId);
     if (!store) return;
     
+    // Google Analytics イベント送信
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'view_store_detail', {
+            'store_id': store.id,
+            'store_name': store.name,
+            'store_category': store.category,
+            'visit_status': store.visitStatus || 'unvisited'
+        });
+    }
+    
     const modal = document.getElementById('storeModal');
     const modalContent = document.getElementById('modalContent');
     
