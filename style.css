@@ -112,6 +112,149 @@ header .subtitle {
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
 }
 
+/* 高度な検索トグルボタン */
+.advanced-search-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary-green);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.advanced-search-toggle:hover {
+    background: var(--primary-pink);
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* 高度な検索パネル */
+.advanced-search-panel {
+    background: #f8f9fa;
+    border: 2px solid var(--primary-green);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.advanced-search-panel h3 {
+    margin: 0 0 15px 0;
+    color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+}
+
+/* 検索条件エリア */
+.search-conditions {
+    margin-bottom: 15px;
+}
+
+.search-condition {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.search-condition select,
+.search-condition input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.search-condition select {
+    min-width: 120px;
+}
+
+.search-condition input {
+    flex: 1;
+    min-width: 150px;
+}
+
+.remove-condition-btn {
+    background: #ff6b6b;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.remove-condition-btn:hover {
+    background: #ff5252;
+    transform: scale(1.1);
+}
+
+/* 検索コントロール */
+.search-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.add-condition-btn,
+.clear-search-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.add-condition-btn {
+    background: var(--primary-green);
+    color: white;
+}
+
+.add-condition-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.clear-search-btn {
+    background: #ff6b6b;
+    color: white;
+}
+
+.clear-search-btn:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+}
+
+.search-operator {
+    padding: 8px 12px;
+    border: 2px solid var(--primary-green);
+    border-radius: 20px;
+    background: white;
+    color: var(--primary-green);
+    font-size: 14px;
+    cursor: pointer;
+}
+
 /* カテゴリーフィルター */
 .category-filters {
     display: flex;

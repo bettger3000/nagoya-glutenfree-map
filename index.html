@@ -55,6 +55,31 @@
             <div class="search-box">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="店名・住所で検索...">
+                <button class="advanced-search-toggle" id="advancedSearchToggle">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            
+            <!-- 高度な検索パネル -->
+            <div class="advanced-search-panel" id="advancedSearchPanel" style="display: none;">
+                <h3><i class="fas fa-search-plus"></i> 高度な検索</h3>
+                
+                <div class="search-conditions" id="searchConditions">
+                    <!-- 検索条件がここに動的に追加される -->
+                </div>
+                
+                <div class="search-controls">
+                    <button class="add-condition-btn" id="addConditionBtn">
+                        <i class="fas fa-plus"></i> 条件を追加
+                    </button>
+                    <select id="searchOperator" class="search-operator">
+                        <option value="AND">すべての条件に一致（AND）</option>
+                        <option value="OR">いずれかの条件に一致（OR）</option>
+                    </select>
+                    <button class="clear-search-btn" id="clearSearchBtn">
+                        <i class="fas fa-times"></i> クリア
+                    </button>
+                </div>
             </div>
             
             <div class="category-filters">

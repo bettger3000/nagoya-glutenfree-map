@@ -58,6 +58,10 @@ console.log('🔥 NEW VERSION LOADED 🔥 Functions defined:', {
 });
 console.log('🔥 Version: app-fixed-lightbox.js');
 
+// 高度な検索機能のグローバル変数
+let advancedSearchConditions = [];
+let advancedSearchVisible = false;
+
 // カテゴリー別の色とアイコン
 const categoryStyles = {
     '和食': { color: '#ff6b6b', icon: 'fa-utensils' },
@@ -587,6 +591,196 @@ function setupEventListeners() {
             text.textContent = ' リストを表示';
         }
     });
+    
+    // 高度な検索のイベントリスナーを設定
+    setupAdvancedSearchListeners();
+}
+
+// 高度な検索のイベントリスナーを設定
+function setupAdvancedSearchListeners() {
+    // 高度な検索トグルボタン
+    document.getElementById('advancedSearchToggle').addEventListener('click', function() {
+        toggleAdvancedSearch();
+    });
+    
+    // 条件追加ボタン
+    document.getElementById('addConditionBtn').addEventListener('click', function() {
+        addSearchCondition();
+    });
+    
+    // クリアボタン
+    document.getElementById('clearSearchBtn').addEventListener('click', function() {
+        clearAdvancedSearch();
+    });
+    
+    // 検索オペレーター変更
+    document.getElementById('searchOperator').addEventListener('change', function() {
+        if (advancedSearchConditions.length > 0) {
+            performAdvancedSearch();
+        }
+    });
+}
+
+// 高度な検索パネルの表示/非表示を切り替え
+function toggleAdvancedSearch() {
+    const panel = document.getElementById('advancedSearchPanel');
+    advancedSearchVisible = !advancedSearchVisible;
+    
+    if (advancedSearchVisible) {
+        panel.style.display = 'block';
+        // 初回表示時に条件を1つ追加
+        if (advancedSearchConditions.length === 0) {
+            addSearchCondition();
+        }
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// 検索条件を追加
+function addSearchCondition() {
+    const conditionId = `condition-${Date.now()}`;
+    const condition = {
+        id: conditionId,
+        field: 'name',
+        value: ''
+    };
+    
+    advancedSearchConditions.push(condition);
+    renderSearchConditions();
+}
+
+// 検索条件を削除
+function removeSearchCondition(conditionId) {
+    advancedSearchConditions = advancedSearchConditions.filter(c => c.id !== conditionId);
+    renderSearchConditions();
+    
+    if (advancedSearchConditions.length > 0) {
+        performAdvancedSearch();
+    } else {
+        // 条件がなくなった場合は通常の検索に戻す
+        filterStores();
+    }
+}
+
+// 検索条件のHTMLを生成・表示
+function renderSearchConditions() {
+    const container = document.getElementById('searchConditions');
+    
+    container.innerHTML = advancedSearchConditions.map(condition => `
+        <div class="search-condition" data-condition-id="${condition.id}">
+            <select class="condition-field" onchange="updateConditionField('${condition.id}', this.value)">
+                <option value="name" ${condition.field === 'name' ? 'selected' : ''}>店舗名</option>
+                <option value="category" ${condition.field === 'category' ? 'selected' : ''}>カテゴリー</option>
+                <option value="address" ${condition.field === 'address' ? 'selected' : ''}>住所</option>
+                <option value="description" ${condition.field === 'description' ? 'selected' : ''}>説明</option>
+                <option value="glutenFreeType" ${condition.field === 'glutenFreeType' ? 'selected' : ''}>GF対応</option>
+                <option value="nacoComment" ${condition.field === 'nacoComment' ? 'selected' : ''}>nacoコメント</option>
+                <option value="takeout" ${condition.field === 'takeout' ? 'selected' : ''}>テイクアウト</option>
+                <option value="visitStatus" ${condition.field === 'visitStatus' ? 'selected' : ''}>訪問状況</option>
+            </select>
+            
+            ${renderConditionInput(condition)}
+            
+            <button class="remove-condition-btn" onclick="removeSearchCondition('${condition.id}')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+// 条件の入力フィールドを生成
+function renderConditionInput(condition) {
+    switch (condition.field) {
+        case 'category':
+            return `
+                <select class="condition-value" onchange="updateConditionValue('${condition.id}', this.value)">
+                    <option value="">選択してください</option>
+                    <option value="和食" ${condition.value === '和食' ? 'selected' : ''}>和食</option>
+                    <option value="洋食" ${condition.value === '洋食' ? 'selected' : ''}>洋食</option>
+                    <option value="カフェ" ${condition.value === 'カフェ' ? 'selected' : ''}>カフェ</option>
+                    <option value="パン屋" ${condition.value === 'パン屋' ? 'selected' : ''}>パン屋</option>
+                    <option value="販売店" ${condition.value === '販売店' ? 'selected' : ''}>販売店</option>
+                    <option value="スイーツ" ${condition.value === 'スイーツ' ? 'selected' : ''}>スイーツ</option>
+                </select>
+            `;
+        case 'glutenFreeType':
+            return `
+                <select class="condition-value" onchange="updateConditionValue('${condition.id}', this.value)">
+                    <option value="">選択してください</option>
+                    <option value="完全GF" ${condition.value === '完全GF' ? 'selected' : ''}>完全GF</option>
+                    <option value="部分GF" ${condition.value === '部分GF' ? 'selected' : ''}>部分GF</option>
+                </select>
+            `;
+        case 'takeout':
+            return `
+                <select class="condition-value" onchange="updateConditionValue('${condition.id}', this.value)">
+                    <option value="">選択してください</option>
+                    <option value="true" ${condition.value === 'true' ? 'selected' : ''}>対応あり</option>
+                    <option value="false" ${condition.value === 'false' ? 'selected' : ''}>対応なし</option>
+                </select>
+            `;
+        case 'visitStatus':
+            return `
+                <select class="condition-value" onchange="updateConditionValue('${condition.id}', this.value)">
+                    <option value="">選択してください</option>
+                    <option value="visited" ${condition.value === 'visited' ? 'selected' : ''}>訪問済み</option>
+                    <option value="planned" ${condition.value === 'planned' ? 'selected' : ''}>予定</option>
+                    <option value="unvisited" ${condition.value === 'unvisited' ? 'selected' : ''}>未訪問</option>
+                </select>
+            `;
+        default:
+            return `
+                <input type="text" class="condition-value" 
+                       value="${condition.value || ''}" 
+                       placeholder="検索キーワードを入力..." 
+                       oninput="updateConditionValue('${condition.id}', this.value)">
+            `;
+    }
+}
+
+// 条件のフィールドを更新
+window.updateConditionField = function(conditionId, field) {
+    const condition = advancedSearchConditions.find(c => c.id === conditionId);
+    if (condition) {
+        condition.field = field;
+        condition.value = ''; // フィールド変更時は値をリセット
+        renderSearchConditions();
+    }
+};
+
+// 条件の値を更新
+window.updateConditionValue = function(conditionId, value) {
+    const condition = advancedSearchConditions.find(c => c.id === conditionId);
+    if (condition) {
+        condition.value = value;
+        performAdvancedSearch();
+    }
+};
+
+// 高度な検索をクリア
+function clearAdvancedSearch() {
+    advancedSearchConditions = [];
+    renderSearchConditions();
+    
+    // 通常検索入力もクリア
+    document.getElementById('searchInput').value = '';
+    
+    // 通常の検索に戻す
+    filterStores();
+}
+
+// removeSearchCondition関数をグローバルに露出
+window.removeSearchCondition = function(conditionId) {
+    advancedSearchConditions = advancedSearchConditions.filter(c => c.id !== conditionId);
+    renderSearchConditions();
+    
+    if (advancedSearchConditions.length > 0) {
+        performAdvancedSearch();
+    } else {
+        // 条件がなくなった場合は通常の検索に戻す
+        filterStores();
+    }
 }
 
 // エリア検索用のキーワードマッピング
@@ -639,6 +833,12 @@ function matchesAreaSearch(store, searchTerm) {
 
 // フィルタリング機能
 function filterStores() {
+    // 高度な検索が有効な場合はそちらを使用
+    if (advancedSearchVisible && advancedSearchConditions.length > 0) {
+        performAdvancedSearch();
+        return;
+    }
+    
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
     let filteredStores = storesData;
@@ -1435,3 +1635,78 @@ markerStyles.textContent = `
     }
 `;
 document.head.appendChild(markerStyles);
+
+// 高度な検索を実行
+function performAdvancedSearch() {
+    const operator = document.getElementById('searchOperator').value;
+    let filteredStores = storesData;
+    
+    // カテゴリーフィルター（従来通り）
+    if (currentFilter !== 'all') {
+        filteredStores = filteredStores.filter(store => store.category === currentFilter);
+    }
+    
+    // 訪問ステータスフィルター（従来通り）
+    if (currentVisitStatus !== 'all') {
+        filteredStores = filteredStores.filter(store => store.visitStatus === currentVisitStatus);
+    }
+    
+    // 高度な検索条件でフィルタリング
+    if (advancedSearchConditions.length > 0) {
+        const validConditions = advancedSearchConditions.filter(condition => 
+            condition.value && condition.value.trim() !== ''
+        );
+        
+        if (validConditions.length > 0) {
+            filteredStores = filteredStores.filter(store => {
+                if (operator === 'AND') {
+                    // すべての条件に一致する必要がある
+                    return validConditions.every(condition => 
+                        matchesCondition(store, condition)
+                    );
+                } else {
+                    // いずれかの条件に一致すればよい
+                    return validConditions.some(condition => 
+                        matchesCondition(store, condition)
+                    );
+                }
+            });
+        }
+    }
+    
+    displayStores(filteredStores);
+    updateStoreList(filteredStores);
+    updateSearchResults(filteredStores.length, `高度な検索 (${operator})`);
+}
+
+// 単一の条件と店舗データが一致するかチェック
+function matchesCondition(store, condition) {
+    const field = condition.field;
+    const value = condition.value.toLowerCase();
+    
+    if (!store[field] && field !== 'takeout') {
+        return false;
+    }
+    
+    switch (field) {
+        case 'name':
+            return store.name.toLowerCase().includes(value);
+        case 'category':
+            return store.category === condition.value;
+        case 'address':
+            return store.address.toLowerCase().includes(value);
+        case 'description':
+            return store.description.toLowerCase().includes(value);
+        case 'glutenFreeType':
+            return store.glutenFreeType === condition.value;
+        case 'nacoComment':
+            return store.nacoComment && store.nacoComment.toLowerCase().includes(value);
+        case 'takeout':
+            const takeoutValue = condition.value === 'true';
+            return store.takeout === takeoutValue;
+        case 'visitStatus':
+            return store.visitStatus === condition.value;
+        default:
+            return false;
+    }
+}
