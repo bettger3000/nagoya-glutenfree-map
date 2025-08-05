@@ -40,18 +40,23 @@ window.closeImageLightbox = function() {
     window.closeLightboxNow();
 };
 
-// openImageLightbox関数をプレースホルダーとして定義
+// 関数のプレースホルダーを早期定義
 window.openImageLightbox = function(imageUrl, altText) {
     console.log('Placeholder openImageLightbox called - will be replaced');
+};
+
+window.showStoreDetail = function(storeId) {
+    console.log('Placeholder showStoreDetail called - will be replaced');
 };
 
 // デバッグ用: 関数の存在確認
 console.log('🔥 NEW VERSION LOADED 🔥 Functions defined:', {
     closeImageLightbox: typeof window.closeImageLightbox,
     closeLightboxNow: typeof window.closeLightboxNow,
-    openImageLightbox: typeof window.openImageLightbox
+    openImageLightbox: typeof window.openImageLightbox,
+    showStoreDetail: typeof window.showStoreDetail
 });
-console.log('🔥 Version: 20250805-1847-final-fix');
+console.log('🔥 Version: app-fixed-lightbox.js');
 
 // カテゴリー別の色とアイコン
 const categoryStyles = {

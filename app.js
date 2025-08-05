@@ -991,6 +991,63 @@ function formatDistance(distance) {
 }
 
 
+// 画像圧縮機能
+function compressImage(file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            let { width, height } = img;
+            
+            // アスペクト比を維持してリサイズ
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width *= ratio;
+                height *= ratio;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            canvas.toBlob(resolve, 'image/jpeg', quality);
+        };
+        
+        if (typeof file === 'string') {
+            img.src = file;
+        } else {
+            const reader = new FileReader();
+            reader.onload = (e) => img.src = e.target.result;
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// 画像サイズをチェックして必要に応じて圧縮
+function checkAndCompressImage(imageUrl, callback) {
+    const img = new Image();
+    img.onload = () => {
+        const maxSize = 5 * 1024 * 1024; // 5MB制限
+        
+        // 大体のファイルサイズを推定（実際のファイルサイズではないが目安）
+        const estimatedSize = img.width * img.height * 3; // RGB 各1バイトとして概算
+        
+        if (estimatedSize > maxSize || img.width > 2048 || img.height > 2048) {
+            console.log('Large image detected, compressing...');
+            compressImage(imageUrl, 1920, 1080, 0.7).then(blob => {
+                const compressedUrl = URL.createObjectURL(blob);
+                callback(compressedUrl);
+            });
+        } else {
+            callback(imageUrl);
+        }
+    };
+    img.onerror = () => callback(imageUrl); // エラー時は元の画像を使用
+    img.src = imageUrl;
+}
+
 // 画像ライトボックスを開く
 function openImageLightbox(imageUrl, altText) {
     if (!imageUrl) return;
@@ -998,45 +1055,53 @@ function openImageLightbox(imageUrl, altText) {
     console.log('Opening lightbox for:', altText);
     console.log('Image URL:', imageUrl);
     
-    // ライトボックスが既に存在する場合は削除
-    const existingLightbox = document.getElementById('imageLightbox');
-    if (existingLightbox) {
-        existingLightbox.remove();
-    }
-    
-    // ライトボックス要素を作成
-    const lightbox = document.createElement('div');
-    lightbox.id = 'imageLightbox';
-    lightbox.className = 'image-lightbox';
-    
-    lightbox.innerHTML = `
-        <div class="lightbox-backdrop" onclick="closeImageLightbox()"></div>
-        <div class="lightbox-content">
-            <button class="lightbox-close" onclick="closeImageLightbox()">
-                <i class="fas fa-times"></i>
-            </button>
-            <img src="${imageUrl}" alt="${altText}" class="lightbox-image">
-            <div class="lightbox-caption">${altText}</div>
-        </div>
-    `;
-    
-    document.body.appendChild(lightbox);
-    
-    // フェードイン効果
-    setTimeout(() => {
-        lightbox.classList.add('show');
-    }, 10);
-    
-    // Escキーで閉じる
-    document.addEventListener('keydown', closeLightboxOnEscape);
+    // 画像をチェックして必要に応じて圧縮
+    checkAndCompressImage(imageUrl, (processedImageUrl) => {
+        console.log('Lightbox shown with CSS transition');
+        
+        // ライトボックスが既に存在する場合は削除
+        const existingLightbox = document.getElementById('imageLightbox');
+        if (existingLightbox) {
+            existingLightbox.remove();
+        }
+        
+        // ライトボックス要素を作成
+        const lightbox = document.createElement('div');
+        lightbox.id = 'imageLightbox';
+        lightbox.className = 'image-lightbox';
+        
+        lightbox.innerHTML = `
+            <div class="lightbox-backdrop" onclick="closeImageLightbox()"></div>
+            <div class="lightbox-content">
+                <button class="lightbox-close" onclick="closeImageLightbox()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image">
+                <div class="lightbox-caption">${altText}</div>
+            </div>
+        `;
+        
+        document.body.appendChild(lightbox);
+        
+        // フェードイン効果
+        setTimeout(() => {
+            lightbox.classList.add('show');
+        }, 10);
+        
+        // Escキーで閉じる
+        document.addEventListener('keydown', closeLightboxOnEscape);
+    });
 }
 
 // ライトボックスを閉じる
 function closeImageLightbox() {
+    console.log('Lightbox close triggered');
     const lightbox = document.getElementById('imageLightbox');
     if (lightbox) {
+        console.log('Lightbox hide animation started');
         lightbox.classList.remove('show');
         setTimeout(() => {
+            console.log('Lightbox removed after animation');
             lightbox.remove();
         }, 300);
     }
