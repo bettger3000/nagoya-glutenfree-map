@@ -671,16 +671,19 @@ function setupAdvancedSearchListeners() {
 // 高度な検索パネルの表示/非表示を切り替え
 function toggleAdvancedSearch() {
     const panel = document.getElementById('advancedSearchPanel');
+    const toggleBtn = document.getElementById('advancedSearchToggle');
     advancedSearchVisible = !advancedSearchVisible;
     
     if (advancedSearchVisible) {
         panel.style.display = 'block';
+        toggleBtn.classList.add('active');
         // 初回表示時に条件を1つ追加
         if (advancedSearchConditions.length === 0) {
             addSearchCondition();
         }
     } else {
         panel.style.display = 'none';
+        toggleBtn.classList.remove('active');
     }
 }
 
