@@ -130,7 +130,7 @@ class AuthManager {
                 if (window.location.pathname.includes('login.html') || window.location.pathname === '/') {
                     this.showSuccess('ログインに成功しました。地図ページに移動します...');
                     setTimeout(() => {
-                        window.location.href = './map.html';
+                        window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/map.html';
                     }, 1500);
                 }
             } else {
@@ -196,7 +196,7 @@ class AuthManager {
         // ログインページに戻す
         if (!window.location.pathname.includes('login.html')) {
             setTimeout(() => {
-                window.location.href = './login.html';
+                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
             }, 3000);
         }
     }
@@ -228,7 +228,7 @@ class AuthManager {
         
         // ログインページ以外にいる場合はリダイレクト
         if (!window.location.pathname.includes('login.html')) {
-            window.location.href = './login.html';
+            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
         }
     }
 
@@ -275,7 +275,7 @@ class AuthManager {
     // ログインページへリダイレクト
     redirectToLogin() {
         console.log('🔄 ログインページにリダイレクト...');
-        window.location.href = './login.html';
+        window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
     }
 
     // UI表示制御メソッド
