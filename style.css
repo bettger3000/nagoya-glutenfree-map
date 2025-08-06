@@ -1322,3 +1322,287 @@ header .subtitle {
         padding: 12px 24px;
     }
 }
+
+/* ==========================================
+   レビューシステムのスタイル
+   ========================================== */
+
+/* レビューセクション */
+.store-reviews-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid var(--primary-green);
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.reviews-title {
+    font-size: 20px;
+    color: var(--primary-green);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-review-btn {
+    background: var(--primary-green);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.add-review-btn:hover {
+    background: var(--primary-pink);
+    transform: translateY(-2px);
+}
+
+/* レビューリスト */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.review-item {
+    background: var(--bg-cream);
+    border-radius: 15px;
+    padding: 15px;
+    border-left: 4px solid var(--primary-green);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-author {
+    font-weight: 500;
+    color: var(--text-dark);
+    font-size: 14px;
+}
+
+.review-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit-review,
+.btn-delete-review {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.btn-edit-review:hover {
+    color: var(--primary-green);
+    background: rgba(152, 216, 200, 0.2);
+}
+
+.btn-delete-review:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.2);
+}
+
+.review-content {
+    color: var(--text-dark);
+    line-height: 1.6;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+}
+
+.review-date {
+    font-size: 12px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.no-reviews {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 30px;
+}
+
+/* レビューモーダル */
+.review-modal-content {
+    max-width: 600px;
+    width: 90%;
+}
+
+.review-modal-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.review-modal-header h2 {
+    color: var(--primary-green);
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.review-modal-header p {
+    color: #666;
+    margin: 0;
+    font-size: 14px;
+}
+
+.review-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.review-actions .btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.review-actions .btn-primary {
+    background: var(--primary-green);
+    color: var(--white);
+}
+
+.review-actions .btn-primary:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.review-actions .btn-secondary {
+    background: #f8f9fa;
+    color: var(--text-dark);
+    border: 1px solid #ddd;
+}
+
+.review-actions .btn-secondary:hover {
+    background: #e9ecef;
+}
+
+.review-actions .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* フォーム要素 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-dark);
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(152, 216, 200, 0.2);
+}
+
+.character-count {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* レビュー統計 */
+.reviews-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+.reviews-stats span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .reviews-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .add-review-btn {
+        justify-content: center;
+    }
+
+    .review-item {
+        padding: 12px;
+    }
+
+    .review-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .review-actions {
+        align-self: flex-end;
+    }
+
+    .review-modal-content {
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .review-actions {
+        flex-direction: column;
+    }
+}

@@ -108,6 +108,122 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('✅ アプリケーション初期化完了');
 });
 
+// レビュー機能統合
+let currentStoreIdForReviews = null;
+
+// 店舗詳細モーダルにレビューセクションを追加（グローバル関数）
+window.updateStoreReviews = async function(storeId) {
+    if (!window.reviewSystem) return;
+    
+    const reviewsContainer = document.getElementById('storeReviewsContainer');
+    if (!reviewsContainer) return;
+    
+    try {
+        const reviews = await window.reviewSystem.getStoreReviews(storeId);
+        renderStoreReviews(reviews, storeId);
+    } catch (error) {
+        console.error('❌ レビュー更新エラー:', error);
+    }
+};
+
+// レビューセクションのHTMLを生成
+function renderStoreReviews(reviews, storeId) {
+    const reviewsContainer = document.getElementById('storeReviewsContainer');
+    if (!reviewsContainer) return;
+    
+    currentStoreIdForReviews = storeId;
+    
+    // 統計情報
+    const reviewCount = reviews.length;
+    const statsHTML = reviewCount > 0 ? `
+        <div class="reviews-stats">
+            <span><i class="fas fa-comment"></i> ${reviewCount}件の感想</span>
+            <span><i class="fas fa-clock"></i> 最新: ${formatLastReviewDate(reviews)}</span>
+        </div>
+    ` : '';
+    
+    // レビューリスト
+    const reviewsListHTML = reviews.length > 0 
+        ? reviews.map(review => window.reviewSystem.generateReviewHTML(review)).join('')
+        : '<div class="no-reviews">まだ感想が投稿されていません</div>';
+    
+    reviewsContainer.innerHTML = `
+        <div class="store-reviews-section">
+            <div class="reviews-header">
+                <h3 class="reviews-title">
+                    <i class="fas fa-comments"></i> みんなの感想 (${reviewCount}件)
+                </h3>
+                <button class="add-review-btn" onclick="openReviewModalForStore(${storeId})">
+                    <i class="fas fa-plus"></i> 感想を書く
+                </button>
+            </div>
+            ${statsHTML}
+            <div class="reviews-list">
+                ${reviewsListHTML}
+            </div>
+        </div>
+    `;
+    
+    // 編集・削除ボタンのイベントリスナー
+    setupReviewActionListeners();
+}
+
+// レビューアクションのイベントリスナー設定
+function setupReviewActionListeners() {
+    // 編集ボタン
+    document.querySelectorAll('.btn-edit-review').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const storeId = parseInt(e.currentTarget.dataset.storeId);
+            const storeName = getCurrentStoreName();
+            window.reviewSystem.openReviewModal(storeId, storeName);
+        });
+    });
+    
+    // 削除ボタン
+    document.querySelectorAll('.btn-delete-review').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const reviewId = e.currentTarget.dataset.reviewId;
+            window.reviewSystem.deleteReview(reviewId);
+        });
+    });
+}
+
+// レビューモーダルを開く（グローバル関数）
+window.openReviewModalForStore = function(storeId) {
+    const storeName = getCurrentStoreName();
+    if (window.reviewSystem) {
+        window.reviewSystem.openReviewModal(storeId, storeName);
+    }
+};
+
+// 現在の店舗名を取得
+function getCurrentStoreName() {
+    const titleElement = document.querySelector('#modalContent .modal-header h2');
+    return titleElement ? titleElement.textContent.trim() : '店舗';
+}
+
+// 最新レビュー日時をフォーマット
+function formatLastReviewDate(reviews) {
+    if (reviews.length === 0) return 'なし';
+    
+    const latest = reviews[0]; // 既にcreated_atでソート済み
+    const date = new Date(latest.created_at);
+    const now = new Date();
+    const daysDiff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === 0) {
+        return '今日';
+    } else if (daysDiff === 1) {
+        return '昨日';
+    } else if (daysDiff < 7) {
+        return `${daysDiff}日前`;
+    } else {
+        return `${Math.floor(daysDiff / 7)}週間前`;
+    }
+}
+
 // ユーザー情報を表示
 function displayUserInfo() {
     if (window.authManager && window.authManager.getCurrentUser()) {
@@ -514,9 +630,17 @@ window.showStoreDetail = function showStoreDetail(storeId) {
             </div>
         </div>
         ` : ''}
+        
+        <!-- レビューセクション -->
+        <div id="storeReviewsContainer"></div>
     `;
     
     modal.style.display = 'block';
+    
+    // レビューを読み込み
+    if (window.updateStoreReviews) {
+        window.updateStoreReviews(storeId);
+    }
 }
 
 // イベントリスナーの設定
