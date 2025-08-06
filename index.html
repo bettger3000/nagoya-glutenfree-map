@@ -33,21 +33,21 @@
             supabase.auth.getSession().then(({ data: { session }, error }) => {
                 if (error) {
                     console.error('❌ セッション確認エラー:', error);
-                    window.location.href = './login.html';
+                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
                     return;
                 }
                 
                 if (session && session.user) {
                     console.log('✅ セッション有効 - map.htmlにリダイレクト');
-                    window.location.href = './map.html';
+                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/map.html';
                 } else {
                     console.log('ℹ️ セッションなし - login.htmlにリダイレクト');
-                    window.location.href = './login.html';
+                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
                 }
             });
         }).catch(error => {
             console.error('❌ Supabaseクライアント作成エラー:', error);
-            window.location.href = './login.html';
+            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
         });
     </script>
     
