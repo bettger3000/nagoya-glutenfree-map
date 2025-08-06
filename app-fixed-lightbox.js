@@ -113,12 +113,15 @@ function displayUserInfo() {
     if (window.authManager && window.authManager.getCurrentUser()) {
         const user = window.authManager.getCurrentUser();
         const userSection = document.getElementById('userSection');
-        const userEmail = document.getElementById('userEmail');
         
-        if (userSection && userEmail) {
-            userEmail.textContent = user.email;
+        if (userSection) {
             userSection.style.display = 'flex';
-            console.log('👤 ユーザー情報を表示:', user.email);
+            console.log('👤 ユーザー認証状態を表示:', user.email);
+        }
+    } else {
+        const userSection = document.getElementById('userSection');
+        if (userSection) {
+            userSection.style.display = 'none';
         }
     }
 }
