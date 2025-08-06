@@ -50,9 +50,8 @@
                 
                 <!-- ユーザー情報とログアウト -->
                 <div class="user-section" id="userSection" style="display: none;">
-                    <div class="user-info" id="userInfo">
-                        <i class="fas fa-user-circle"></i>
-                        <span id="userEmail"></span>
+                    <div class="user-status-indicator" title="ログイン中">
+                        <i class="fas fa-user-check"></i>
                     </div>
                     <button class="logout-btn" id="logoutBtn" title="ログアウト">
                         <i class="fas fa-sign-out-alt"></i>
@@ -66,8 +65,8 @@
             <div class="search-box">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="店名・住所で検索...">
-                <button class="advanced-search-toggle" id="advancedSearchToggle">
-                    <i class="fas fa-cog"></i>
+                <button class="advanced-search-toggle" id="advancedSearchToggle" title="高度な検索">
+                    <i class="fas fa-sliders-h"></i>
                 </button>
             </div>
             
@@ -123,15 +122,10 @@
         <div class="main-content">
             <div id="map"></div>
             
-            <!-- 地図ナビゲーションボタン -->
-            <div class="map-navigation">
-                <button class="nav-btn" id="currentLocationBtn" title="現在地に戻る">
-                    <i class="fas fa-crosshairs"></i>
-                </button>
-                <button class="nav-btn" id="allStoresBtn" title="全店舗を表示">
-                    <i class="fas fa-globe"></i>
-                </button>
-            </div>
+            <!-- 現在地ボタン -->
+            <button class="current-location-btn" id="currentLocationBtn" title="現在地に戻る">
+                <i class="fas fa-location-arrow"></i>
+            </button>
             
             <!-- モバイル用トグルボタン -->
             <button class="mobile-list-toggle" id="mobileListToggle">

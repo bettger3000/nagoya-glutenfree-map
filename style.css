@@ -57,24 +57,24 @@ header {
     gap: 15px;
 }
 
-.user-info {
+.user-status-indicator {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
     color: var(--white);
-    font-size: 14px;
+    font-size: 18px;
     background: rgba(255, 255, 255, 0.2);
-    padding: 8px 12px;
-    border-radius: 20px;
+    padding: 8px;
+    border-radius: 50%;
     backdrop-filter: blur(5px);
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    width: 36px;
+    height: 36px;
+    transition: all 0.3s;
 }
 
-.user-info i {
-    font-size: 16px;
+.user-status-indicator:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
 }
 
 .logout-btn {
@@ -835,45 +835,38 @@ header .subtitle {
     margin-right: 5px;
 }
 
-/* 地図ナビゲーションボタン */
-.map-navigation {
+/* 現在地ボタン */
+.current-location-btn {
     position: fixed;
-    top: 20px;
+    bottom: 80px;
     right: 20px;
     z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.nav-btn {
-    width: 50px;
-    height: 50px;
-    background: var(--white);
-    border: 2px solid var(--primary-green);
+    width: 55px;
+    height: 55px;
+    background: var(--primary-green);
+    border: none;
     border-radius: 50%;
-    color: var(--primary-green);
-    font-size: 18px;
+    color: var(--white);
+    font-size: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 10px var(--shadow);
+    box-shadow: 0 4px 15px var(--shadow);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.nav-btn:hover {
-    background: var(--primary-green);
-    color: var(--white);
+.current-location-btn:hover {
+    background: var(--primary-pink);
     transform: scale(1.1);
-    box-shadow: 0 4px 15px var(--shadow);
+    box-shadow: 0 6px 20px var(--shadow);
 }
 
-.nav-btn:active {
+.current-location-btn:active {
     transform: scale(0.95);
 }
 
-.nav-btn i {
+.current-location-btn i {
     transition: all 0.3s ease;
 }
 
@@ -935,16 +928,11 @@ header .subtitle {
         flex-shrink: 0;
     }
     
-    .user-info {
-        font-size: 10px;
-        padding: 4px 8px;
-        max-width: 100px;
-        gap: 4px;
-    }
-    
-    .user-info i {
-        font-size: 12px;
-        flex-shrink: 0;
+    .user-status-indicator {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        padding: 6px;
     }
     
     .logout-btn {
@@ -1015,17 +1003,13 @@ header .subtitle {
         transform: translateY(0);
     }
     
-    /* モバイル用地図ナビゲーション */
-    .map-navigation {
-        top: 10px;
-        right: 10px;
-        gap: 8px;
-    }
-    
-    .nav-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 16px;
+    /* モバイル用現在地ボタン */
+    .current-location-btn {
+        bottom: 70px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
     }
     
     .mobile-list-toggle {

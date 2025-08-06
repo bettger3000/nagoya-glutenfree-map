@@ -1774,15 +1774,6 @@ function setupMapNavigationListeners() {
             goToCurrentLocation();
         });
     }
-    
-    
-    // 全店舗表示ボタン
-    const allStoresBtn = document.getElementById('allStoresBtn');
-    if (allStoresBtn) {
-        allStoresBtn.addEventListener('click', function() {
-            showAllStores();
-        });
-    }
 }
 
 // 現在地に移動
@@ -1848,20 +1839,3 @@ function goToCurrentLocation() {
 }
 
 
-// 全店舗を表示する範囲に移動
-function showAllStores() {
-    if (storesData.length > 0) {
-        const storesWithCoords = storesData.filter(store => store.lat && store.lng);
-        if (storesWithCoords.length > 0) {
-            const bounds = L.latLngBounds(
-                storesWithCoords.map(store => [store.lat, store.lng])
-            );
-            map.flyToBounds(bounds, {
-                padding: [50, 50],
-                maxZoom: 13,
-                duration: 1.5
-            });
-            console.log('全店舗表示に移動しました');
-        }
-    }
-}
