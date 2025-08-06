@@ -11,6 +11,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
 let nicknameCheckTimeout = null;
+let userReviews = [];
+let currentFilter = 'all';
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async function() {
@@ -37,6 +39,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // 既存プロフィールを取得
         await loadUserProfile();
+        
+        // レビュー一覧を読み込み・表示
+        await loadUserReviews();
         
         // イベントリスナーを設定
         setupEventListeners();
@@ -77,6 +82,220 @@ async function loadUserProfile() {
     }
 }
 
+// ユーザーレビューを読み込み
+async function loadUserReviews() {
+    if (!currentUser) return;
+    
+    try {
+        console.log('📝 ユーザーレビューを読み込み中...');
+        
+        const { data, error } = await supabase
+            .from('store_reviews')
+            .select(`
+                *,
+                stores:store_id (
+                    name,
+                    category,
+                    address
+                )
+            `)
+            .eq('user_id', currentUser.id)
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        userReviews = data || [];
+        console.log(`✅ ${userReviews.length}件のレビューを取得`);
+        
+        // レビューセクションを表示
+        displayReviewsSection();
+        
+    } catch (error) {
+        console.error('❌ レビュー取得エラー:', error);
+        userReviews = [];
+        displayReviewsSection();
+    }
+}
+
+// レビューセクション表示
+function displayReviewsSection() {
+    const reviewsSection = document.getElementById('profileReviewsSection');
+    
+    if (userReviews.length === 0) {
+        // レビューがない場合は非表示
+        reviewsSection.style.display = 'none';
+        return;
+    }
+    
+    // 統計情報を更新
+    updateReviewsStats();
+    
+    // レビュー一覧を表示
+    renderReviews();
+    
+    // セクションを表示
+    reviewsSection.style.display = 'block';
+}
+
+// レビュー統計更新
+function updateReviewsStats() {
+    const statsElement = document.getElementById('profileReviewsStats');
+    const publicCount = userReviews.filter(r => r.is_public).length;
+    const privateCount = userReviews.filter(r => !r.is_public).length;
+    
+    statsElement.innerHTML = `
+        <span><i class="fas fa-comment"></i> ${userReviews.length}件</span>
+        <span><i class="fas fa-eye"></i> 公開 ${publicCount}件</span>
+        <span><i class="fas fa-eye-slash"></i> 非公開 ${privateCount}件</span>
+    `;
+}
+
+// レビュー表示
+function renderReviews() {
+    const reviewsList = document.getElementById('profileReviewsList');
+    
+    // フィルター適用
+    let filteredReviews = userReviews;
+    if (currentFilter === 'public') {
+        filteredReviews = userReviews.filter(r => r.is_public);
+    } else if (currentFilter === 'private') {
+        filteredReviews = userReviews.filter(r => !r.is_public);
+    }
+    
+    if (filteredReviews.length === 0) {
+        reviewsList.innerHTML = '<div class="no-profile-reviews">該当するレビューはありません</div>';
+        return;
+    }
+    
+    reviewsList.innerHTML = filteredReviews
+        .map(review => generateProfileReviewHTML(review))
+        .join('');
+    
+    // イベントリスナー設定
+    setupReviewActionListeners();
+}
+
+// プロフィール用レビューHTML生成
+function generateProfileReviewHTML(review) {
+    const isEdited = new Date(review.updated_at) - new Date(review.created_at) > 60000;
+    const dateStr = isEdited ? 
+        `${formatDate(review.created_at)} ✏️ ${formatDate(review.updated_at)}に編集` :
+        formatDate(review.created_at);
+    
+    const storeName = review.stores?.name || '店舗名不明';
+    const storeCategory = review.stores?.category || '';
+    
+    return `
+        <div class="profile-review-item" data-review-id="${review.id}">
+            <div class="profile-review-header">
+                <div class="profile-review-store">
+                    <div class="profile-review-store-name">
+                        <i class="fas fa-store"></i>
+                        ${storeName}
+                    </div>
+                    ${storeCategory ? `<span class="store-category category-${storeCategory}">${storeCategory}</span>` : ''}
+                </div>
+                <div class="profile-review-actions">
+                    <button class="profile-review-edit-btn" data-review-id="${review.id}" data-store-name="${storeName}" title="編集">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="profile-review-delete-btn" data-review-id="${review.id}" title="削除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="profile-review-content">
+                ${review.comment}
+            </div>
+            
+            <div class="profile-review-footer">
+                <div class="profile-review-date">
+                    <i class="fas fa-calendar"></i>
+                    ${dateStr}
+                </div>
+                <div class="profile-review-status ${review.is_public ? 'public' : 'private'}">
+                    <i class="fas fa-${review.is_public ? 'eye' : 'eye-slash'}"></i>
+                    ${review.is_public ? '公開' : '非公開'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// レビューアクションのイベントリスナー
+function setupReviewActionListeners() {
+    // 編集ボタン
+    document.querySelectorAll('.profile-review-edit-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const reviewId = e.currentTarget.dataset.reviewId;
+            const storeName = e.currentTarget.dataset.storeName;
+            await handleEditReview(reviewId, storeName);
+        });
+    });
+    
+    // 削除ボタン
+    document.querySelectorAll('.profile-review-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const reviewId = e.currentTarget.dataset.reviewId;
+            await handleDeleteReview(reviewId);
+        });
+    });
+}
+
+// レビュー編集処理
+async function handleEditReview(reviewId, storeName) {
+    const review = userReviews.find(r => r.id === reviewId);
+    if (!review) return;
+    
+    // レビューシステムの編集モーダルを使用
+    if (window.reviewSystem) {
+        await window.reviewSystem.openReviewModal(review.store_id, storeName);
+    } else {
+        alert('レビュー編集機能の読み込みに失敗しました。');
+    }
+}
+
+// レビュー削除処理
+async function handleDeleteReview(reviewId) {
+    if (!confirm('このレビューを削除しますか？')) {
+        return;
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('store_reviews')
+            .delete()
+            .eq('id', reviewId)
+            .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        console.log('✅ レビュー削除完了');
+        
+        // レビュー一覧を再読み込み
+        await loadUserReviews();
+        
+        showSuccess('レビューを削除しました。');
+        
+    } catch (error) {
+        console.error('❌ レビュー削除エラー:', error);
+        showError('削除に失敗しました。再度お試しください。');
+    }
+}
+
+// 日付フォーマット
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
 // イベントリスナーの設定
 function setupEventListeners() {
     // ニックネーム入力時のリアルタイムチェック
@@ -108,6 +327,16 @@ function setupEventListeners() {
     // キャンセルボタン
     document.getElementById('cancelBtn').addEventListener('click', function() {
         window.location.href = 'map.html';
+    });
+    
+    // レビューフィルターボタン
+    document.querySelectorAll('.reviews-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.reviews-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            renderReviews();
+        });
     });
 }
 

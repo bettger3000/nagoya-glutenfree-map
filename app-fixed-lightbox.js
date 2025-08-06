@@ -471,6 +471,9 @@ function updateStoreList(stores) {
                     <i class="fas fa-route"></i> ${formatDistance(store.distance)}
                 </div>
                 ` : ''}
+                <div class="store-review-info" id="reviewInfo-${store.id}">
+                    <i class="fas fa-spinner fa-spin"></i> レビュー読み込み中...
+                </div>
             </div>
         `;
         card.onclick = () => {
@@ -482,6 +485,9 @@ function updateStoreList(stores) {
         };
         listContent.appendChild(card);
     });
+    
+    // レビュー情報を非同期で読み込み
+    loadStoreListReviews(sortedStores);
 }
 
 // 店舗詳細表示
@@ -1979,4 +1985,104 @@ function goToCurrentLocation() {
     }
 }
 
+// 店舗リスト用レビュー情報読み込み
+async function loadStoreListReviews(stores) {
+    if (!stores || stores.length === 0) return;
+    
+    try {
+        // 全店舗のIDを取得
+        const storeIds = stores.map(store => store.id).filter(id => id);
+        
+        if (storeIds.length === 0) return;
+        
+        // Supabaseからレビューデータを取得
+        const { data: reviews, error } = await supabase
+            .from('store_reviews')
+            .select(`
+                store_id,
+                comment,
+                is_public,
+                user_profiles:user_id (nickname)
+            `)
+            .in('store_id', storeIds)
+            .eq('is_public', true) // 公開レビューのみ
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('レビュー取得エラー:', error);
+            // エラー時は情報を隠す
+            stores.forEach(store => {
+                const reviewElement = document.getElementById(`reviewInfo-${store.id}`);
+                if (reviewElement) {
+                    reviewElement.style.display = 'none';
+                }
+            });
+            return;
+        }
+        
+        // 店舗ごとにレビュー情報を集計
+        const reviewStats = {};
+        if (reviews) {
+            reviews.forEach(review => {
+                if (!reviewStats[review.store_id]) {
+                    reviewStats[review.store_id] = {
+                        count: 0,
+                        latestComment: null,
+                        latestAuthor: null
+                    };
+                }
+                reviewStats[review.store_id].count++;
+                
+                // 最新のレビュー（最初の1件）を記録
+                if (!reviewStats[review.store_id].latestComment) {
+                    reviewStats[review.store_id].latestComment = review.comment;
+                    reviewStats[review.store_id].latestAuthor = review.user_profiles?.nickname || 'ゲスト';
+                }
+            });
+        }
+        
+        // 各店舗の表示を更新
+        stores.forEach(store => {
+            const reviewElement = document.getElementById(`reviewInfo-${store.id}`);
+            if (reviewElement) {
+                const stats = reviewStats[store.id];
+                
+                if (stats && stats.count > 0) {
+                    // 最新コメントを30文字に制限
+                    const shortComment = stats.latestComment.length > 30 
+                        ? stats.latestComment.substring(0, 30) + '...' 
+                        : stats.latestComment;
+                    
+                    reviewElement.innerHTML = `
+                        <div class="store-review-summary">
+                            <div class="review-count">
+                                <i class="fas fa-comment"></i> ${stats.count}件のレビュー
+                            </div>
+                            <div class="latest-review">
+                                <span class="review-author">${stats.latestAuthor}:</span>
+                                <span class="review-text">"${shortComment}"</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    reviewElement.innerHTML = `
+                        <div class="no-reviews">
+                            <i class="fas fa-comment-slash"></i> レビューはまだありません
+                        </div>
+                    `;
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('レビュー情報の読み込み中にエラーが発生:', error);
+        // エラー時は全ての情報を隠す
+        stores.forEach(store => {
+            const reviewElement = document.getElementById(`reviewInfo-${store.id}`);
+            if (reviewElement) {
+                reviewElement.style.display = 'none';
+            }
+        });
+    }
+}
 

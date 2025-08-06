@@ -169,6 +169,186 @@
             border: 1px solid #c8e6c9;
         }
         
+        /* プロフィール・レビュー一覧のスタイル */
+        .profile-reviews-section {
+            margin-top: 30px;
+        }
+        
+        .profile-reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-green);
+        }
+        
+        .profile-reviews-header h2 {
+            color: var(--primary-green);
+            font-size: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .profile-reviews-stats {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .profile-reviews-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .reviews-filter-btn {
+            background: var(--white);
+            border: 2px solid var(--primary-green);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--primary-green);
+        }
+        
+        .reviews-filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+        
+        .reviews-filter-btn.active {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+        
+        .profile-reviews-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .profile-review-item {
+            background: var(--bg-cream);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-green);
+            transition: all 0.3s;
+        }
+        
+        .profile-review-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+        
+        .profile-review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .profile-review-store {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .profile-review-store-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .profile-review-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .profile-review-edit-btn,
+        .profile-review-delete-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .profile-review-edit-btn:hover {
+            color: var(--primary-green);
+            background: rgba(152, 216, 200, 0.2);
+        }
+        
+        .profile-review-delete-btn:hover {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+        }
+        
+        .profile-review-content {
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+        
+        .profile-review-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .profile-review-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .profile-review-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+        
+        .profile-review-status.public {
+            background: rgba(152, 216, 200, 0.2);
+            color: var(--primary-green);
+        }
+        
+        .profile-review-status.private {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .no-profile-reviews {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+        
+        .loading-reviews {
+            text-align: center;
+            padding: 40px;
+            color: var(--primary-green);
+        }
+
         @media (max-width: 768px) {
             .profile-container {
                 margin: 20px;
@@ -181,6 +361,30 @@
             
             .profile-actions {
                 flex-direction: column;
+            }
+            
+            .profile-reviews-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .profile-reviews-filters {
+                flex-wrap: wrap;
+            }
+            
+            .reviews-filter-btn {
+                flex: 1;
+                min-width: 80px;
+            }
+            
+            .profile-review-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .profile-review-actions {
+                align-self: flex-end;
             }
         }
     </style>
@@ -238,6 +442,36 @@
                     </button>
                 </div>
             </form>
+        </div>
+        
+        <!-- レビュー一覧セクション -->
+        <div class="profile-reviews-section" id="profileReviewsSection" style="display: none;">
+            <div class="profile-card">
+                <div class="profile-reviews-header">
+                    <h2><i class="fas fa-comment-alt"></i> マイレビュー</h2>
+                    <div class="profile-reviews-stats" id="profileReviewsStats">
+                        <!-- 統計情報がここに表示されます -->
+                    </div>
+                </div>
+                
+                <div class="profile-reviews-filters">
+                    <button class="reviews-filter-btn active" data-filter="all">
+                        <i class="fas fa-list"></i> すべて
+                    </button>
+                    <button class="reviews-filter-btn" data-filter="public">
+                        <i class="fas fa-eye"></i> 公開
+                    </button>
+                    <button class="reviews-filter-btn" data-filter="private">
+                        <i class="fas fa-eye-slash"></i> 非公開
+                    </button>
+                </div>
+                
+                <div class="profile-reviews-list" id="profileReviewsList">
+                    <div class="loading-reviews">
+                        <i class="fas fa-spinner fa-spin"></i> レビューを読み込み中...
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
