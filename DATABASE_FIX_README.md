@@ -5,7 +5,7 @@
 - `relation "public.user_profiles" does not exist`
 - `relation "public.store_reviews" does not exist`
 
-## 修正手順
+## 修正手順（安全版）
 
 ### 1. Supabaseダッシュボードにログイン
 1. https://supabase.com にアクセス
@@ -15,10 +15,16 @@
 1. 左側のメニューから「SQL Editor」をクリック
 2. 「New query」をクリック
 
-### 3. SQLスクリプトを実行
-1. `fix-database.sql`ファイルの内容をコピー
+### 3. テーブル作成SQLを実行
+1. `safe-database-setup.sql`ファイルの内容をコピー
 2. SQL Editorに貼り付け
-3. 「Run」ボタンをクリック
+3. 「Run this query」ボタンをクリック（警告が出ても安全です）
+
+### 4. RLSポリシー設定SQLを実行
+1. 「New query」をもう一度クリック
+2. `setup-rls-policies.sql`ファイルの内容をコピー
+3. SQL Editorに貼り付け
+4. 「Run」ボタンをクリック
 
 ### 4. 実行結果の確認
 実行後、以下の3つのテーブルが表示されることを確認：
