@@ -7,6 +7,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// セキュリティ: HTMLサニタイズ関数
+function sanitizeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, (m) => {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}[m];
+    });
+}
+
 // レビューシステムクラス
 class ReviewSystem {
     constructor() {
@@ -405,7 +413,7 @@ class ReviewSystem {
             <div class="review-item" data-review-id="${review.id}">
                 <div class="review-header">
                     <div class="review-author">
-                        👤 ${review.user_profiles?.nickname || '匿名ユーザー'}
+                        👤 ${sanitizeHTML(review.user_profiles?.nickname || '匿名ユーザー')}
                         ${isOwn ? '（あなた）' : ''}
                     </div>
                     ${isOwn ? `
@@ -420,10 +428,10 @@ class ReviewSystem {
                     ` : ''}
                 </div>
                 <div class="review-content">
-                    ${review.comment}
+                    ${sanitizeHTML(review.comment)}
                 </div>
                 <div class="review-date">
-                    📅 ${dateStr}
+                    📅 ${sanitizeHTML(dateStr)}
                 </div>
             </div>
         `;

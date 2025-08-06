@@ -16,6 +16,61 @@ let currentVisitStatus = 'all';
 let userLocation = null;
 let isInitialLoad = true; // 初期読み込みフラグ
 let lastSearchTerm = ''; // 前回の検索テキストを記録
+let loadStoresRetryCount = 0; // 店舗データ読み込みリトライ回数
+
+// セキュリティ: HTMLサニタイズ関数
+function sanitizeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, (m) => {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}[m];
+    });
+}
+
+// ユーザーフレンドリーなエラー表示関数
+function showUserFriendlyError(message, error = null) {
+    // 既存のエラーメッセージを削除
+    const existingError = document.querySelector('.error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.cssText = `
+        position: fixed; 
+        top: 20px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: #ff6b6b; 
+        color: white; 
+        padding: 15px 30px; 
+        border-radius: 8px; 
+        z-index: 9999; 
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    `;
+    
+    const isNetworkError = error && (error.name === 'NetworkError' || error.message.includes('fetch'));
+    const userMessage = isNetworkError ? 
+        'ネットワーク接続を確認してください。' : 
+        '問題が続く場合は、ページを再読み込みしてください。';
+    
+    errorDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 8px;">${sanitizeHTML(message)}</div>
+        <div style="font-size: 14px; opacity: 0.9;">${userMessage}</div>
+        ${isNetworkError ? '<div style="font-size: 12px; margin-top: 8px;">自動的に再試行します...</div>' : ''}
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    // 8秒後に自動削除
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 8000);
+}
 
 // ライトボックス閉じる関数（CSSトランジション対応）
 window.closeLightboxNow = function() {
@@ -370,20 +425,29 @@ async function loadStores() {
         updateStoreList(storesData);
         updateSearchResults(storesData.length, '');
         console.log('店舗データの読み込み完了');
+        
+        // 成功時にリトライ回数をリセット
+        loadStoresRetryCount = 0;
     } catch (error) {
         console.error('店舗データの読み込みに失敗しました:', error);
         console.error('エラー詳細:', error.message);
         
-        // エラーメッセージを画面に表示
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff6b6b; color: white; padding: 15px 30px; border-radius: 5px; z-index: 9999;';
-        errorDiv.textContent = `データの読み込みに失敗しました: ${error.message}`;
-        document.body.appendChild(errorDiv);
+        // ユーザーフレンドリーなエラーメッセージを表示
+        showUserFriendlyError('データの読み込みに失敗しました。', error);
         
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
+        // 最大3回まで自動リトライ
+        if (loadStoresRetryCount < 3) {
+            loadStoresRetryCount++;
+            const retryDelay = Math.min(5000 * loadStoresRetryCount, 15000); // 指数バックオフ
+            
+            setTimeout(() => {
+                console.log(`店舗データの読み込みを再試行します... (${loadStoresRetryCount}/3回目)`);
+                loadStores();
+            }, retryDelay);
+        } else {
+            console.error('店舗データの読み込みに3回失敗しました。手動でページを再読み込みしてください。');
+            showUserFriendlyError('データの読み込みに失敗しました。ページを再読み込みしてください。');
+        }
     }
 }
 
@@ -450,44 +514,61 @@ function updateStoreList(stores) {
             .sort((a, b) => a.distance - b.distance);
     }
     
+    // DocumentFragmentを使用してパフォーマンスを最適化
+    const fragment = document.createDocumentFragment();
+    
     sortedStores.forEach(store => {
-        const card = document.createElement('div');
-        card.className = 'store-card';
-        card.innerHTML = `
-            <div class="store-card-image">
-                <img src="${store.imageUrl || ''}" alt="${store.name}" class="store-list-image" data-store-id="${store.id}" onerror="this.style.display='none'">
-            </div>
-            <div class="store-card-content">
-                <h4>${store.name} ${getVisitStatusBadge(store)}</h4>
-                <span class="store-category category-${store.category}">${store.category}</span>
-                <div class="store-info">
-                    <i class="fas fa-map-marker-alt"></i> ${store.address}
-                </div>
-                <div class="store-info">
-                    <i class="fas fa-clock"></i> ${store.hours}
-                </div>
-                ${userLocation && store.distance !== Infinity ? `
-                <div class="store-info store-distance">
-                    <i class="fas fa-route"></i> ${formatDistance(store.distance)}
-                </div>
-                ` : ''}
-                <div class="store-review-info" id="reviewInfo-${store.id}">
-                    <i class="fas fa-spinner fa-spin"></i> レビュー読み込み中...
-                </div>
-            </div>
-        `;
-        card.onclick = () => {
-            window.showStoreDetail(store.id);
-            // 座標がある場合のみ地図をズーム
-            if (store.lat && store.lng) {
-                map.setView([store.lat, store.lng], 16);
-            }
-        };
-        listContent.appendChild(card);
+        const card = createStoreCard(store);
+        fragment.appendChild(card);
     });
+    
+    // 一括でDOMに追加
+    listContent.innerHTML = '';
+    listContent.appendChild(fragment);
     
     // レビュー情報を非同期で読み込み
     loadStoreListReviews(sortedStores);
+}
+
+// 店舗カード生成関数（パフォーマンス最適化）
+function createStoreCard(store) {
+    const card = document.createElement('div');
+    card.className = 'store-card';
+    
+    card.innerHTML = `
+        <div class="store-card-image">
+            <img src="${sanitizeHTML(store.imageUrl || '')}" alt="${sanitizeHTML(store.name)}" class="store-list-image" data-store-id="${store.id}" onerror="this.style.display='none'">
+        </div>
+        <div class="store-card-content">
+            <h4>${sanitizeHTML(store.name)} ${getVisitStatusBadge(store)}</h4>
+            <span class="store-category category-${sanitizeHTML(store.category)}">${sanitizeHTML(store.category)}</span>
+            <div class="store-info">
+                <i class="fas fa-map-marker-alt"></i> ${sanitizeHTML(store.address)}
+            </div>
+            <div class="store-info">
+                <i class="fas fa-clock"></i> ${sanitizeHTML(store.hours)}
+            </div>
+            ${userLocation && store.distance !== Infinity ? `
+            <div class="store-info store-distance">
+                <i class="fas fa-route"></i> ${formatDistance(store.distance)}
+            </div>
+            ` : ''}
+            <div class="store-review-info" id="reviewInfo-${store.id}">
+                <i class="fas fa-spinner fa-spin"></i> レビュー読み込み中...
+            </div>
+        </div>
+    `;
+    
+    // イベントリスナーを追加
+    card.onclick = () => {
+        window.showStoreDetail(store.id);
+        // 座標がある場合のみ地図をズーム
+        if (store.lat && store.lng) {
+            map.setView([store.lat, store.lng], 16);
+        }
+    };
+    
+    return card;
 }
 
 // 店舗詳細表示
@@ -1362,10 +1443,11 @@ function updateSearchResults(count, searchTerm) {
     }
     
     if (searchTerm && searchTerm.trim()) {
+        const sanitizedTerm = sanitizeHTML(searchTerm);
         if (count === 0) {
-            resultElement.innerHTML = `<p class="no-results">「${searchTerm}」の検索結果: 該当する店舗が見つかりません</p>`;
+            resultElement.innerHTML = `<p class="no-results">「${sanitizedTerm}」の検索結果: 該当する店舗が見つかりません</p>`;
         } else {
-            resultElement.innerHTML = `<p class="search-count">「${searchTerm}」の検索結果: ${count}件の店舗</p>`;
+            resultElement.innerHTML = `<p class="search-count">「${sanitizedTerm}」の検索結果: ${count}件の店舗</p>`;
         }
         resultElement.style.display = 'block';
     } else {
@@ -2059,8 +2141,8 @@ async function loadStoreListReviews(stores) {
                                 <i class="fas fa-comment"></i> ${stats.count}件のレビュー
                             </div>
                             <div class="latest-review">
-                                <span class="review-author">${stats.latestAuthor}:</span>
-                                <span class="review-text">"${shortComment}"</span>
+                                <span class="review-author">${sanitizeHTML(stats.latestAuthor)}:</span>
+                                <span class="review-text">"${sanitizeHTML(shortComment)}"</span>
                             </div>
                         </div>
                     `;

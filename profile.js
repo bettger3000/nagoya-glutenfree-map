@@ -7,6 +7,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// セキュリティ: HTMLサニタイズ関数
+function sanitizeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, (m) => {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}[m];
+    });
+}
+
 // DOM要素
 let currentUser = null;
 let currentProfile = null;
@@ -185,18 +193,21 @@ function generateProfileReviewHTML(review) {
     const storeName = review.stores?.name || '店舗名不明';
     const storeCategory = review.stores?.category || '';
     
+    const sanitizedStoreName = sanitizeHTML(storeName);
+    const sanitizedCategory = sanitizeHTML(storeCategory);
+    
     return `
         <div class="profile-review-item" data-review-id="${review.id}">
             <div class="profile-review-header">
                 <div class="profile-review-store">
                     <div class="profile-review-store-name">
                         <i class="fas fa-store"></i>
-                        ${storeName}
+                        ${sanitizedStoreName}
                     </div>
-                    ${storeCategory ? `<span class="store-category category-${storeCategory}">${storeCategory}</span>` : ''}
+                    ${sanitizedCategory ? `<span class="store-category category-${sanitizedCategory}">${sanitizedCategory}</span>` : ''}
                 </div>
                 <div class="profile-review-actions">
-                    <button class="profile-review-edit-btn" data-review-id="${review.id}" data-store-name="${storeName}" title="編集">
+                    <button class="profile-review-edit-btn" data-review-id="${review.id}" data-store-name="${sanitizedStoreName}" title="編集">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="profile-review-delete-btn" data-review-id="${review.id}" title="削除">
@@ -206,13 +217,13 @@ function generateProfileReviewHTML(review) {
             </div>
             
             <div class="profile-review-content">
-                ${review.comment}
+                ${sanitizeHTML(review.comment)}
             </div>
             
             <div class="profile-review-footer">
                 <div class="profile-review-date">
                     <i class="fas fa-calendar"></i>
-                    ${dateStr}
+                    ${sanitizeHTML(dateStr)}
                 </div>
                 <div class="profile-review-status ${review.is_public ? 'public' : 'private'}">
                     <i class="fas fa-${review.is_public ? 'eye' : 'eye-slash'}"></i>
