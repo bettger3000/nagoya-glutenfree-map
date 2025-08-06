@@ -1178,8 +1178,8 @@ header .subtitle {
 }
 
 .lightbox-image {
-    width: 80vw;
-    height: 80vh;
+    width: 70vw;
+    height: 70vh;
     object-fit: contain;
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -1232,8 +1232,8 @@ header .subtitle {
 /* 大画面対応 */
 @media (min-width: 1200px) {
     .lightbox-image {
-        width: 75vw;
-        height: 80vh;
+        width: 60vw;
+        height: 70vh;
         object-fit: contain;
     }
     

@@ -336,7 +336,7 @@ function updateStoreList(stores) {
         card.className = 'store-card';
         card.innerHTML = `
             <div class="store-card-image">
-                <img src="${store.imageUrl || ''}" alt="${store.name}" class="clickable-image" data-image-url="${store.imageUrl || ''}" data-alt-text="${store.name}" onerror="this.style.display='none'">
+                <img src="${store.imageUrl || ''}" alt="${store.name}" class="store-list-image" data-store-id="${store.id}" onerror="this.style.display='none'">
             </div>
             <div class="store-card-content">
                 <h4>${store.name} ${getVisitStatusBadge(store)}</h4>
@@ -542,7 +542,18 @@ function setupEventListeners() {
     
     // 画像クリックイベントをdocumentに委譲
     document.addEventListener('click', function(e) {
-        // 画像クリック
+        // 店舗リストの画像クリック → 店舗詳細を開く
+        if (e.target.classList.contains('store-list-image')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const storeId = parseInt(e.target.dataset.storeId);
+            if (storeId) {
+                showStoreDetail(storeId);
+            }
+            return;
+        }
+        
+        // モーダル内の画像クリック → ライトボックスで拡大
         if (e.target.classList.contains('clickable-image')) {
             e.preventDefault();
             e.stopPropagation();
@@ -1613,12 +1624,12 @@ markerStyles.textContent = `
     
     
     /* 画像クリック可能な表示 */
-    .modal-image img, .store-card-image img {
+    .modal-image img, .store-list-image {
         cursor: pointer;
         transition: transform 0.2s;
     }
     
-    .modal-image img:hover, .store-card-image img:hover {
+    .modal-image img:hover, .store-list-image:hover {
         transform: scale(1.02);
     }
     
