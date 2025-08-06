@@ -478,9 +478,10 @@ function validateForm(nickname) {
         return false;
     }
     
-    // 基本的な文字チェック
-    const allowedPattern = /^[a-zA-Z0-9ぁ-んァ-ヶ一-龠々ー\s\-_]+$/;
-    if (!allowedPattern.test(nickname)) {
+    // 基本的な文字チェック（危険な文字のみ除外）
+    // HTMLタグや制御文字を除外
+    const dangerousPattern = /[<>\"'&\x00-\x1F\x7F]/;
+    if (dangerousPattern.test(nickname)) {
         showError('ニックネームに使用できない文字が含まれています。');
         return false;
     }
