@@ -625,6 +625,9 @@ function setupEventListeners() {
         }
     });
     
+    // 地図ナビゲーションボタン
+    setupMapNavigationListeners();
+    
     // 高度な検索のイベントリスナーを設定
     setupAdvancedSearchListeners();
 }
@@ -1759,5 +1762,106 @@ function matchesCondition(store, condition) {
             return store.visitStatus === condition.value;
         default:
             return false;
+    }
+}
+
+// 地図ナビゲーションボタンの設定
+function setupMapNavigationListeners() {
+    // 現在地ボタン
+    const currentLocationBtn = document.getElementById('currentLocationBtn');
+    if (currentLocationBtn) {
+        currentLocationBtn.addEventListener('click', function() {
+            goToCurrentLocation();
+        });
+    }
+    
+    
+    // 全店舗表示ボタン
+    const allStoresBtn = document.getElementById('allStoresBtn');
+    if (allStoresBtn) {
+        allStoresBtn.addEventListener('click', function() {
+            showAllStores();
+        });
+    }
+}
+
+// 現在地に移動
+function goToCurrentLocation() {
+    if (userLocation) {
+        // 既に現在地が取得済みの場合
+        map.flyTo([userLocation.lat, userLocation.lng], 15, {
+            duration: 1.5,
+            easeLinearity: 0.5
+        });
+        console.log('現在地に移動しました');
+    } else {
+        // 現在地を取得してから移動
+        console.log('現在地を取得中...');
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    // 現在地に移動
+                    map.flyTo([userLocation.lat, userLocation.lng], 15, {
+                        duration: 1.5,
+                        easeLinearity: 0.5
+                    });
+                    
+                    // 現在地マーカーを追加（まだない場合）
+                    const existingUserMarker = markers.find(marker => 
+                        marker.options.icon && 
+                        marker.options.icon.options && 
+                        marker.options.icon.options.className === 'user-location-icon'
+                    );
+                    
+                    if (!existingUserMarker) {
+                        L.marker([userLocation.lat, userLocation.lng], {
+                            icon: L.divIcon({
+                                html: '<div class="user-location-marker"><i class="fas fa-user"></i></div>',
+                                className: 'user-location-icon',
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 15]
+                            })
+                        }).addTo(map).bindPopup('現在地');
+                    }
+                    
+                    console.log('現在地を取得し、移動しました');
+                },
+                (error) => {
+                    console.error('現在地を取得できませんでした:', error);
+                    alert('現在地を取得できませんでした。位置情報の許可を確認してください。');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // 5分間は古い位置情報を使用
+                }
+            );
+        } else {
+            alert('お使いのブラウザでは位置情報がサポートされていません。');
+        }
+    }
+}
+
+
+// 全店舗を表示する範囲に移動
+function showAllStores() {
+    if (storesData.length > 0) {
+        const storesWithCoords = storesData.filter(store => store.lat && store.lng);
+        if (storesWithCoords.length > 0) {
+            const bounds = L.latLngBounds(
+                storesWithCoords.map(store => [store.lat, store.lng])
+            );
+            map.flyToBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 13,
+                duration: 1.5
+            });
+            console.log('全店舗表示に移動しました');
+        }
     }
 }
