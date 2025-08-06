@@ -67,6 +67,10 @@ header {
     padding: 8px 12px;
     border-radius: 20px;
     backdrop-filter: blur(5px);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-info i {
@@ -875,6 +879,34 @@ header .subtitle {
     }
     
     header .subtitle {
+        font-size: 12px;
+    }
+    
+    /* ユーザー情報セクションのモバイル対応 */
+    .user-section {
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    
+    .user-info {
+        font-size: 12px;
+        padding: 6px 10px;
+        max-width: 120px;
+        gap: 5px;
+    }
+    
+    .user-info i {
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    
+    .logout-btn {
+        padding: 6px 10px;
+        min-width: 36px;
+        height: 36px;
+    }
+    
+    .logout-btn i {
         font-size: 12px;
     }
     
