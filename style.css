@@ -46,7 +46,7 @@ header {
 
 /* ハンバーガーメニューボタン */
 .hamburger-btn {
-    display: none; /* デフォルトは非表示（PCでは不要） */
+    display: flex; /* PC版でも表示 */
     background: rgba(255, 255, 255, 0.2);
     border: none;
     cursor: pointer;
@@ -62,6 +62,20 @@ header {
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
+}
+
+/* PC版でのハンバーガーボタンサイズ調整 */
+@media (min-width: 769px) {
+    .hamburger-btn {
+        width: 44px;
+        height: 44px;
+        left: 30px;
+    }
+    
+    .hamburger-line {
+        width: 26px;
+        height: 3px;
+    }
 }
 
 .hamburger-btn:hover {
@@ -1774,10 +1788,6 @@ header .subtitle {
 
 /* モバイル対応 */
 @media (max-width: 768px) {
-    .hamburger-btn {
-        display: flex; /* モバイルで表示 */
-    }
-    
     .hamburger-menu {
         width: 300px;
         max-width: 80vw;
