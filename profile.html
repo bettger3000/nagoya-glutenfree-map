@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール設定 - グルテンフリーマップ</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css?v=20250806-profile">
+    
+    <style>
+        .profile-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .profile-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px var(--shadow);
+            text-align: center;
+        }
+        
+        .profile-header {
+            margin-bottom: 30px;
+        }
+        
+        .profile-header h1 {
+            color: var(--primary-green);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .profile-header p {
+            color: var(--text-dark);
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--text-dark);
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(152, 216, 200, 0.2);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .nickname-status {
+            font-size: 12px;
+            margin-top: 5px;
+            min-height: 16px;
+        }
+        
+        .nickname-available {
+            color: var(--primary-green);
+        }
+        
+        .nickname-unavailable {
+            color: #ff6b6b;
+        }
+        
+        .profile-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: var(--text-dark);
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .error-message,
+        .success-message {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-container {
+                margin: 20px;
+                padding: 15px;
+            }
+            
+            .profile-card {
+                padding: 20px;
+            }
+            
+            .profile-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <h1><i class="fas fa-user-circle"></i> プロフィール設定</h1>
+                <p>レビューや統計で表示される名前を設定します</p>
+            </div>
+            
+            <div id="messageArea"></div>
+            
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="nickname">
+                        ニックネーム <span style="color: #ff6b6b;">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nickname" 
+                        name="nickname" 
+                        required
+                        maxlength="20"
+                        placeholder="例：グルテンフリー太郎"
+                    >
+                    <div id="nicknameStatus" class="nickname-status"></div>
+                    <div class="form-hint">
+                        2-20文字。レビューで表示される名前です。いつでも変更可能です。
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">自己紹介（任意）</label>
+                    <textarea 
+                        id="bio" 
+                        name="bio" 
+                        placeholder="グルテンフリー生活について簡単にどうぞ..."
+                        maxlength="200"
+                    ></textarea>
+                    <div class="form-hint">
+                        最大200文字。他のユーザーに公開されます。
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">
+                        <i class="fas fa-arrow-left"></i>
+                        後で
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        <span class="loading"><i class="fas fa-spinner fa-spin"></i></span>
+                        <span class="text"><i class="fas fa-save"></i> 保存</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script type="module" src="profile.js"></script>
+</body>
+</html>

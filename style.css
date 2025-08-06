@@ -70,11 +70,13 @@ header {
     width: 36px;
     height: 36px;
     transition: all 0.3s;
+    text-decoration: none;
 }
 
 .user-status-indicator:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(1.05);
+    color: var(--white);
 }
 
 .logout-btn {

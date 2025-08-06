@@ -1076,34 +1076,14 @@ function openImageLightbox(imageUrl, altText) {
                 <button class="lightbox-close" onclick="closeImageLightbox()">
                     <i class="fas fa-times"></i>
                 </button>
-                <img src="${processedImageUrl}" alt="${altText}" style="width: 85vw !important; height: 85vh !important; object-fit: cover !important; display: block !important; margin: 0 auto !important; border-radius: 10px !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;">
+                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image">
                 <div class="lightbox-caption">${altText}</div>
             </div>
         `;
         
         document.body.appendChild(lightbox);
         
-        // 画像サイズを強制的に設定 - 全てのCSSを上書き
-        const img = lightbox.querySelector('img');
-        if (img) {
-            // 既存のクラスを削除
-            img.className = '';
-            
-            // スタイルを完全に上書き
-            img.style.cssText = `
-                width: 85vw !important;
-                height: 85vh !important;
-                object-fit: cover !important;
-                display: block !important;
-                margin: 0 auto !important;
-                max-width: none !important;
-                max-height: none !important;
-                min-width: unset !important;
-                min-height: unset !important;
-                border-radius: 10px !important;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-            `;
-        }
+        // 画像は既にHTMLで lightbox-image クラスが設定済み
         
         // フェードイン効果
         setTimeout(() => {
@@ -1356,17 +1336,6 @@ markerStyles.textContent = `
         transform: scale(1.1);
     }
     
-    .lightbox-image {
-        max-width: 95vw;
-        max-height: 95vh;
-        width: auto;
-        height: auto;
-        display: block;
-        margin: 0 auto;
-        object-fit: contain;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
     
     .lightbox-caption {
         color: white;
@@ -1402,10 +1371,6 @@ markerStyles.textContent = `
             background: rgba(0, 0, 0, 0.6);
         }
         
-        .lightbox-image {
-            max-width: 98vw;
-            max-height: 90vh;
-        }
         
         .lightbox-caption {
             font-size: 16px;
@@ -1419,10 +1384,6 @@ markerStyles.textContent = `
     
     /* PC版用の大きな画像表示 */
     @media (min-width: 1024px) {
-        .lightbox-image {
-            max-width: 95vw;
-            max-height: 92vh;
-        }
         
         .lightbox-caption {
             font-size: 22px;
@@ -1431,13 +1392,6 @@ markerStyles.textContent = `
         }
     }
     
-    /* 大画面用 */
-    @media (min-width: 1440px) {
-        .lightbox-image {
-            max-width: 92vw;
-            max-height: 92vh;
-        }
-    }
     
     /* 画像クリック可能な表示 */
     .modal-image img, .store-card-image img {

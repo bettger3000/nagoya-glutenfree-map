@@ -126,12 +126,22 @@ class AuthManager {
                 console.log('✅ 許可されたユーザーです');
                 this.isAllowedUser = true;
                 
-                // ログインページにいる場合は地図ページに遷移
+                // プロフィール設定確認
+                const hasProfile = await this.checkUserProfile(user.id);
+                
+                // ログインページにいる場合は適切なページに遷移
                 if (window.location.pathname.includes('login.html') || window.location.pathname === '/') {
-                    this.showSuccess('ログインに成功しました。地図ページに移動します...');
-                    setTimeout(() => {
-                        window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/map.html';
-                    }, 1500);
+                    if (!hasProfile) {
+                        this.showSuccess('ログインに成功しました。プロフィール設定に移動します...');
+                        setTimeout(() => {
+                            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/profile.html';
+                        }, 1500);
+                    } else {
+                        this.showSuccess('ログインに成功しました。地図ページに移動します...');
+                        setTimeout(() => {
+                            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/map.html';
+                        }, 1500);
+                    }
                 }
             } else {
                 console.log('❌ 許可されていないユーザーです');
@@ -173,6 +183,31 @@ class AuthManager {
         } catch (error) {
             console.error('❌ 許可チェック処理エラー:', error);
             return false;
+        }
+    }
+
+    // ユーザープロフィール存在チェック
+    async checkUserProfile(userId) {
+        try {
+            console.log(`🔍 プロフィール存在チェック: ${userId}`);
+            
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('id')
+                .eq('user_id', userId)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') { // PGRST116 = レコードなし
+                throw error;
+            }
+            
+            const hasProfile = !!data;
+            console.log(`${hasProfile ? '✅' : 'ℹ️'} プロフィール${hasProfile ? '存在' : '未設定'}`);
+            return hasProfile;
+            
+        } catch (error) {
+            console.error('❌ プロフィール存在チェックエラー:', error);
+            return false; // エラー時は安全側に倒してプロフィール設定画面に誘導
         }
     }
 
