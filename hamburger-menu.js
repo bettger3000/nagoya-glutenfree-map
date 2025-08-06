@@ -176,6 +176,9 @@ class HamburgerMenu {
     
     // ユーザー表示を更新
     updateUserDisplay() {
+        const loginItem = document.getElementById('hamburgerLoginItem');
+        const logoutItem = document.getElementById('hamburgerLogoutItem');
+        
         if (this.currentUser && this.userProfile) {
             this.hamburgerUserName.textContent = this.userProfile.nickname || 'ユーザー';
             
@@ -184,12 +187,26 @@ class HamburgerMenu {
             } else {
                 this.hamburgerUserStats.textContent = 'データ読み込み中...';
             }
+            
+            // ログイン済み：ログアウトボタンを表示
+            if (loginItem) loginItem.style.display = 'none';
+            if (logoutItem) logoutItem.style.display = 'block';
+            
         } else if (this.currentUser) {
             this.hamburgerUserName.textContent = 'プロフィール未設定';
             this.hamburgerUserStats.textContent = 'プロフィールを設定してください';
+            
+            // ログイン済み（プロフィール未設定）：ログアウトボタンを表示
+            if (loginItem) loginItem.style.display = 'none';
+            if (logoutItem) logoutItem.style.display = 'block';
+            
         } else {
             this.hamburgerUserName.textContent = '未ログイン';
             this.hamburgerUserStats.textContent = 'ログインしてください';
+            
+            // 未ログイン：ログインボタンを表示
+            if (loginItem) loginItem.style.display = 'block';
+            if (logoutItem) logoutItem.style.display = 'none';
         }
     }
     

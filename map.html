@@ -57,15 +57,6 @@
                     </div>
                 </div>
                 
-                <!-- ユーザー情報とログアウト -->
-                <div class="user-section" id="userSection" style="display: none;">
-                    <a href="profile.html" class="user-status-indicator" title="プロフィール設定">
-                        <i class="fas fa-user-check"></i>
-                    </a>
-                    <button class="logout-btn" id="logoutBtn" title="ログアウト">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
             </div>
         </header>
 
@@ -114,7 +105,13 @@
                                 <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>
-                        <li class="hamburger-nav-item logout-item">
+                        <li class="hamburger-nav-item login-item" id="hamburgerLoginItem" style="display: none;">
+                            <a href="login.html" class="hamburger-nav-link">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>ログイン</span>
+                            </a>
+                        </li>
+                        <li class="hamburger-nav-item logout-item" id="hamburgerLogoutItem" style="display: none;">
                             <a href="#" class="hamburger-nav-link" id="hamburgerLogout">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>ログアウト</span>
