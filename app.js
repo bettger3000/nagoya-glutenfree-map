@@ -1337,10 +1337,8 @@ markerStyles.textContent = `
     .lightbox-image {
         width: auto;
         height: auto;
-        max-width: 95vw;
-        max-height: 95vh;
-        min-width: 60vw;
-        min-height: 60vh;
+        max-width: 90vw;
+        max-height: 90vh;
         object-fit: contain;
         border-radius: 10px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -1381,10 +1379,8 @@ markerStyles.textContent = `
         }
         
         .lightbox-image {
-            max-width: 98vw;
-            max-height: 90vh;
-            min-width: 85vw;
-            min-height: 70vh;
+            max-width: 95vw;
+            max-height: 85vh;
         }
         
         .lightbox-caption {
@@ -1400,10 +1396,8 @@ markerStyles.textContent = `
     /* PC版用の大きな画像表示 */
     @media (min-width: 1024px) {
         .lightbox-image {
-            max-width: 92vw;
-            max-height: 92vh;
-            min-width: 70vw;
-            min-height: 70vh;
+            max-width: 85vw;
+            max-height: 85vh;
         }
         
         .lightbox-caption {
@@ -1416,10 +1410,8 @@ markerStyles.textContent = `
     /* 大画面用 */
     @media (min-width: 1440px) {
         .lightbox-image {
-            max-width: 90vw;
-            max-height: 90vh;
-            min-width: 75vw;
-            min-height: 75vh;
+            max-width: 80vw;
+            max-height: 85vh;
         }
     }
     
