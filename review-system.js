@@ -39,7 +39,40 @@ class ReviewSystem {
         this.createReviewModal();
         this.setupEventListeners();
         
+        // 認証状態を監視
+        this.setupAuthListener();
+        
         console.log('✅ レビューシステム初期化完了');
+    }
+
+    // 認証状態の監視設定
+    setupAuthListener() {
+        // 認証状態変更を監視
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('🔄 認証状態変更:', event, session?.user?.id);
+            this.currentUser = session?.user || null;
+        });
+
+        // 現在の認証状態を取得
+        this.updateAuthState();
+    }
+
+    // 現在の認証状態を更新
+    async updateAuthState() {
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+            
+            this.currentUser = session?.user || null;
+            console.log('🔍 現在の認証状態:', {
+                isLoggedIn: !!this.currentUser,
+                userId: this.currentUser?.id,
+                email: this.currentUser?.email
+            });
+        } catch (error) {
+            console.error('❌ 認証状態取得エラー:', error);
+            this.currentUser = null;
+        }
     }
 
     // レビューモーダルのHTML作成
@@ -127,23 +160,55 @@ class ReviewSystem {
         });
     }
 
-    // 店舗のレビューを取得
+    // 店舗のレビューを取得（クリーン版）
     async getStoreReviews(storeId) {
         try {
-            const { data, error } = await supabase
+            // シンプルなクエリでレビューを取得
+            const { data: reviews, error } = await supabase
                 .from('store_reviews')
-                .select(`
-                    *,
-                    user_profiles:user_id (
-                        nickname
-                    )
-                `)
+                .select('id, user_id, store_id, comment, is_public, created_at, updated_at')
                 .eq('store_id', storeId)
                 .eq('is_public', true)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            return data || [];
+            if (error) {
+                console.error('レビュー取得エラー:', error);
+                throw error;
+            }
+
+            // レビューがある場合はユーザー情報を別途取得
+            if (reviews && reviews.length > 0) {
+                const userIds = [...new Set(reviews.map(r => r.user_id))];
+                
+                try {
+                    const { data: profiles, error: profileError } = await supabase
+                        .from('user_profiles')
+                        .select('user_id, nickname')
+                        .in('user_id', userIds);
+                    
+                    if (!profileError && profiles) {
+                        const profileMap = {};
+                        profiles.forEach(p => {
+                            profileMap[p.user_id] = p.nickname;
+                        });
+                        
+                        // レビューにニックネームを追加
+                        return reviews.map(review => ({
+                            ...review,
+                            nickname: profileMap[review.user_id] || '匿名ユーザー'
+                        }));
+                    }
+                } catch (err) {
+                    console.warn('プロフィール取得エラー:', err);
+                    // プロフィール取得に失敗してもレビューは返す
+                    return reviews.map(review => ({
+                        ...review,
+                        nickname: '匿名ユーザー'
+                    }));
+                }
+            }
+
+            return reviews || [];
         } catch (error) {
             console.error('❌ レビュー取得エラー:', error);
             return [];
@@ -221,6 +286,20 @@ class ReviewSystem {
     async handleReviewSubmit(e) {
         e.preventDefault();
 
+        // 認証状態の確認
+        if (!this.currentUser) {
+            console.error('❌ 認証エラー: ユーザーがログインしていません');
+            this.showReviewError('レビューを投稿するにはログインが必要です。');
+            return;
+        }
+
+        // 現在の認証状態をデバッグ出力
+        console.log('🔍 認証状態確認:', {
+            currentUser: this.currentUser,
+            userId: this.currentUser?.id,
+            email: this.currentUser?.email
+        });
+
         const formData = new FormData(e.target);
         const comment = formData.get('comment').trim();
         const isPublic = document.getElementById('isPublic').checked;
@@ -238,6 +317,11 @@ class ReviewSystem {
 
         try {
             this.setReviewLoading(true);
+            
+            // 店舗IDの妥当性を確認
+            if (!this.currentStoreId || this.currentStoreId <= 0) {
+                throw new Error('無効な店舗IDです');
+            }
 
             const reviewData = {
                 user_id: this.currentUser.id,
@@ -252,7 +336,7 @@ class ReviewSystem {
                     .from('store_reviews')
                     .update(reviewData)
                     .eq('id', this.currentReview.id)
-                    .select()
+                    .select('*')
                     .single();
 
                 if (error) throw error;
@@ -264,7 +348,7 @@ class ReviewSystem {
                 const { data, error } = await supabase
                     .from('store_reviews')
                     .insert(reviewData)
-                    .select()
+                    .select('*')
                     .single();
 
                 if (error) throw error;
@@ -284,11 +368,26 @@ class ReviewSystem {
 
         } catch (error) {
             console.error('❌ レビュー投稿エラー:', error);
+            console.error('❌ エラー詳細:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code,
+                currentUser: this.currentUser,
+                reviewData: {
+                    user_id: this.currentUser?.id,
+                    store_id: this.currentStoreId
+                }
+            });
 
             if (error.code === '23505') { // unique_violation
                 this.showReviewError('この店舗には既にレビューを投稿済みです。');
+            } else if (error.code === '42P01') { // undefined_table
+                this.showReviewError('データベースエラー: テーブルが見つかりません。');
+            } else if (error.code === 'PGRST200' || error.code === 'PGRST202') {
+                this.showReviewError('認証エラー: ログインを確認してください。');
             } else {
-                this.showReviewError('投稿に失敗しました。再度お試しください。');
+                this.showReviewError('投稿に失敗しました: ' + (error.message || '再度お試しください。'));
             }
 
             this.setReviewLoading(false);
@@ -413,7 +512,7 @@ class ReviewSystem {
             <div class="review-item" data-review-id="${review.id}">
                 <div class="review-header">
                     <div class="review-author">
-                        👤 ${sanitizeHTML(review.user_profiles?.nickname || '匿名ユーザー')}
+                        👤 ${sanitizeHTML(review.nickname || '匿名ユーザー')}
                         ${isOwn ? '（あなた）' : ''}
                     </div>
                     ${isOwn ? `

@@ -263,6 +263,40 @@ class HamburgerMenu {
         }
     }
     
+    // レビューに店舗情報を追加
+    async enrichReviewsWithStoreData(reviews) {
+        if (!reviews || reviews.length === 0) return [];
+        
+        try {
+            // 店舗IDのリストを取得
+            const storeIds = [...new Set(reviews.map(r => r.store_id))];
+            
+            // 店舗情報を取得
+            const { data: stores, error } = await supabase
+                .from('stores')
+                .select('id, name, category')
+                .in('id', storeIds);
+            
+            if (error) throw error;
+            
+            // 店舗情報をマップに変換
+            const storeMap = {};
+            stores.forEach(store => {
+                storeMap[store.id] = store;
+            });
+            
+            // レビューに店舗情報を追加
+            return reviews.map(review => ({
+                ...review,
+                store: storeMap[review.store_id] || { name: '不明な店舗', category: '' }
+            }));
+            
+        } catch (error) {
+            console.error('店舗情報の取得エラー:', error);
+            return reviews;
+        }
+    }
+    
     // マイレビューモーダル表示
     async showMyReviewsModal() {
         if (!this.currentUser) return;
@@ -271,17 +305,17 @@ class HamburgerMenu {
             // ユーザーのレビューを取得
             const { data: reviews, error } = await supabase
                 .from('store_reviews')
-                .select(`
-                    *,
-                    stores:store_id (name, category)
-                `)
+                .select('*')
                 .eq('user_id', this.currentUser.id)
                 .order('created_at', { ascending: false });
             
             if (error) throw error;
             
+            // 店舗情報を追加で取得
+            const reviewsWithStores = await this.enrichReviewsWithStoreData(reviews || []);
+            
             // モーダルを表示
-            this.displayMyReviews(reviews || []);
+            this.displayMyReviews(reviewsWithStores);
             
         } catch (error) {
             console.error('❌ マイレビュー取得エラー:', error);
@@ -329,8 +363,8 @@ class HamburgerMenu {
         return `
             <div class="my-review-item">
                 <div class="my-review-header">
-                    <h4>🏪 ${review.stores?.name || '店舗名不明'}</h4>
-                    <span class="store-category category-${review.stores?.category}">${review.stores?.category}</span>
+                    <h4>🏪 ${review.store?.name || '店舗名不明'}</h4>
+                    <span class="store-category category-${review.store?.category}">${review.store?.category || ''}</span>
                 </div>
                 <div class="my-review-content">${review.comment}</div>
                 <div class="my-review-footer">

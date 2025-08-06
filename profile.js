@@ -99,20 +99,35 @@ async function loadUserReviews() {
         
         const { data, error } = await supabase
             .from('store_reviews')
-            .select(`
-                *,
-                stores:store_id (
-                    name,
-                    category,
-                    address
-                )
-            `)
+            .select('*')
             .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
         
         if (error) throw error;
         
         userReviews = data || [];
+        
+        // 店舗情報を追加で取得
+        if (userReviews.length > 0) {
+            const storeIds = [...new Set(userReviews.map(r => r.store_id))];
+            const { data: stores, error: storeError } = await supabase
+                .from('stores')
+                .select('id, name, category, address')
+                .in('id', storeIds);
+            
+            if (!storeError && stores) {
+                const storeMap = {};
+                stores.forEach(store => {
+                    storeMap[store.id] = store;
+                });
+                
+                userReviews = userReviews.map(review => ({
+                    ...review,
+                    store: storeMap[review.store_id] || { name: '不明な店舗', category: '', address: '' }
+                }));
+            }
+        }
+        
         console.log(`✅ ${userReviews.length}件のレビューを取得`);
         
         // レビューセクションを表示
@@ -190,8 +205,8 @@ function generateProfileReviewHTML(review) {
         `${formatDate(review.created_at)} ✏️ ${formatDate(review.updated_at)}に編集` :
         formatDate(review.created_at);
     
-    const storeName = review.stores?.name || '店舗名不明';
-    const storeCategory = review.stores?.category || '';
+    const storeName = review.store?.name || '店舗名不明';
+    const storeCategory = review.store?.category || '';
     
     const sanitizedStoreName = sanitizeHTML(storeName);
     const sanitizedCategory = sanitizeHTML(storeCategory);
@@ -424,7 +439,7 @@ async function handleFormSubmit(e) {
                 .from('user_profiles')
                 .update(profileData)
                 .eq('user_id', currentUser.id)
-                .select()
+                .select('*')
                 .single();
             
             if (error) throw error;
@@ -437,7 +452,7 @@ async function handleFormSubmit(e) {
             const { data, error } = await supabase
                 .from('user_profiles')
                 .insert(profileData)
-                .select()
+                .select('*')
                 .single();
             
             if (error) throw error;

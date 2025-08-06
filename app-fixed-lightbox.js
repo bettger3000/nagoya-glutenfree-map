@@ -2080,12 +2080,7 @@ async function loadStoreListReviews(stores) {
         // Supabaseからレビューデータを取得
         const { data: reviews, error } = await supabase
             .from('store_reviews')
-            .select(`
-                store_id,
-                comment,
-                is_public,
-                user_profiles:user_id (nickname)
-            `)
+            .select('store_id, comment, is_public')
             .in('store_id', storeIds)
             .eq('is_public', true) // 公開レビューのみ
             .order('created_at', { ascending: false });
@@ -2118,7 +2113,7 @@ async function loadStoreListReviews(stores) {
                 // 最新のレビュー（最初の1件）を記録
                 if (!reviewStats[review.store_id].latestComment) {
                     reviewStats[review.store_id].latestComment = review.comment;
-                    reviewStats[review.store_id].latestAuthor = review.user_profiles?.nickname || 'ゲスト';
+                    reviewStats[review.store_id].latestAuthor = 'ゲスト';
                 }
             });
         }
