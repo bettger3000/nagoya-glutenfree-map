@@ -348,6 +348,136 @@
             padding: 40px;
             color: var(--primary-green);
         }
+        
+        /* アバター設定スタイル */
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .current-avatar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #4A90E2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-emoji {
+            user-select: none;
+        }
+        
+        .btn-change-avatar {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-change-avatar:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+        
+        .avatar-options {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .emoji-option {
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .emoji-option:hover {
+            transform: scale(1.1);
+            border-color: var(--primary-green);
+        }
+        
+        .emoji-option.selected {
+            border-color: var(--primary-green);
+            background: var(--light-green);
+        }
+        
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .color-picker input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-upload {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 2px dashed var(--primary-green);
+            color: var(--primary-green);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-upload:hover {
+            background: var(--light-green);
+        }
 
         @media (max-width: 768px) {
             .profile-container {
@@ -400,6 +530,39 @@
             <div id="messageArea"></div>
             
             <form id="profileForm">
+                <!-- アバター設定セクション -->
+                <div class="form-group avatar-section">
+                    <label>プロフィールアイコン</label>
+                    <div class="avatar-selector">
+                        <div class="current-avatar" id="currentAvatar">
+                            <div class="avatar-preview" id="avatarPreview">
+                                <span class="avatar-emoji">👤</span>
+                            </div>
+                            <button type="button" class="btn-change-avatar" onclick="openAvatarModal()">
+                                <i class="fas fa-camera"></i> 変更
+                            </button>
+                        </div>
+                        <div class="avatar-options" id="avatarOptions" style="display: none;">
+                            <!-- 絵文字選択 -->
+                            <div class="emoji-grid" id="emojiGrid">
+                                <!-- JavaScriptで動的に追加 -->
+                            </div>
+                            <!-- カラー選択 -->
+                            <div class="color-picker">
+                                <label>背景色：</label>
+                                <input type="color" id="avatarColor" value="#4A90E2">
+                            </div>
+                            <!-- 画像アップロード -->
+                            <div class="image-upload">
+                                <input type="file" id="avatarFile" accept="image/*" style="display: none;">
+                                <button type="button" class="btn-upload" onclick="document.getElementById('avatarFile').click()">
+                                    <i class="fas fa-upload"></i> 画像をアップロード
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-group">
                     <label for="nickname">
                         ニックネーム <span style="color: #ff6b6b;">*</span>

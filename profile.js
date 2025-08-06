@@ -21,6 +21,9 @@ let currentProfile = null;
 let nicknameCheckTimeout = null;
 let userReviews = [];
 let currentFilter = 'all';
+let selectedEmoji = '👤';
+let selectedColor = '#4A90E2';
+let uploadedImageUrl = null;
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async function() {
@@ -53,6 +56,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // イベントリスナーを設定
         setupEventListeners();
+        
+        // アバター機能の初期化
+        initializeAvatarFeatures();
         
     } catch (error) {
         console.error('❌ 初期化エラー:', error);
@@ -430,6 +436,9 @@ async function handleFormSubmit(e) {
             user_id: currentUser.id,
             nickname: nickname,
             bio: bio || null,
+            avatar_url: uploadedImageUrl || null,
+            avatar_emoji: uploadedImageUrl ? null : selectedEmoji,
+            avatar_color: selectedColor,
             updated_at: new Date().toISOString()
         };
         
@@ -549,4 +558,140 @@ function showSuccess(message) {
 // ログインページにリダイレクト
 function redirectToLogin() {
     window.location.href = 'login.html';
+}
+
+// アバター機能の初期化
+function initializeAvatarFeatures() {
+    // 絵文字リスト
+    const emojis = [
+        '👤', '😀', '😎', '🤓', '😊', '😇', '🥰', '🤗',
+        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+        '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔',
+        '🍎', '🍊', '🍋', '🍌', '🍓', '🍇', '🍉', '🍑',
+        '🌟', '⭐', '🌈', '☀️', '🌙', '⚡', '🔥', '💧'
+    ];
+    
+    // 絵文字グリッドを生成
+    const emojiGrid = document.getElementById('emojiGrid');
+    if (emojiGrid) {
+        emojiGrid.innerHTML = emojis.map(emoji => `
+            <div class="emoji-option" data-emoji="${emoji}" onclick="selectEmoji('${emoji}')">
+                ${emoji}
+            </div>
+        `).join('');
+    }
+    
+    // カラーピッカーのイベント
+    const colorPicker = document.getElementById('avatarColor');
+    if (colorPicker) {
+        colorPicker.addEventListener('change', (e) => {
+            selectedColor = e.target.value;
+            updateAvatarPreview();
+        });
+    }
+    
+    // ファイルアップロードのイベント
+    const fileInput = document.getElementById('avatarFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleImageUpload);
+    }
+    
+    // 既存のプロフィールからアバターを読み込み
+    if (currentProfile) {
+        if (currentProfile.avatar_url) {
+            uploadedImageUrl = currentProfile.avatar_url;
+        }
+        if (currentProfile.avatar_emoji) {
+            selectedEmoji = currentProfile.avatar_emoji;
+        }
+        if (currentProfile.avatar_color) {
+            selectedColor = currentProfile.avatar_color;
+        }
+        updateAvatarPreview();
+    }
+}
+
+// 絵文字選択
+window.selectEmoji = function(emoji) {
+    selectedEmoji = emoji;
+    uploadedImageUrl = null; // 画像をクリア
+    
+    // 選択状態を更新
+    document.querySelectorAll('.emoji-option').forEach(option => {
+        option.classList.remove('selected');
+        if (option.dataset.emoji === emoji) {
+            option.classList.add('selected');
+        }
+    });
+    
+    updateAvatarPreview();
+};
+
+// アバタープレビュー更新
+function updateAvatarPreview() {
+    const preview = document.getElementById('avatarPreview');
+    if (!preview) return;
+    
+    preview.style.background = selectedColor;
+    
+    if (uploadedImageUrl) {
+        preview.innerHTML = `<img src="${uploadedImageUrl}" alt="Avatar">`;
+    } else {
+        preview.innerHTML = `<span class="avatar-emoji">${selectedEmoji}</span>`;
+    }
+}
+
+// アバターモーダルの開閉
+window.openAvatarModal = function() {
+    const options = document.getElementById('avatarOptions');
+    if (options) {
+        options.style.display = options.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+// 画像アップロード処理
+async function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // ファイルサイズチェック（5MB以下）
+    if (file.size > 5 * 1024 * 1024) {
+        showMessage('画像は5MB以下にしてください', 'error');
+        return;
+    }
+    
+    // ファイルタイプチェック
+    if (!file.type.startsWith('image/')) {
+        showMessage('画像ファイルを選択してください', 'error');
+        return;
+    }
+    
+    try {
+        showMessage('アップロード中...', 'info');
+        
+        // Supabase Storageにアップロード
+        const fileName = `${currentUser.id}-${Date.now()}.${file.name.split('.').pop()}`;
+        const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: true
+            });
+        
+        if (error) throw error;
+        
+        // 公開URLを取得
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+        
+        uploadedImageUrl = publicUrl;
+        selectedEmoji = null;
+        updateAvatarPreview();
+        
+        showMessage('画像をアップロードしました', 'success');
+    } catch (error) {
+        console.error('アップロードエラー:', error);
+        showMessage('画像のアップロードに失敗しました', 'error');
+    }
 }

@@ -183,19 +183,22 @@ class ReviewSystem {
                 try {
                     const { data: profiles, error: profileError } = await supabase
                         .from('user_profiles')
-                        .select('user_id, nickname')
+                        .select('user_id, nickname, avatar_url, avatar_emoji, avatar_color')
                         .in('user_id', userIds);
                     
                     if (!profileError && profiles) {
                         const profileMap = {};
                         profiles.forEach(p => {
-                            profileMap[p.user_id] = p.nickname;
+                            profileMap[p.user_id] = p;
                         });
                         
-                        // レビューにニックネームを追加
+                        // レビューにプロフィール情報を追加
                         return reviews.map(review => ({
                             ...review,
-                            nickname: profileMap[review.user_id] || '匿名ユーザー'
+                            nickname: profileMap[review.user_id]?.nickname || '匿名ユーザー',
+                            avatar_url: profileMap[review.user_id]?.avatar_url || null,
+                            avatar_emoji: profileMap[review.user_id]?.avatar_emoji || '👤',
+                            avatar_color: profileMap[review.user_id]?.avatar_color || '#4A90E2'
                         }));
                     }
                 } catch (err) {
@@ -520,7 +523,24 @@ class ReviewSystem {
             <div class="review-item" data-review-id="${review.id}">
                 <div class="review-header">
                     <div class="review-author">
-                        👤 ${sanitizeHTML(review.nickname || '匿名ユーザー')}
+                        <span class="review-avatar" style="
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 30px;
+                            height: 30px;
+                            border-radius: 50%;
+                            background: ${review.avatar_color || '#4A90E2'};
+                            margin-right: 8px;
+                            font-size: 16px;
+                            vertical-align: middle;
+                        ">
+                            ${review.avatar_url 
+                                ? `<img src="${sanitizeHTML(review.avatar_url)}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" alt="">` 
+                                : sanitizeHTML(review.avatar_emoji || '👤')
+                            }
+                        </span>
+                        ${sanitizeHTML(review.nickname || '匿名ユーザー')}
                         ${isOwn ? '（あなた）' : ''}
                     </div>
                     ${isOwn ? `
