@@ -1106,8 +1106,8 @@ header .subtitle {
 
 .lightbox-content {
     position: relative;
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 100vw;
+    max-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1139,9 +1139,9 @@ header .subtitle {
 }
 
 .lightbox-image {
-    max-width: 100%;
-    max-height: 80vh;
-    object-fit: contain;
+    width: 90vw;
+    height: 90vh;
+    object-fit: cover;
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -1169,8 +1169,9 @@ header .subtitle {
     }
     
     .lightbox-image {
-        max-width: 95%;
-        max-height: 75vh;
+        width: 95vw;
+        height: 80vh;
+        object-fit: cover;
     }
     
     .lightbox-caption {
@@ -1183,16 +1184,18 @@ header .subtitle {
 /* タブレット対応 */
 @media (min-width: 769px) and (max-width: 1024px) {
     .lightbox-image {
-        max-width: 85%;
-        max-height: 80vh;
+        width: 90vw;
+        height: 85vh;
+        object-fit: cover;
     }
 }
 
 /* 大画面対応 */
 @media (min-width: 1200px) {
     .lightbox-image {
-        max-width: 80%;
-        max-height: 85vh;
+        width: 85vw;
+        height: 90vh;
+        object-fit: cover;
     }
     
     .lightbox-caption {
