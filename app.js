@@ -1076,21 +1076,33 @@ function openImageLightbox(imageUrl, altText) {
                 <button class="lightbox-close" onclick="closeImageLightbox()">
                     <i class="fas fa-times"></i>
                 </button>
-                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image" style="width: 85vw !important; height: 85vh !important; object-fit: cover !important; display: block !important; margin: 0 auto !important;">
+                <img src="${processedImageUrl}" alt="${altText}" style="width: 85vw !important; height: 85vh !important; object-fit: cover !important; display: block !important; margin: 0 auto !important; border-radius: 10px !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;">
                 <div class="lightbox-caption">${altText}</div>
             </div>
         `;
         
         document.body.appendChild(lightbox);
         
-        // 画像サイズを強制的に設定
-        const img = lightbox.querySelector('.lightbox-image');
+        // 画像サイズを強制的に設定 - 全てのCSSを上書き
+        const img = lightbox.querySelector('img');
         if (img) {
-            img.style.width = '85vw';
-            img.style.height = '85vh';
-            img.style.objectFit = 'cover';
-            img.style.display = 'block';
-            img.style.margin = '0 auto';
+            // 既存のクラスを削除
+            img.className = '';
+            
+            // スタイルを完全に上書き
+            img.style.cssText = `
+                width: 85vw !important;
+                height: 85vh !important;
+                object-fit: cover !important;
+                display: block !important;
+                margin: 0 auto !important;
+                max-width: none !important;
+                max-height: none !important;
+                min-width: unset !important;
+                min-height: unset !important;
+                border-radius: 10px !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+            `;
         }
         
         // フェードイン効果
