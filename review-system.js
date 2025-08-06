@@ -505,6 +505,14 @@ class ReviewSystem {
 
     // レビューHTMLを生成
     generateReviewHTML(review) {
+        // sanitizeHTML関数を定義
+        const sanitizeHTML = (str) => {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, (m) => {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}[m];
+            });
+        };
+        
         const isOwn = this.currentUser && review.user_id === this.currentUser.id;
         const dateStr = this.formatReviewDate(review.created_at, review.updated_at);
         
