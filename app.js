@@ -1076,7 +1076,7 @@ function openImageLightbox(imageUrl, altText) {
                 <button class="lightbox-close" onclick="closeImageLightbox()">
                     <i class="fas fa-times"></i>
                 </button>
-                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image" style="min-width: 80vw !important; min-height: 80vh !important; max-width: 95vw !important; max-height: 95vh !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important;">
+                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image" style="width: 85vw !important; height: 85vh !important; object-fit: cover !important; display: block !important; margin: 0 auto !important;">
                 <div class="lightbox-caption">${altText}</div>
             </div>
         `;
@@ -1086,11 +1086,9 @@ function openImageLightbox(imageUrl, altText) {
         // 画像サイズを強制的に設定
         const img = lightbox.querySelector('.lightbox-image');
         if (img) {
-            img.style.minWidth = '80vw';
-            img.style.minHeight = '80vh';
-            img.style.maxWidth = '95vw';
-            img.style.maxHeight = '95vh';
-            img.style.objectFit = 'contain';
+            img.style.width = '85vw';
+            img.style.height = '85vh';
+            img.style.objectFit = 'cover';
             img.style.display = 'block';
             img.style.margin = '0 auto';
         }
