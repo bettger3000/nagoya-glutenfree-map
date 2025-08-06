@@ -42,6 +42,13 @@
         <!-- ヘッダー -->
         <header>
             <div class="header-content">
+                <!-- ハンバーガーメニューボタン -->
+                <button class="hamburger-btn" id="hamburgerBtn" title="メニュー">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                
                 <div class="header-left">
                     <img src="naco-character.png.png" alt="nacoキャラクター" class="naco-character">
                     <div class="header-text">
@@ -61,6 +68,65 @@
                 </div>
             </div>
         </header>
+
+        <!-- ハンバーガーメニュー -->
+        <div class="hamburger-menu" id="hamburgerMenu">
+            <div class="hamburger-menu-content">
+                <div class="hamburger-menu-header">
+                    <div class="hamburger-user-info" id="hamburgerUserInfo">
+                        <div class="hamburger-user-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="hamburger-user-details">
+                            <div class="hamburger-user-name" id="hamburgerUserName">未ログイン</div>
+                            <div class="hamburger-user-stats" id="hamburgerUserStats">ログインしてください</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="hamburger-nav">
+                    <ul class="hamburger-nav-list">
+                        <li class="hamburger-nav-item">
+                            <a href="profile.html" class="hamburger-nav-link">
+                                <i class="fas fa-user-edit"></i>
+                                <span>プロフィール設定</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="hamburger-nav-item">
+                            <a href="#" class="hamburger-nav-link" id="myReviewsLink">
+                                <i class="fas fa-comment-alt"></i>
+                                <span>マイレビュー</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="hamburger-nav-item">
+                            <a href="#" class="hamburger-nav-link" id="myStatsLink">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>統計・実績</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="hamburger-nav-item separator">
+                            <a href="#" class="hamburger-nav-link" id="aboutLink">
+                                <i class="fas fa-info-circle"></i>
+                                <span>このアプリについて</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="hamburger-nav-item logout-item">
+                            <a href="#" class="hamburger-nav-link" id="hamburgerLogout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>ログアウト</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- ハンバーガーメニューオーバーレイ -->
+        <div class="hamburger-overlay" id="hamburgerOverlay"></div>
 
         <!-- 検索とフィルター -->
         <div class="controls">
@@ -175,6 +241,9 @@
     
     <!-- Review System JS -->
     <script type="module" src="review-system.js"></script>
+    
+    <!-- Hamburger Menu JS -->
+    <script type="module" src="hamburger-menu.js"></script>
     
     <!-- Custom JS -->
     <script type="module" src="app-fixed-lightbox.js"></script>
