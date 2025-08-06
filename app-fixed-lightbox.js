@@ -14,6 +14,8 @@ let storesData = [];
 let currentFilter = 'all';
 let currentVisitStatus = 'all';
 let userLocation = null;
+let isInitialLoad = true; // 初期読み込みフラグ
+let lastSearchTerm = ''; // 前回の検索テキストを記録
 
 // ライトボックス閉じる関数（CSSトランジション対応）
 window.closeLightboxNow = function() {
@@ -896,17 +898,35 @@ function filterStores() {
         // エリア検索の場合、地図をそのエリアに移動
         zoomToArea(searchTerm, filteredStores);
     } else {
-        // 検索がクリアされた場合、全店舗を表示
-        if (storesData.length > 0) {
+        // 検索テキストがない場合の処理
+        // 検索が実際にクリアされた場合（前回検索があったが現在は空）のみ地図をリセット
+        if (lastSearchTerm && !searchTerm) {
+            // 検索がクリアされた場合、全店舗が見えるように地図をリセット
+            if (storesData.length > 0) {
+                const storesWithCoords = storesData.filter(store => store.lat && store.lng);
+                if (storesWithCoords.length > 0) {
+                    const bounds = L.latLngBounds(
+                        storesWithCoords.map(store => [store.lat, store.lng])
+                    );
+                    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+                }
+            }
+        }
+        // 初期読み込み時のみ全店舗表示にする
+        else if (isInitialLoad && storesData.length > 0) {
             const storesWithCoords = storesData.filter(store => store.lat && store.lng);
             if (storesWithCoords.length > 0) {
                 const bounds = L.latLngBounds(
                     storesWithCoords.map(store => [store.lat, store.lng])
                 );
                 map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+                isInitialLoad = false; // 初期読み込み完了をマーク
             }
         }
     }
+    
+    // 検索テキストを記録
+    lastSearchTerm = searchTerm;
     
     displayStores(filteredStores);
     updateStoreList(filteredStores);
