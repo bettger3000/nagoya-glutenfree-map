@@ -74,6 +74,20 @@ const categoryStyles = {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 アプリケーション初期化開始...');
+    
+    // 認証チェックを最初に実行
+    if (window.authManager) {
+        const isAuthenticated = await window.authManager.requireAuth();
+        if (!isAuthenticated) {
+            console.log('❌ 認証失敗 - ログインページにリダイレクト');
+            return;
+        }
+        
+        // ユーザー情報を表示
+        displayUserInfo();
+    }
+    
     // 現在地取得を最初に試みる
     await initMapWithUserLocation();
     await loadStores();
@@ -88,7 +102,24 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     });
+    
+    console.log('✅ アプリケーション初期化完了');
 });
+
+// ユーザー情報を表示
+function displayUserInfo() {
+    if (window.authManager && window.authManager.getCurrentUser()) {
+        const user = window.authManager.getCurrentUser();
+        const userSection = document.getElementById('userSection');
+        const userEmail = document.getElementById('userEmail');
+        
+        if (userSection && userEmail) {
+            userEmail.textContent = user.email;
+            userSection.style.display = 'flex';
+            console.log('👤 ユーザー情報を表示:', user.email);
+        }
+    }
+}
 
 // 地図の初期化（デフォルト座標）
 function initMap(centerLat = 35.1815, centerLng = 136.9066, zoom = 12) {

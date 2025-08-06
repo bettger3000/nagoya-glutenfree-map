@@ -3,157 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>グルテンフリーマップ - ビヨグル倶楽部 presents by naco</title>
-    
-    <!-- Google tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL6YY713PG"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CL6YY713PG');
-    </script>
-    
-    <!-- Google Search Console verification -->
-    <meta name="google-site-verification" content="Czv7Zz2W6KDA9hY2uEteTv_7EU0_w66ISz_qTO3NmPQ" />
+    <meta name="description" content="セリアック病・グルテン過敏症の方向けの名古屋市内グルテンフリー対応店舗マップ。">
+    <title>名古屋グルテンフリーマップ - ログイン</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="shortcut icon" type="image/png" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="icon" type="image/x-icon" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="apple-touch-icon" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="apple-touch-icon-precomposed" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <meta name="theme-color" content="#ffb6c1">
+    <link rel="icon" href="favicon.png" type="image/png">
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=20250805-lightbox-fixed">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL6YY713PG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-CL6YY713PG');
+    </script>
 </head>
 <body>
-    <div class="container">
-        <!-- ヘッダー -->
-        <header>
-            <div class="header-content">
-                <img src="naco-character.png.png" alt="nacoキャラクター" class="naco-character">
-                <div class="header-text">
-                    <h1><i class="fas fa-map-marked-alt"></i> グルテンフリーマップ</h1>
-                    <p class="subtitle">ビヨグル倶楽部 presents by naco</p>
-                </div>
-            </div>
-        </header>
-
-        <!-- 検索とフィルター -->
-        <div class="controls">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="店名・住所で検索...">
-                <button class="advanced-search-toggle" id="advancedSearchToggle">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
+    <script>
+        // 認証チェックとリダイレクト処理
+        console.log('🔄 index.htmlからリダイレクト処理開始...');
+        
+        // Supabaseクライアントを一時的に作成してセッションチェック
+        import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({ createClient }) => {
+            const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
             
-            <!-- 高度な検索パネル -->
-            <div class="advanced-search-panel" id="advancedSearchPanel" style="display: none;">
-                <h3><i class="fas fa-search-plus"></i> 高度な検索</h3>
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            supabase.auth.getSession().then(({ data: { session }, error }) => {
+                if (error) {
+                    console.error('❌ セッション確認エラー:', error);
+                    window.location.href = './login.html';
+                    return;
+                }
                 
-                <div class="search-conditions" id="searchConditions">
-                    <!-- 検索条件がここに動的に追加される -->
-                </div>
-                
-                <div class="search-controls">
-                    <button class="add-condition-btn" id="addConditionBtn">
-                        <i class="fas fa-plus"></i> 条件を追加
-                    </button>
-                    <select id="searchOperator" class="search-operator">
-                        <option value="AND">すべての条件に一致（AND）</option>
-                        <option value="OR">いずれかの条件に一致（OR）</option>
-                    </select>
-                    <button class="clear-search-btn" id="clearSearchBtn">
-                        <i class="fas fa-times"></i> クリア
-                    </button>
-                </div>
-            </div>
-            
-            <div class="category-filters">
-                <button class="filter-btn active" data-category="all">
-                    <i class="fas fa-globe"></i> すべて
-                </button>
-                <button class="filter-btn" data-category="和食">
-                    <i class="fas fa-utensils"></i> 和食
-                </button>
-                <button class="filter-btn" data-category="洋食">
-                    <i class="fas fa-pizza-slice"></i> 洋食
-                </button>
-                <button class="filter-btn" data-category="カフェ">
-                    <i class="fas fa-coffee"></i> カフェ
-                </button>
-                <button class="filter-btn" data-category="パン屋">
-                    <i class="fas fa-bread-slice"></i> パン屋
-                </button>
-                <button class="filter-btn" data-category="販売店">
-                    <i class="fas fa-gift"></i> 販売店
-                </button>
-                <button class="filter-btn" data-category="スイーツ">
-                    <i class="fas fa-ice-cream"></i> スイーツ
-                </button>
-            </div>
-            
-        </div>
-
-        <!-- 地図とリストのコンテナ -->
-        <div class="main-content">
-            <div id="map"></div>
-            
-            <!-- モバイル用トグルボタン -->
-            <button class="mobile-list-toggle" id="mobileListToggle">
-                <i class="fas fa-list"></i> リストを表示
-            </button>
-            
-            <!-- 店舗リスト -->
-            <div class="store-list" id="storeList">
-                <h3>店舗リスト</h3>
-                
-                <!-- 訪問ステータスフィルター -->
-                <div class="visit-status-filters-inline">
-                    <button class="filter-btn-small active" data-visit-status="all">
-                        <i class="fas fa-list"></i> 全て
-                    </button>
-                    <button class="filter-btn-small" data-visit-status="naco">
-                        🔴 naco
-                    </button>
-                    <button class="filter-btn-small" data-visit-status="member">
-                        🟡 メンバー
-                    </button>
-                    <button class="filter-btn-small" data-visit-status="unvisited">
-                        🤍 未確認
-                    </button>
-                </div>
-                
-                <div id="storeListContent"></div>
-            </div>
-        </div>
-
-        <!-- 店舗詳細モーダル -->
-        <div class="modal" id="storeModal">
-            <div class="modal-content">
-                <span class="close-btn" id="closeModal">&times;</span>
-                <div id="modalContent"></div>
-            </div>
+                if (session && session.user) {
+                    console.log('✅ セッション有効 - map.htmlにリダイレクト');
+                    window.location.href = './map.html';
+                } else {
+                    console.log('ℹ️ セッションなし - login.htmlにリダイレクト');
+                    window.location.href = './login.html';
+                }
+            });
+        }).catch(error => {
+            console.error('❌ Supabaseクライアント作成エラー:', error);
+            window.location.href = './login.html';
+        });
+    </script>
+    
+    <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
+        color: white;
+        text-align: center;
+    ">
+        <div>
+            <div style="font-size: 48px; margin-bottom: 20px;">🍰</div>
+            <h1>名古屋グルテンフリーマップ</h1>
+            <p style="margin: 20px 0;">認証情報を確認しています...</p>
+            <div style="
+                width: 40px;
+                height: 40px;
+                border: 4px solid rgba(255,255,255,0.3);
+                border-top-color: white;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 20px auto;
+            "></div>
         </div>
     </div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Custom JS -->
-    <script type="module" src="app-fixed-lightbox.js"></script>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </body>
 </html>

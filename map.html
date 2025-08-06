@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>グルテンフリーマップ - ビヨグル倶楽部 presents by naco</title>
+    
+    <!-- Google tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL6YY713PG"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-CL6YY713PG');
+    </script>
+    
+    <!-- Google Search Console verification -->
+    <meta name="google-site-verification" content="Czv7Zz2W6KDA9hY2uEteTv_7EU0_w66ISz_qTO3NmPQ" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/nagoya-glutenfree-map/favicon.png?v=4">
+    <link rel="shortcut icon" type="image/png" href="/nagoya-glutenfree-map/favicon.png?v=4">
+    <link rel="icon" type="image/x-icon" href="/nagoya-glutenfree-map/favicon.png?v=4">
+    <link rel="apple-touch-icon" href="/nagoya-glutenfree-map/favicon.png?v=4">
+    <link rel="apple-touch-icon-precomposed" href="/nagoya-glutenfree-map/favicon.png?v=4">
+    <meta name="theme-color" content="#ffb6c1">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css?v=20250805-lightbox-fixed">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header>
+            <div class="header-content">
+                <img src="naco-character.png.png" alt="nacoキャラクター" class="naco-character">
+                <div class="header-text">
+                    <h1><i class="fas fa-map-marked-alt"></i> グルテンフリーマップ</h1>
+                    <p class="subtitle">ビヨグル倶楽部 presents by naco</p>
+                </div>
+                
+                <!-- ユーザー情報とログアウト -->
+                <div class="user-section" id="userSection" style="display: none;">
+                    <div class="user-info" id="userInfo">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userEmail"></span>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn" title="ログアウト">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 検索とフィルター -->
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="店名・住所で検索...">
+                <button class="advanced-search-toggle" id="advancedSearchToggle">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            
+            <!-- 高度な検索パネル -->
+            <div class="advanced-search-panel" id="advancedSearchPanel" style="display: none;">
+                <h3><i class="fas fa-search-plus"></i> 高度な検索</h3>
+                
+                <div class="search-conditions" id="searchConditions">
+                    <!-- 検索条件がここに動的に追加される -->
+                </div>
+                
+                <div class="search-controls">
+                    <button class="add-condition-btn" id="addConditionBtn">
+                        <i class="fas fa-plus"></i> 条件を追加
+                    </button>
+                    <select id="searchOperator" class="search-operator">
+                        <option value="AND">すべての条件に一致（AND）</option>
+                        <option value="OR">いずれかの条件に一致（OR）</option>
+                    </select>
+                    <button class="clear-search-btn" id="clearSearchBtn">
+                        <i class="fas fa-times"></i> クリア
+                    </button>
+                </div>
+            </div>
+            
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">
+                    <i class="fas fa-globe"></i> すべて
+                </button>
+                <button class="filter-btn" data-category="和食">
+                    <i class="fas fa-utensils"></i> 和食
+                </button>
+                <button class="filter-btn" data-category="洋食">
+                    <i class="fas fa-pizza-slice"></i> 洋食
+                </button>
+                <button class="filter-btn" data-category="カフェ">
+                    <i class="fas fa-coffee"></i> カフェ
+                </button>
+                <button class="filter-btn" data-category="パン屋">
+                    <i class="fas fa-bread-slice"></i> パン屋
+                </button>
+                <button class="filter-btn" data-category="販売店">
+                    <i class="fas fa-gift"></i> 販売店
+                </button>
+                <button class="filter-btn" data-category="スイーツ">
+                    <i class="fas fa-ice-cream"></i> スイーツ
+                </button>
+            </div>
+            
+        </div>
+
+        <!-- 地図とリストのコンテナ -->
+        <div class="main-content">
+            <div id="map"></div>
+            
+            <!-- モバイル用トグルボタン -->
+            <button class="mobile-list-toggle" id="mobileListToggle">
+                <i class="fas fa-list"></i> リストを表示
+            </button>
+            
+            <!-- 店舗リスト -->
+            <div class="store-list" id="storeList">
+                <h3>店舗リスト</h3>
+                
+                <!-- 訪問ステータスフィルター -->
+                <div class="visit-status-filters-inline">
+                    <button class="filter-btn-small active" data-visit-status="all">
+                        <i class="fas fa-list"></i> 全て
+                    </button>
+                    <button class="filter-btn-small" data-visit-status="naco">
+                        🔴 naco
+                    </button>
+                    <button class="filter-btn-small" data-visit-status="member">
+                        🟡 メンバー
+                    </button>
+                    <button class="filter-btn-small" data-visit-status="unvisited">
+                        🤍 未確認
+                    </button>
+                </div>
+                
+                <div id="storeListContent"></div>
+            </div>
+        </div>
+
+        <!-- 店舗詳細モーダル -->
+        <div class="modal" id="storeModal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeModal">&times;</span>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Auth JS (認証処理) -->
+    <script type="module" src="auth.js"></script>
+    
+    <!-- Custom JS -->
+    <script type="module" src="app-fixed-lightbox.js"></script>
+</body>
+</html>
