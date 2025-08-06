@@ -1076,7 +1076,7 @@ function openImageLightbox(imageUrl, altText) {
                 <button class="lightbox-close" onclick="closeImageLightbox()">
                     <i class="fas fa-times"></i>
                 </button>
-                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image" style="max-width: 95vw !important; max-height: 95vh !important; width: auto !important; height: auto !important;">
+                <img src="${processedImageUrl}" alt="${altText}" class="lightbox-image" style="width: 90vw !important; height: 90vh !important; object-fit: contain !important;">
                 <div class="lightbox-caption">${altText}</div>
             </div>
         `;
