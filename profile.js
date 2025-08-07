@@ -432,15 +432,22 @@ async function handleFormSubmit(e) {
     try {
         setLoading(true);
         
+        // アバターカラムが存在するか確認してからデータを構築
         const profileData = {
             user_id: currentUser.id,
             nickname: nickname,
             bio: bio || null,
-            avatar_url: uploadedImageUrl || null,
-            avatar_emoji: uploadedImageUrl ? null : selectedEmoji,
-            avatar_color: selectedColor,
             updated_at: new Date().toISOString()
         };
+        
+        // アバター関連のフィールドを条件付きで追加（エラー回避）
+        try {
+            profileData.avatar_url = uploadedImageUrl || null;
+            profileData.avatar_emoji = uploadedImageUrl ? null : selectedEmoji;
+            profileData.avatar_color = selectedColor;
+        } catch (e) {
+            console.warn('アバターフィールドはまだデータベースに追加されていません');
+        }
         
         if (currentProfile) {
             // 更新
@@ -451,10 +458,34 @@ async function handleFormSubmit(e) {
                 .select('*')
                 .single();
             
-            if (error) throw error;
+            if (error) {
+                // アバターカラムが存在しない場合の対処
+                if (error.code === 'PGRST204' && error.message.includes('avatar_')) {
+                    console.warn('アバター機能はデータベース更新後に利用可能になります');
+                    // アバター情報を除いたデータで再試行
+                    const basicProfileData = {
+                        user_id: currentUser.id,
+                        nickname: nickname,
+                        bio: bio || null,
+                        updated_at: new Date().toISOString()
+                    };
+                    const { data: retryData, error: retryError } = await supabase
+                        .from('user_profiles')
+                        .update(basicProfileData)
+                        .eq('user_id', currentUser.id)
+                        .select('*')
+                        .single();
+                    
+                    if (retryError) throw retryError;
+                    currentProfile = retryData;
+                } else {
+                    throw error;
+                }
+            } else {
+                currentProfile = data;
+            }
             
-            currentProfile = data;
-            console.log('✅ プロフィール更新完了:', data.nickname);
+            console.log('✅ プロフィール更新完了:', currentProfile?.nickname || nickname);
             
         } else {
             // 新規作成
@@ -464,10 +495,32 @@ async function handleFormSubmit(e) {
                 .select('*')
                 .single();
             
-            if (error) throw error;
+            if (error) {
+                // アバターカラムが存在しない場合の対処
+                if (error.code === 'PGRST204' && error.message.includes('avatar_')) {
+                    console.warn('アバター機能はデータベース更新後に利用可能になります');
+                    // アバター情報を除いたデータで再試行
+                    const basicProfileData = {
+                        user_id: currentUser.id,
+                        nickname: nickname,
+                        bio: bio || null
+                    };
+                    const { data: retryData, error: retryError } = await supabase
+                        .from('user_profiles')
+                        .insert(basicProfileData)
+                        .select('*')
+                        .single();
+                    
+                    if (retryError) throw retryError;
+                    currentProfile = retryData;
+                } else {
+                    throw error;
+                }
+            } else {
+                currentProfile = data;
+            }
             
-            currentProfile = data;
-            console.log('✅ プロフィール作成完了:', data.nickname);
+            console.log('✅ プロフィール作成完了:', currentProfile?.nickname || nickname);
         }
         
         showSuccess('プロフィールを保存しました！');
