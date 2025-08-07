@@ -104,13 +104,6 @@ class ReviewSystem {
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="isPublic" checked> 
-                                他のユーザーに公開する
-                            </label>
-                        </div>
-                        
                         <div class="review-actions">
                             <button type="button" class="btn btn-danger" id="deleteReview" style="display: none;">
                                 <i class="fas fa-trash"></i> 削除
@@ -269,7 +262,7 @@ class ReviewSystem {
             document.getElementById('reviewModalTitle').textContent = '✏️ 感想を編集';
             document.getElementById('reviewModalSubtitle').textContent = '投稿済みの感想を編集できます';
             document.getElementById('reviewComment').value = existingReview.comment;
-            document.getElementById('isPublic').checked = existingReview.is_public;
+            // 公開設定は常にtrue（チェックボックス削除のため）
             document.getElementById('submitReview').querySelector('.text').textContent = '更新する';
             // 削除ボタンを表示
             document.getElementById('deleteReview').style.display = 'block';
@@ -279,7 +272,7 @@ class ReviewSystem {
             document.getElementById('reviewModalTitle').textContent = `✍️ ${storeName} の感想を書く`;
             document.getElementById('reviewModalSubtitle').textContent = 'あなたの体験をシェアしてください';
             document.getElementById('reviewComment').value = '';
-            document.getElementById('isPublic').checked = true;
+            // 公開設定は常にtrue（チェックボックス削除のため）
             document.getElementById('submitReview').querySelector('.text').textContent = '投稿する';
             // 削除ボタンを非表示
             document.getElementById('deleteReview').style.display = 'none';
@@ -319,7 +312,7 @@ class ReviewSystem {
 
         const formData = new FormData(e.target);
         const comment = formData.get('comment').trim();
-        const isPublic = document.getElementById('isPublic').checked;
+        const isPublic = true; // 常に公開（チェックボックス削除のため）
 
         // バリデーション
         if (comment.length < 10) {
