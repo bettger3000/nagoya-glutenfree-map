@@ -10,8 +10,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // セキュリティ: HTMLサニタイズ関数
 function sanitizeHTML(str) {
     if (!str) return '';
-    return str.replace(/[&<>\"']/g, (m) => {
-        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#x27;'}[m];
+    return str.replace(/[&<>"']/g, (m) => {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}[m];
     });
 }
 
@@ -127,7 +127,7 @@ async function loadUserReviews() {
 }
 
 // ユーザープロフィールを表示
-function displayUserProfile() {
+async function displayUserProfile() {
     // ローディング状態を非表示
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('userProfileContent').style.display = 'block';
@@ -261,14 +261,14 @@ async function loadAndDisplayVisitedCount() {
         }
         
         // 訪問済み店舗数を取得
-        const { data, error } = await supabase
+        const { count, error } = await supabase
             .from('visited_stores')
-            .select('id', { count: 'exact', head: true })
+            .select('*', { count: 'exact', head: true })
             .eq('user_id', targetUserId);
         
         if (error) throw error;
         
-        const visitedCount = data || 0;
+        const visitedCount = count || 0;
         console.log('✅ 訪問済み店舗数:', visitedCount);
         
         document.getElementById('visitedCount').textContent = visitedCount;

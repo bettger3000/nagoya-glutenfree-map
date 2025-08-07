@@ -707,29 +707,26 @@ async function loadVisitStats() {
         console.log('📊 訪問統計を読み込み中...');
         
         // 訪問済み店舗数を取得
-        const { data: visitedData, error: visitedError } = await supabase
+        const { count: visitedCount, error: visitedError } = await supabase
             .from('visited_stores')
-            .select('id', { count: 'exact', head: true })
+            .select('*', { count: 'exact', head: true })
             .eq('user_id', currentUser.id);
         
         if (visitedError) throw visitedError;
         
         // 行きたい店舗数を取得
-        const { data: wishlistData, error: wishlistError } = await supabase
+        const { count: wishlistCount, error: wishlistError } = await supabase
             .from('wishlist_stores')
-            .select('id', { count: 'exact', head: true })
+            .select('*', { count: 'exact', head: true })
             .eq('user_id', currentUser.id);
         
         if (wishlistError) throw wishlistError;
         
-        const visitedCount = visitedData || 0;
-        const wishlistCount = wishlistData || 0;
-        
-        console.log(`✅ 統計データ - 訪問済み: ${visitedCount}件, 行きたい店: ${wishlistCount}件`);
+        console.log(`✅ 統計データ - 訪問済み: ${visitedCount || 0}件, 行きたい店: ${wishlistCount || 0}件`);
         
         // 統計情報を表示
-        document.getElementById('myVisitedCount').textContent = visitedCount;
-        document.getElementById('myWishlistCount').textContent = wishlistCount;
+        document.getElementById('myVisitedCount').textContent = visitedCount || 0;
+        document.getElementById('myWishlistCount').textContent = wishlistCount || 0;
         
     } catch (error) {
         console.error('❌ 訪問統計読み込みエラー:', error);

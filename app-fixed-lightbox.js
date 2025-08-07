@@ -171,15 +171,23 @@ function initStoreStatusFeatures() {
     console.log('🏪 店舗ステータス機能を初期化中...');
     
     // 認証済みユーザーの場合のみトグルボタンを表示
-    if (window.authManager && window.authManager.currentUser) {
-        showStoreStatusToggles();
-    }
+    checkAuthAndShowToggles();
     
     // トグルボタンのイベントリスナー
     setupStoreStatusToggleListeners();
     
     // 店舗ステータス変更イベントを監視
     window.addEventListener('storeStatusChanged', handleStoreStatusChange);
+}
+
+// 認証状態をチェックしてトグルボタンを表示
+async function checkAuthAndShowToggles() {
+    // store-status-managerの初期化完了まで少し待つ
+    setTimeout(() => {
+        if (window.storeStatusManager && window.storeStatusManager.currentUser) {
+            showStoreStatusToggles();
+        }
+    }, 100);
 }
 
 // 店舗ステータストグルボタンを表示
@@ -299,6 +307,62 @@ function updateStoreListDisplay(showVisited, showWishlist) {
     
     const filteredStores = filterStoresByStatus(storesData);
     updateStoreList(filteredStores);
+}
+
+// 店舗ステータスアクションの初期化
+function initStoreStatusActions(storeId) {
+    const actionsContainer = document.getElementById('storeStatusActions');
+    if (!actionsContainer || !window.storeStatusManager || !window.storeStatusManager.currentUser) {
+        return; // ログインしていない場合は非表示
+    }
+    
+    actionsContainer.style.display = 'block';
+    
+    // ボタンの状態を更新
+    updateStoreStatusButtons(storeId);
+    
+    // イベントリスナーを設定
+    const visitedBtn = document.getElementById('toggleVisitedBtn');
+    const wishlistBtn = document.getElementById('toggleWishlistBtn');
+    
+    if (visitedBtn) {
+        visitedBtn.onclick = async () => {
+            const success = await window.storeStatusManager.toggleVisited(storeId);
+            if (success) {
+                updateStoreStatusButtons(storeId);
+            }
+        };
+    }
+    
+    if (wishlistBtn) {
+        wishlistBtn.onclick = async () => {
+            const success = await window.storeStatusManager.toggleWishlist(storeId);
+            if (success) {
+                updateStoreStatusButtons(storeId);
+            }
+        };
+    }
+}
+
+// 店舗ステータスボタンの表示状態を更新
+function updateStoreStatusButtons(storeId) {
+    if (!window.storeStatusManager) return;
+    
+    const visitedBtn = document.getElementById('toggleVisitedBtn');
+    const wishlistBtn = document.getElementById('toggleWishlistBtn');
+    
+    const isVisited = window.storeStatusManager.isVisited(storeId);
+    const isWishlisted = window.storeStatusManager.isWishlisted(storeId);
+    
+    if (visitedBtn) {
+        visitedBtn.classList.toggle('active', isVisited);
+        visitedBtn.querySelector('.status-text').textContent = isVisited ? '行ったことある ✓' : '行ったことある';
+    }
+    
+    if (wishlistBtn) {
+        wishlistBtn.classList.toggle('active', isWishlisted);
+        wishlistBtn.querySelector('.status-text').textContent = isWishlisted ? '行きたい店 ★' : '行きたい店';
+    }
 }
 
 // グローバル関数としてマーカー更新を公開
@@ -884,11 +948,31 @@ window.showStoreDetail = function showStoreDetail(storeId) {
         </div>
         ` : ''}
         
+        <!-- 店舗ステータス設定（認証済みユーザーのみ） -->
+        <div class="store-status-actions" id="storeStatusActions" style="display: none;">
+            <div class="status-actions-header">
+                <h3><i class="fas fa-heart"></i> この店舗について</h3>
+            </div>
+            <div class="status-action-buttons">
+                <button class="status-action-btn" id="toggleVisitedBtn" data-store-id="${storeId}">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="status-text">行ったことある</span>
+                </button>
+                <button class="status-action-btn" id="toggleWishlistBtn" data-store-id="${storeId}">
+                    <i class="fas fa-star"></i>
+                    <span class="status-text">行きたい店</span>
+                </button>
+            </div>
+        </div>
+        
         <!-- レビューセクション -->
         <div id="storeReviewsContainer"></div>
     `;
     
     modal.style.display = 'block';
+    
+    // 店舗ステータス機能の初期化
+    initStoreStatusActions(storeId);
     
     // レビューを読み込み
     if (window.updateStoreReviews) {
