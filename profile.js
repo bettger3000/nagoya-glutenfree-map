@@ -231,9 +231,6 @@ function generateProfileReviewHTML(review) {
                     <button class="profile-review-edit-btn" data-review-id="${review.id}" data-store-name="${sanitizedStoreName}" title="編集">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="profile-review-delete-btn" data-review-id="${review.id}" title="削除">
-                        <i class="fas fa-trash"></i>
-                    </button>
                 </div>
             </div>
             
@@ -265,14 +262,6 @@ function setupReviewActionListeners() {
             await handleEditReview(reviewId, storeName);
         });
     });
-    
-    // 削除ボタン
-    document.querySelectorAll('.profile-review-delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const reviewId = e.currentTarget.dataset.reviewId;
-            await handleDeleteReview(reviewId);
-        });
-    });
 }
 
 // レビュー編集処理
@@ -288,33 +277,6 @@ async function handleEditReview(reviewId, storeName) {
     }
 }
 
-// レビュー削除処理
-async function handleDeleteReview(reviewId) {
-    if (!confirm('このレビューを削除しますか？')) {
-        return;
-    }
-    
-    try {
-        const { error } = await supabase
-            .from('store_reviews')
-            .delete()
-            .eq('id', reviewId)
-            .eq('user_id', currentUser.id);
-        
-        if (error) throw error;
-        
-        console.log('✅ レビュー削除完了');
-        
-        // レビュー一覧を再読み込み
-        await loadUserReviews();
-        
-        showSuccess('レビューを削除しました。');
-        
-    } catch (error) {
-        console.error('❌ レビュー削除エラー:', error);
-        showError('削除に失敗しました。再度お試しください。');
-    }
-}
 
 // 日付フォーマット
 function formatDate(dateString) {
