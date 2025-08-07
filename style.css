@@ -2027,42 +2027,103 @@ header .subtitle {
     }
 }
 
-/* レビューモーダルの削除ボタン配置 */
+/* レビューモーダルの洗練されたボタン配置 */
 .review-actions {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 12px;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
 }
 
 .review-actions-right {
-    display: flex;
-    gap: 10px;
+    display: contents; /* グリッドの子要素として直接配置 */
 }
 
+/* 削除ボタンのスタイリング - より控えめに */
 .btn-danger {
-    background-color: #dc3545;
-    color: white;
+    background-color: #fff;
+    color: #dc3545;
     border: 1px solid #dc3545;
-    font-size: 14px;
-    padding: 8px 16px;
+    font-size: 13px;
+    padding: 8px 12px;
     border-radius: 6px;
-    min-width: auto;
-    max-width: 120px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 80px;
 }
 
 .btn-danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
+    background-color: #dc3545;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
-/* ボタンサイズの統一 */
+/* ボタンサイズとスタイリングの統一 */
 .review-actions .btn {
     font-size: 14px;
-    padding: 8px 16px;
-    border-radius: 6px;
-    min-height: 38px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    min-height: 42px;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.review-actions .btn-secondary {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    min-width: 100px;
+}
+
+.review-actions .btn-secondary:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.review-actions .btn-primary {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    min-width: 120px;
+    font-weight: 600;
+}
+
+.review-actions .btn-primary:hover {
+    background: linear-gradient(135deg, #218838, #1ea89a);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+    .review-actions {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .btn-danger {
+        order: 3;
+        margin-top: 8px;
+        border-top: 1px solid #dee2e6;
+        padding-top: 12px;
+        background-color: transparent;
+        border: none;
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .review-actions .btn-secondary,
+    .review-actions .btn-primary {
+        min-width: 100%;
+    }
 }
