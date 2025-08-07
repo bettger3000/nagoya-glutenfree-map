@@ -594,6 +594,17 @@
                     </div>
                 </div>
                 
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="showVisitCount" name="show_visit_count" checked>
+                        <span class="checkmark"></span>
+                        訪問済み店舗数を他のユーザーに公開する
+                    </label>
+                    <div class="form-hint">
+                        オフにすると、他のユーザーからはあなたの訪問済み店舗数が見えなくなります。
+                    </div>
+                </div>
+                
                 <div class="profile-actions">
                     <button type="button" class="btn btn-secondary" id="cancelBtn">
                         <i class="fas fa-arrow-left"></i>
@@ -610,11 +621,25 @@
         <!-- レビュー一覧セクション -->
         <div class="profile-reviews-section" id="profileReviewsSection" style="display: none;">
             <div class="profile-card">
+                <!-- 訪問統計セクション -->
+                <div class="profile-visit-stats">
+                    <h3><i class="fas fa-chart-bar"></i> 訪問統計</h3>
+                    <div class="visit-stats-content">
+                        <div class="stat-item">
+                            <span class="stat-number" id="myVisitedCount">0</span>
+                            <div class="stat-label">訪問済み店舗</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="myWishlistCount">0</span>
+                            <div class="stat-label">行きたい店舗</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="profile-reviews-header">
                     <h2><i class="fas fa-comment-alt"></i> マイレビュー</h2>
                     <div class="profile-reviews-stats" id="profileReviewsStats">
                         <!-- 統計情報がここに表示されます -->
-                    </div>
                 </div>
                 
                 <!-- フィルターは不要（すべてのレビューが公開） -->

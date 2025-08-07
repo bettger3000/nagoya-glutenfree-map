@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // レビュー一覧を読み込み・表示
         await loadUserReviews();
         
+        // 訪問統計を読み込み・表示
+        await loadVisitStats();
+        
         // イベントリスナーを設定
         setupEventListeners();
         
@@ -86,6 +89,7 @@ async function loadUserProfile() {
             // フォームに既存データを設定
             document.getElementById('nickname').value = data.nickname;
             document.getElementById('bio').value = data.bio || '';
+            document.getElementById('showVisitCount').checked = data.show_visit_count !== false;
         } else {
             console.log('ℹ️ 新規プロフィール作成');
         }
@@ -413,6 +417,7 @@ async function handleFormSubmit(e) {
     const formData = new FormData(e.target);
     const nickname = formData.get('nickname').trim();
     const bio = formData.get('bio').trim();
+    const showVisitCount = formData.get('show_visit_count') === 'on';
     
     if (!validateForm(nickname)) {
         return;
@@ -426,6 +431,7 @@ async function handleFormSubmit(e) {
             user_id: currentUser.id,
             nickname: nickname,
             bio: bio || null,
+            show_visit_count: showVisitCount,
             updated_at: new Date().toISOString()
         };
         
@@ -456,6 +462,7 @@ async function handleFormSubmit(e) {
                         user_id: currentUser.id,
                         nickname: nickname,
                         bio: bio || null,
+                        show_visit_count: showVisitCount,
                         updated_at: new Date().toISOString()
                     };
                     const { data: retryData, error: retryError } = await supabase
@@ -492,7 +499,8 @@ async function handleFormSubmit(e) {
                     const basicProfileData = {
                         user_id: currentUser.id,
                         nickname: nickname,
-                        bio: bio || null
+                        bio: bio || null,
+                        show_visit_count: showVisitCount
                     };
                     const { data: retryData, error: retryError } = await supabase
                         .from('user_profiles')
@@ -690,6 +698,45 @@ window.openAvatarModal = function() {
         options.style.display = options.style.display === 'none' ? 'block' : 'none';
     }
 };
+
+// 訪問統計を読み込み
+async function loadVisitStats() {
+    if (!currentUser) return;
+    
+    try {
+        console.log('📊 訪問統計を読み込み中...');
+        
+        // 訪問済み店舗数を取得
+        const { data: visitedData, error: visitedError } = await supabase
+            .from('visited_stores')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', currentUser.id);
+        
+        if (visitedError) throw visitedError;
+        
+        // 行きたい店舗数を取得
+        const { data: wishlistData, error: wishlistError } = await supabase
+            .from('wishlist_stores')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', currentUser.id);
+        
+        if (wishlistError) throw wishlistError;
+        
+        const visitedCount = visitedData || 0;
+        const wishlistCount = wishlistData || 0;
+        
+        console.log(`✅ 統計データ - 訪問済み: ${visitedCount}件, 行きたい店: ${wishlistCount}件`);
+        
+        // 統計情報を表示
+        document.getElementById('myVisitedCount').textContent = visitedCount;
+        document.getElementById('myWishlistCount').textContent = wishlistCount;
+        
+    } catch (error) {
+        console.error('❌ 訪問統計読み込みエラー:', error);
+        document.getElementById('myVisitedCount').textContent = '0';
+        document.getElementById('myWishlistCount').textContent = '0';
+    }
+}
 
 // 画像アップロード処理
 async function handleImageUpload(event) {

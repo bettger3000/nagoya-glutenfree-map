@@ -181,6 +181,19 @@
                 </button>
             </div>
             
+            <!-- 店舗ステータス表示切り替え -->
+            <div class="store-status-toggles" id="storeStatusToggles" style="display: none;">
+                <button class="status-toggle-btn active" id="toggleAllStores" data-mode="all">
+                    <i class="fas fa-store"></i> 全店舗
+                </button>
+                <button class="status-toggle-btn" id="toggleVisitedStores" data-mode="visited">
+                    <i class="fas fa-check-circle"></i> 行った店
+                </button>
+                <button class="status-toggle-btn" id="toggleWishlistStores" data-mode="wishlist">
+                    <i class="fas fa-star"></i> 行きたい店
+                </button>
+            </div>
+            
         </div>
 
         <!-- 地図とリストのコンテナ -->
@@ -238,6 +251,9 @@
     
     <!-- Review System JS -->
     <script type="module" src="review-system.js"></script>
+    
+    <!-- Store Status Manager JS -->
+    <script type="module" src="store-status-manager.js"></script>
     
     <!-- Hamburger Menu JS -->
     <script type="module" src="hamburger-menu.js"></script>

@@ -160,6 +160,9 @@ function displayUserProfile() {
     // 統計情報表示
     document.getElementById('reviewCount').textContent = userReviews.length;
     
+    // 訪問済み店舗数を取得・表示
+    await loadAndDisplayVisitedCount();
+    
     // レビュー一覧表示
     displayUserReviews();
 }
@@ -243,6 +246,37 @@ function showProfileNotFound() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('errorState').style.display = 'block';
     document.querySelector('#errorState p').textContent = 'このユーザーのプロフィールが見つかりませんでした';
+}
+
+// 訪問済み店舗数を取得・表示
+async function loadAndDisplayVisitedCount() {
+    try {
+        console.log('📊 訪問済み店舗数を取得中...');
+        
+        // プロフィールで公開設定を確認
+        if (!userProfile.show_visit_count) {
+            console.log('ℹ️ 訪問数非公開設定');
+            document.getElementById('visitedCount').textContent = '-';
+            return;
+        }
+        
+        // 訪問済み店舗数を取得
+        const { data, error } = await supabase
+            .from('visited_stores')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', targetUserId);
+        
+        if (error) throw error;
+        
+        const visitedCount = data || 0;
+        console.log('✅ 訪問済み店舗数:', visitedCount);
+        
+        document.getElementById('visitedCount').textContent = visitedCount;
+        
+    } catch (error) {
+        console.error('❌ 訪問済み店舗数取得エラー:', error);
+        document.getElementById('visitedCount').textContent = '-';
+    }
 }
 
 // エラー表示

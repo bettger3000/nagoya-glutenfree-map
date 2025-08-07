@@ -160,8 +160,149 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     
+    // 店舗ステータス機能の初期化
+    initStoreStatusFeatures();
+    
     console.log('✅ アプリケーション初期化完了');
 });
+
+// 店舗ステータス機能
+function initStoreStatusFeatures() {
+    console.log('🏪 店舗ステータス機能を初期化中...');
+    
+    // 認証済みユーザーの場合のみトグルボタンを表示
+    if (window.authManager && window.authManager.currentUser) {
+        showStoreStatusToggles();
+    }
+    
+    // トグルボタンのイベントリスナー
+    setupStoreStatusToggleListeners();
+    
+    // 店舗ステータス変更イベントを監視
+    window.addEventListener('storeStatusChanged', handleStoreStatusChange);
+}
+
+// 店舗ステータストグルボタンを表示
+function showStoreStatusToggles() {
+    const togglesContainer = document.getElementById('storeStatusToggles');
+    if (togglesContainer) {
+        togglesContainer.style.display = 'flex';
+    }
+}
+
+// 店舗ステータストグルボタンを非表示
+function hideStoreStatusToggles() {
+    const togglesContainer = document.getElementById('storeStatusToggles');
+    if (togglesContainer) {
+        togglesContainer.style.display = 'none';
+    }
+}
+
+// トグルボタンのイベントリスナー設定
+function setupStoreStatusToggleListeners() {
+    const allBtn = document.getElementById('toggleAllStores');
+    const visitedBtn = document.getElementById('toggleVisitedStores');
+    const wishlistBtn = document.getElementById('toggleWishlistStores');
+    
+    if (allBtn) {
+        allBtn.addEventListener('click', () => {
+            setActiveToggle('all');
+            if (window.storeStatusManager) {
+                window.storeStatusManager.setShowVisited(true);
+                window.storeStatusManager.setShowWishlist(true);
+            }
+        });
+    }
+    
+    if (visitedBtn) {
+        visitedBtn.addEventListener('click', () => {
+            setActiveToggle('visited');
+            if (window.storeStatusManager) {
+                window.storeStatusManager.setShowVisited(true);
+                window.storeStatusManager.setShowWishlist(false);
+            }
+        });
+    }
+    
+    if (wishlistBtn) {
+        wishlistBtn.addEventListener('click', () => {
+            setActiveToggle('wishlist');
+            if (window.storeStatusManager) {
+                window.storeStatusManager.setShowVisited(false);
+                window.storeStatusManager.setShowWishlist(true);
+            }
+        });
+    }
+}
+
+// アクティブなトグルボタンを設定
+function setActiveToggle(mode) {
+    const buttons = document.querySelectorAll('.status-toggle-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    const activeBtn = document.querySelector(`[data-mode="${mode}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+}
+
+// 店舗ステータス変更イベントハンドラ
+function handleStoreStatusChange(event) {
+    const { showVisited, showWishlist } = event.detail;
+    updateStoreListDisplay(showVisited, showWishlist);
+    updateMapMarkers();
+}
+
+// マップマーカーを更新
+function updateMapMarkers() {
+    if (!storesData) return;
+    
+    // フィルタリングされた店舗のみ表示
+    const filteredStores = filterStoresByStatus(storesData);
+    displayStores(filteredStores);
+}
+
+// 店舗ステータスによるフィルタリング
+function filterStoresByStatus(stores) {
+    if (!window.storeStatusManager) return stores;
+    
+    const showVisited = window.storeStatusManager.showVisited;
+    const showWishlist = window.storeStatusManager.showWishlist;
+    
+    // 全店舗表示モード
+    if (showVisited && showWishlist) {
+        return stores;
+    }
+    
+    return stores.filter(store => {
+        const isVisited = window.storeStatusManager.isVisited(store.id);
+        const isWishlisted = window.storeStatusManager.isWishlisted(store.id);
+        
+        // 訪問済みのみ表示
+        if (showVisited && !showWishlist) {
+            return isVisited;
+        }
+        
+        // 行きたい店のみ表示
+        if (!showVisited && showWishlist) {
+            return isWishlisted;
+        }
+        
+        // 両方オフの場合は全て表示
+        return true;
+    });
+}
+
+// 店舗リスト表示更新
+function updateStoreListDisplay(showVisited, showWishlist) {
+    if (!storesData) return;
+    
+    const filteredStores = filterStoresByStatus(storesData);
+    updateStoreList(filteredStores);
+}
+
+// グローバル関数としてマーカー更新を公開
+window.updateMapMarkers = updateMapMarkers;
 
 // レビュー機能統合
 let currentStoreIdForReviews = null;
@@ -461,13 +602,28 @@ async function loadStores() {
     }
 }
 
-// カスタムアイコンの作成
-function createCustomIcon(category) {
+// カスタムアイコンの作成（ステータスマーク付き）
+function createCustomIcon(category, storeId = null) {
     const style = categoryStyles[category] || { color: '#666', icon: 'fa-store' };
+    
+    // ステータスマークを生成
+    let statusMarks = '';
+    if (storeId && window.storeStatusManager) {
+        const isVisited = window.storeStatusManager.isVisited(storeId);
+        const isWishlisted = window.storeStatusManager.isWishlisted(storeId);
+        
+        if (isVisited) {
+            statusMarks += '<div class="status-mark visited-mark"><i class="fas fa-check"></i></div>';
+        }
+        if (isWishlisted) {
+            statusMarks += '<div class="status-mark wishlist-mark"><i class="fas fa-star"></i></div>';
+        }
+    }
     
     return L.divIcon({
         html: `<div class="custom-marker" style="background-color: ${style.color}">
                 <i class="fas ${style.icon}"></i>
+                ${statusMarks}
                </div>`,
         className: 'custom-div-icon',
         iconSize: [35, 35],
@@ -486,7 +642,7 @@ function displayStores(stores) {
         // 座標がある店舗のみ地図に表示
         if (store.lat && store.lng) {
             const marker = L.marker([store.lat, store.lng], {
-                icon: createCustomIcon(store.category)
+                icon: createCustomIcon(store.category, store.id)
             });
             
             // ポップアップの内容

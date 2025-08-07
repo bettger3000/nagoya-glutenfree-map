@@ -375,6 +375,150 @@ header .subtitle {
     text-decoration: underline;
 }
 
+/* 店舗ステータス表示切り替えボタン */
+.store-status-toggles {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.status-toggle-btn {
+    background: var(--white);
+    border: 2px solid var(--primary-green);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--primary-green);
+    font-weight: 500;
+    min-width: 90px;
+    justify-content: center;
+}
+
+.status-toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
+.status-toggle-btn.active {
+    background: var(--primary-green);
+    color: var(--white);
+}
+
+.status-toggle-btn i {
+    font-size: 12px;
+}
+
+/* 店舗マーカーのステータスマーク */
+.status-mark {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: bold;
+    border: 1px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.visited-mark {
+    background: #4CAF50;
+    color: white;
+    top: -5px;
+    right: -5px;
+}
+
+.wishlist-mark {
+    background: #FFD700;
+    color: #333;
+    top: -5px;
+    left: -5px;
+}
+
+/* 両方のマークがある場合の調整 */
+.custom-marker:has(.visited-mark):has(.wishlist-mark) .wishlist-mark {
+    top: 8px;
+    left: -5px;
+}
+
+/* プロフィール訪問統計 */
+.profile-visit-stats {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--bg-cream);
+    border-radius: 15px;
+    border-left: 4px solid var(--primary-green);
+}
+
+.profile-visit-stats h3 {
+    color: var(--primary-green);
+    font-size: 18px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.visit-stats-content {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+}
+
+.visit-stats-content .stat-item {
+    text-align: center;
+}
+
+.visit-stats-content .stat-number {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--primary-green);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.visit-stats-content .stat-label {
+    font-size: 14px;
+    color: #666;
+}
+
+/* チェックボックスのスタイル */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin: 0;
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-label .checkmark {
+    margin-left: -30px;
+    margin-right: 18px;
+}
+
+.checkbox-label:hover {
+    color: var(--primary-green);
+}
+
 .filter-btn {
     font-size: 14px;
     display: flex;
