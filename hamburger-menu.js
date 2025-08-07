@@ -178,6 +178,7 @@ class HamburgerMenu {
     updateUserDisplay() {
         const loginItem = document.getElementById('hamburgerLoginItem');
         const logoutItem = document.getElementById('hamburgerLogoutItem');
+        const avatarElement = document.querySelector('.hamburger-user-avatar');
         
         if (this.currentUser && this.userProfile) {
             this.hamburgerUserName.textContent = this.userProfile.nickname || 'ユーザー';
@@ -188,6 +189,9 @@ class HamburgerMenu {
                 this.hamburgerUserStats.textContent = 'データ読み込み中...';
             }
             
+            // アバター画像を設定
+            this.updateAvatarDisplay(avatarElement);
+            
             // ログイン済み：ログアウトボタンを表示
             if (loginItem) loginItem.style.display = 'none';
             if (logoutItem) logoutItem.style.display = 'block';
@@ -195,6 +199,9 @@ class HamburgerMenu {
         } else if (this.currentUser) {
             this.hamburgerUserName.textContent = 'プロフィール未設定';
             this.hamburgerUserStats.textContent = 'プロフィールを設定してください';
+            
+            // デフォルトアバターを表示
+            this.updateAvatarDisplay(avatarElement);
             
             // ログイン済み（プロフィール未設定）：ログアウトボタンを表示
             if (loginItem) loginItem.style.display = 'none';
@@ -204,9 +211,28 @@ class HamburgerMenu {
             this.hamburgerUserName.textContent = '未ログイン';
             this.hamburgerUserStats.textContent = 'ログインしてください';
             
+            // デフォルトアバターを表示
+            this.updateAvatarDisplay(avatarElement);
+            
             // 未ログイン：ログインボタンを表示
             if (loginItem) loginItem.style.display = 'block';
             if (logoutItem) logoutItem.style.display = 'none';
+        }
+    }
+    
+    // アバター表示を更新
+    updateAvatarDisplay(avatarElement) {
+        if (!avatarElement) return;
+        
+        // アバターURLが設定されているかチェック
+        const avatarUrl = this.userProfile?.avatar_url;
+        
+        if (avatarUrl) {
+            // アバター画像を表示
+            avatarElement.innerHTML = `<img src="${avatarUrl}" alt="アバター" class="hamburger-avatar-img">`;
+        } else {
+            // デフォルトのアイコンを表示
+            avatarElement.innerHTML = '<i class="fas fa-user-circle"></i>';
         }
     }
     
