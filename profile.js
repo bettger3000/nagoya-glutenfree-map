@@ -266,14 +266,24 @@ function setupReviewActionListeners() {
 
 // レビュー編集処理
 async function handleEditReview(reviewId, storeName) {
-    const review = userReviews.find(r => r.id === reviewId);
-    if (!review) return;
+    console.log('🔧 編集処理開始:', { reviewId, storeName, userReviews });
+    
+    const review = userReviews.find(r => r.id == reviewId || r.id === parseInt(reviewId));
+    console.log('📝 対象レビュー:', review);
+    
+    if (!review) {
+        console.error('❌ レビューが見つかりません:', reviewId);
+        alert('レビューが見つかりません。');
+        return;
+    }
     
     // レビューシステムの編集モーダルを使用
     if (window.reviewSystem) {
+        console.log('✅ レビューシステム利用可能');
         await window.reviewSystem.openReviewModal(review.store_id, storeName);
     } else {
-        alert('レビュー編集機能の読み込みに失敗しました。');
+        console.error('❌ window.reviewSystem が利用できません');
+        alert('レビュー編集機能の読み込みに失敗しました。ページを再読み込みしてください。');
     }
 }
 
