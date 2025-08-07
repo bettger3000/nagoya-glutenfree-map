@@ -255,10 +255,15 @@ function generateProfileReviewHTML(review) {
 // レビューアクションのイベントリスナー
 function setupReviewActionListeners() {
     // 編集ボタン
-    document.querySelectorAll('.profile-review-edit-btn').forEach(btn => {
+    const editButtons = document.querySelectorAll('.profile-review-edit-btn');
+    console.log('🔍 編集ボタン数:', editButtons.length);
+    
+    editButtons.forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            console.log('🖱️ 編集ボタンがクリックされました');
             const reviewId = e.currentTarget.dataset.reviewId;
             const storeName = e.currentTarget.dataset.storeName;
+            console.log('📊 データセット:', { reviewId, storeName });
             await handleEditReview(reviewId, storeName);
         });
     });
