@@ -169,13 +169,9 @@ function displayReviewsSection() {
 // レビュー統計更新
 function updateReviewsStats() {
     const statsElement = document.getElementById('profileReviewsStats');
-    const publicCount = userReviews.filter(r => r.is_public).length;
-    const privateCount = userReviews.filter(r => !r.is_public).length;
     
     statsElement.innerHTML = `
-        <span><i class="fas fa-comment"></i> ${userReviews.length}件</span>
-        <span><i class="fas fa-eye"></i> 公開 ${publicCount}件</span>
-        <span><i class="fas fa-eye-slash"></i> 非公開 ${privateCount}件</span>
+        <span><i class="fas fa-comment"></i> ${userReviews.length}件 <i class="fas fa-eye"></i> 公開</span>
     `;
 }
 
@@ -183,20 +179,12 @@ function updateReviewsStats() {
 function renderReviews() {
     const reviewsList = document.getElementById('profileReviewsList');
     
-    // フィルター適用
-    let filteredReviews = userReviews;
-    if (currentFilter === 'public') {
-        filteredReviews = userReviews.filter(r => r.is_public);
-    } else if (currentFilter === 'private') {
-        filteredReviews = userReviews.filter(r => !r.is_public);
-    }
-    
-    if (filteredReviews.length === 0) {
+    if (userReviews.length === 0) {
         reviewsList.innerHTML = '<div class="no-profile-reviews">該当するレビューはありません</div>';
         return;
     }
     
-    reviewsList.innerHTML = filteredReviews
+    reviewsList.innerHTML = userReviews
         .map(review => generateProfileReviewHTML(review))
         .join('');
     
@@ -223,7 +211,9 @@ function generateProfileReviewHTML(review) {
                 <div class="profile-review-store">
                     <div class="profile-review-store-name">
                         <i class="fas fa-store"></i>
-                        ${sanitizedStoreName}
+                        <button class="store-name-link" data-store-id="${review.store_id}" title="マップで確認">
+                            ${sanitizedStoreName}
+                        </button>
                     </div>
                     ${sanitizedCategory ? `<span class="store-category category-${sanitizedCategory}">${sanitizedCategory}</span>` : ''}
                 </div>
@@ -267,6 +257,19 @@ function setupReviewActionListeners() {
             await handleEditReview(reviewId, storeName);
         });
     });
+    
+    // 店舗名リンクのイベントリスナー
+    const storeNameLinks = document.querySelectorAll('.store-name-link');
+    console.log('🏪 店舗名リンク数:', storeNameLinks.length);
+    
+    storeNameLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const storeId = e.currentTarget.dataset.storeId;
+            console.log('🗺️ 店舗名クリック:', storeId);
+            handleStoreNavigation(storeId);
+        });
+    });
 }
 
 // レビュー編集処理
@@ -292,6 +295,15 @@ async function handleEditReview(reviewId, storeName) {
     }
 }
 
+
+// 店舗へのナビゲーション処理
+function handleStoreNavigation(storeId) {
+    console.log('🗺️ MAP画面に移動:', storeId);
+    
+    // map.htmlにstoreIdパラメータ付きで移動
+    const mapUrl = `map.html?store=${storeId}`;
+    window.location.href = mapUrl;
+}
 
 // 日付フォーマット
 function formatDate(dateString) {

@@ -2127,3 +2127,28 @@ header .subtitle {
         min-width: 100%;
     }
 }
+
+/* 店舗名リンクのスタイリング */
+.store-name-link {
+    background: none;
+    border: none;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+    font-weight: inherit;
+    padding: 0;
+    margin: 0;
+    transition: color 0.2s ease;
+}
+
+.store-name-link:hover {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+.store-name-link:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-radius: 2px;
+}

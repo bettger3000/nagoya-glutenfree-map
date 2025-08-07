@@ -18,10 +18,21 @@ const categoryStyles = {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async function() {
+    // URLパラメータをチェック
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetStoreId = urlParams.get('store');
+    console.log('🎯 対象店舗ID:', targetStoreId);
     // 現在地取得を最初に試みる
     await initMapWithUserLocation();
     await loadStores();
     setupEventListeners();
+    
+    // 対象店舗がある場合はその店舗を強調表示
+    if (targetStoreId) {
+        setTimeout(() => {
+            focusOnStore(parseInt(targetStoreId));
+        }, 1000); // マップとマーカーの初期化を待つ
+    }
 });
 
 // 地図の初期化（デフォルト座標）
@@ -390,6 +401,36 @@ function showStoreDetail(storeId) {
     `;
     
     modal.style.display = 'block';
+}
+
+// 特定の店舗にフォーカスする関数
+function focusOnStore(storeId) {
+    console.log('🎯 店舗フォーカス:', storeId);
+    
+    // 対象店舗を検索
+    const targetStore = storesData.find(store => store.id === storeId);
+    if (!targetStore) {
+        console.error('❌ 店舗が見つかりません:', storeId);
+        return;
+    }
+    
+    console.log('✅ 対象店舗:', targetStore.name);
+    
+    // マップを対象店舗の位置に移動
+    map.setView([targetStore.lat, targetStore.lng], 16);
+    
+    // 対象店舗のマーカーを検索してポップアップを開く
+    const targetMarker = markers.find(marker => 
+        marker.options.storeData && marker.options.storeData.id === storeId
+    );
+    
+    if (targetMarker) {
+        console.log('🗺️ ポップアップを開きます');
+        // 少し遅延してポップアップを開く
+        setTimeout(() => {
+            targetMarker.openPopup();
+        }, 500);
+    }
 }
 
 // イベントリスナーの設定
