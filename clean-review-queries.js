@@ -82,9 +82,6 @@ const cleanGenerateReviewHTML = `
                             <button class="btn-edit-review" data-store-id="\${review.store_id}" title="編集">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn-delete-review" data-review-id="\${review.id}" title="削除">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </div>
                     \` : ''}
                 </div>

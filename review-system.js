@@ -112,15 +112,20 @@ class ReviewSystem {
                         </div>
                         
                         <div class="review-actions">
-                            <button type="button" class="btn btn-secondary" id="cancelReview">
-                                キャンセル
+                            <button type="button" class="btn btn-danger" id="deleteReview" style="display: none;">
+                                <i class="fas fa-trash"></i> 削除
                             </button>
-                            <button type="submit" class="btn btn-primary" id="submitReview">
-                                <span class="loading" style="display: none;">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                </span>
-                                <span class="text">投稿する</span>
-                            </button>
+                            <div class="review-actions-right">
+                                <button type="button" class="btn btn-secondary" id="cancelReview">
+                                    キャンセル
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="submitReview">
+                                    <span class="loading" style="display: none;">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                    <span class="text">投稿する</span>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -157,6 +162,11 @@ class ReviewSystem {
         // 文字数カウント
         document.getElementById('reviewComment').addEventListener('input', (e) => {
             this.updateCharacterCount(e.target.value);
+        });
+        
+        // 削除ボタン
+        document.getElementById('deleteReview').addEventListener('click', () => {
+            this.handleReviewDelete();
         });
     }
 
@@ -261,6 +271,8 @@ class ReviewSystem {
             document.getElementById('reviewComment').value = existingReview.comment;
             document.getElementById('isPublic').checked = existingReview.is_public;
             document.getElementById('submitReview').querySelector('.text').textContent = '更新する';
+            // 削除ボタンを表示
+            document.getElementById('deleteReview').style.display = 'block';
         } else {
             // 新規投稿モード
             this.currentReview = null;
@@ -269,6 +281,8 @@ class ReviewSystem {
             document.getElementById('reviewComment').value = '';
             document.getElementById('isPublic').checked = true;
             document.getElementById('submitReview').querySelector('.text').textContent = '投稿する';
+            // 削除ボタンを非表示
+            document.getElementById('deleteReview').style.display = 'none';
         }
 
         this.updateCharacterCount(document.getElementById('reviewComment').value);
@@ -548,9 +562,6 @@ class ReviewSystem {
                             <button class="btn-edit-review" data-store-id="${review.store_id}" title="編集">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn-delete-review" data-review-id="${review.id}" title="削除">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </div>
                     ` : ''}
                 </div>
@@ -562,6 +573,51 @@ class ReviewSystem {
                 </div>
             </div>
         `;
+    }
+    
+    // レビュー削除処理
+    async handleReviewDelete() {
+        if (!this.currentReview) {
+            console.error('❌ 削除エラー: 削除対象のレビューが設定されていません');
+            return;
+        }
+        
+        // 確認ダイアログを表示
+        if (!confirm('このレビューを削除しますか？\n削除後は元に戻せません。')) {
+            return;
+        }
+        
+        try {
+            console.log('🗑️ レビュー削除開始:', this.currentReview.id);
+            
+            // 削除実行
+            const { error } = await supabase
+                .from('store_reviews')
+                .delete()
+                .eq('id', this.currentReview.id)
+                .eq('user_id', this.currentUser.id); // セキュリティ: 自分のレビューのみ削除可能
+            
+            if (error) throw error;
+            
+            console.log('✅ レビュー削除成功');
+            
+            // 成功メッセージ
+            this.showReviewSuccess('レビューを削除しました');
+            
+            // モーダルを閉じる
+            setTimeout(() => {
+                this.closeReviewModal();
+                
+                // レビュー一覧を更新
+                if (window.reviewSystem && typeof window.reviewSystem.loadStoreReviews === 'function') {
+                    window.reviewSystem.loadStoreReviews(this.currentStoreId);
+                }
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ レビュー削除エラー:', error);
+            this.showReviewError('レビューの削除に失敗しました');
+        }
     }
 }
 
