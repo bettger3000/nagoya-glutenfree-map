@@ -2044,9 +2044,25 @@ header .subtitle {
     background-color: #dc3545;
     color: white;
     border: 1px solid #dc3545;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-width: auto;
+    max-width: 120px;
 }
 
 .btn-danger:hover {
     background-color: #c82333;
     border-color: #bd2130;
+}
+
+/* ボタンサイズの統一 */
+.review-actions .btn {
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
