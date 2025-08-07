@@ -709,18 +709,42 @@ async function handleImageUpload(event) {
     
     // ファイルサイズチェック（5MB以下）
     if (file.size > 5 * 1024 * 1024) {
-        showMessage('画像は5MB以下にしてください', 'error');
+        const messageArea = document.getElementById('messageArea');
+        if (messageArea) {
+            messageArea.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> 画像は5MB以下にしてください
+                </div>
+            `;
+            setTimeout(() => { messageArea.innerHTML = ''; }, 5000);
+        }
         return;
     }
     
     // ファイルタイプチェック
     if (!file.type.startsWith('image/')) {
-        showMessage('画像ファイルを選択してください', 'error');
+        const messageArea = document.getElementById('messageArea');
+        if (messageArea) {
+            messageArea.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> 画像ファイルを選択してください
+                </div>
+            `;
+            setTimeout(() => { messageArea.innerHTML = ''; }, 5000);
+        }
         return;
     }
     
     try {
-        showMessage('アップロード中...', 'info');
+        // アップロード中のメッセージを表示
+        const messageArea = document.getElementById('messageArea');
+        if (messageArea) {
+            messageArea.innerHTML = `
+                <div class="info-message">
+                    <i class="fas fa-spinner fa-spin"></i> アップロード中...
+                </div>
+            `;
+        }
         
         // Supabase Storageにアップロード
         const fileName = `${currentUser.id}-${Date.now()}.${file.name.split('.').pop()}`;
@@ -742,9 +766,40 @@ async function handleImageUpload(event) {
         selectedEmoji = null;
         updateAvatarPreview();
         
-        showMessage('画像をアップロードしました', 'success');
+        // 成功メッセージを表示
+        if (messageArea) {
+            messageArea.innerHTML = `
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i> 画像をアップロードしました
+                </div>
+            `;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 3000);
+        }
     } catch (error) {
         console.error('アップロードエラー:', error);
-        showMessage('画像のアップロードに失敗しました', 'error');
+        
+        let errorMessage = '画像のアップロードに失敗しました';
+        
+        // エラーの種類に応じてメッセージを調整
+        if (error.message.includes('Bucket not found')) {
+            errorMessage = 'アバター機能の設定が未完了です。管理者にお問い合わせください。';
+        } else if (error.message.includes('Row Level Security')) {
+            errorMessage = 'アクセス権限がありません。ログインし直してください。';
+        }
+        
+        // エラーメッセージを表示
+        const messageArea = document.getElementById('messageArea');
+        if (messageArea) {
+            messageArea.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> ${errorMessage}
+                </div>
+            `;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
     }
 }
