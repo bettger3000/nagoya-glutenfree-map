@@ -359,6 +359,23 @@ header .subtitle {
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s;
+}
+
+/* ユーザープロフィールリンク */
+.user-profile-link {
+    cursor: pointer;
+    color: var(--primary-green) !important;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.user-profile-link:hover {
+    color: #45a049 !important;
+    text-decoration: underline;
+}
+
+.filter-btn {
     font-size: 14px;
     display: flex;
     align-items: center;

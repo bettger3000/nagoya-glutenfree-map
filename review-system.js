@@ -547,8 +547,10 @@ class ReviewSystem {
                                 : sanitizeHTML(review.avatar_emoji || '👤')
                             }
                         </span>
-                        ${sanitizeHTML(review.nickname || '匿名ユーザー')}
-                        ${isOwn ? '（あなた）' : ''}
+                        ${isOwn ? 
+                            `${sanitizeHTML(review.nickname || '匿名ユーザー')}（あなた）` :
+                            `<span class="user-profile-link" data-user-id="${review.user_id}" title="プロフィールを見る" style="cursor: pointer; color: var(--primary-green); text-decoration: underline;">${sanitizeHTML(review.nickname || '匿名ユーザー')}</span>`
+                        }
                     </div>
                     ${isOwn ? `
                         <div class="review-actions">

@@ -235,6 +235,16 @@ function setupReviewActionListeners() {
         });
     });
     
+    // ユーザープロフィールリンク
+    document.querySelectorAll('.user-profile-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const userId = e.currentTarget.dataset.userId;
+            console.log('👤 ユーザープロフィールに移動:', userId);
+            window.location.href = `user-profile.html?user=${userId}`;
+        });
+    });
+    
     // 削除ボタン
     document.querySelectorAll('.btn-delete-review').forEach(btn => {
         btn.addEventListener('click', (e) => {
