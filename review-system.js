@@ -96,11 +96,10 @@ class ReviewSystem {
                                 name="comment" 
                                 required
                                 placeholder="料理の味、店舗の雰囲気、サービス、アクセスなど、自由にお書きください..."
-                                maxlength="300"
-                                minlength="10"
+                                maxlength="1000"
                             ></textarea>
                             <div class="character-count">
-                                <span id="characterCount">0</span>/300文字 (最低10文字)
+                                <span id="characterCount">0</span>/1000文字
                             </div>
                         </div>
                         
@@ -315,13 +314,13 @@ class ReviewSystem {
         const isPublic = true; // 常に公開（チェックボックス削除のため）
 
         // バリデーション
-        if (comment.length < 10) {
-            this.showReviewError('コメントは10文字以上で入力してください。');
+        if (comment.length === 0) {
+            this.showReviewError('コメントを入力してください。');
             return;
         }
 
-        if (comment.length > 300) {
-            this.showReviewError('コメントは300文字以内で入力してください。');
+        if (comment.length > 1000) {
+            this.showReviewError('コメントは1000文字以内で入力してください。');
             return;
         }
 
@@ -439,12 +438,12 @@ class ReviewSystem {
         countElement.textContent = count;
         
         // 色分け
-        if (count < 10) {
-            countElement.style.color = '#ff6b6b';
-        } else if (count > 280) {
-            countElement.style.color = '#ff6b6b';
+        if (count > 950) {
+            countElement.style.color = '#ff6b6b'; // 950文字以上で警告色
+        } else if (count > 800) {
+            countElement.style.color = '#f7b731'; // 800文字以上で注意色
         } else {
-            countElement.style.color = '#666';
+            countElement.style.color = '#666'; // 通常色
         }
     }
 
