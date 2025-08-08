@@ -85,12 +85,13 @@ async function initApp() {
     console.log('🚀 グルテンフリーマップ v2 Social 初期化開始');
     
     try {
-        // 認証チェック (マップページでのみ)
-        const authResult = await checkAuthentication();
-        if (!authResult) {
-            console.log('認証に失敗しました。リダイレクト中...');
-            return; // 初期化を中断
-        }
+        // 認証チェックを一時的にスキップ（デバッグ用）
+        console.log('⚠️ 認証チェックをスキップしています（デバッグモード）');
+        // const authResult = await checkAuthentication();
+        // if (!authResult) {
+        //     console.log('認証に失敗しました。リダイレクト中...');
+        //     return; // 初期化を中断
+        // }
         
         // 必要な要素の存在確認
         const requiredElements = ['map', 'totalStores', 'visibleStores', 'loadingStatus'];
@@ -110,16 +111,20 @@ async function initApp() {
         }
         
         // ハンバーガーメニュー初期化
-        if (window.initHamburgerMenu) {
-            window.initHamburgerMenu();
-            console.log('✅ ハンバーガーメニュー初期化完了');
-        }
+        setTimeout(() => {
+            if (window.initHamburgerMenu) {
+                window.initHamburgerMenu();
+                console.log('✅ ハンバーガーメニュー初期化完了');
+            }
+        }, 1000);
         
         // レビューシステム初期化
-        if (window.initReviewSystem) {
-            window.reviewSystem = window.initReviewSystem();
-            console.log('✅ レビューシステム初期化完了');
-        }
+        setTimeout(() => {
+            if (window.initReviewSystem) {
+                window.reviewSystem = window.initReviewSystem();
+                console.log('✅ レビューシステム初期化完了');
+            }
+        }, 1500);
         
         // 地図を初期化
         initMap();
