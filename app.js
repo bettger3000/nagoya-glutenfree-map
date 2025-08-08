@@ -89,6 +89,12 @@ async function loadStores() {
         storesData = stores || [];
         console.log(`📊 ${storesData.length}件の店舗データを取得`);
         
+        // デバッグ: 最初の店舗データ構造を確認
+        if (storesData.length > 0) {
+            console.log('🔍 店舗データサンプル:', storesData[0]);
+            console.log('🔍 利用可能なフィールド:', Object.keys(storesData[0]));
+        }
+        
         // マーカーを表示
         displayStores(storesData);
         
