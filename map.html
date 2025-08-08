@@ -3,262 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>グルテンフリーマップ - ビヨグル倶楽部 presents by naco</title>
-    
-    <!-- Google tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL6YY713PG"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CL6YY713PG');
-    </script>
-    
-    <!-- Google Search Console verification -->
-    <meta name="google-site-verification" content="Czv7Zz2W6KDA9hY2uEteTv_7EU0_w66ISz_qTO3NmPQ" />
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="shortcut icon" type="image/png" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="icon" type="image/x-icon" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="apple-touch-icon" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <link rel="apple-touch-icon-precomposed" href="/nagoya-glutenfree-map/favicon.png?v=4">
-    <meta name="theme-color" content="#ffb6c1">
+    <title>グルテンフリーマップ - 名古屋</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=20250805-lightbox-fixed">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="header-title">
+                    <i class="fas fa-map-marked-alt"></i>
+                    グルテンフリーマップ
+                </h1>
+            </div>
+            <div class="header-right">
+                <span class="version-badge">v2.0</span>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
-        <!-- ヘッダー -->
-        <header>
-            <div class="header-content">
-                <!-- ハンバーガーメニューボタン -->
-                <button class="hamburger-btn" id="hamburgerBtn" title="メニュー">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </button>
-                
-                <div class="header-left">
-                    <img src="naco-character.png.png" alt="nacoキャラクター" class="naco-character">
-                    <div class="header-text">
-                        <h1><i class="fas fa-map-marked-alt"></i> グルテンフリーマップ</h1>
-                        <p class="subtitle">ビヨグル倶楽部 presents by naco</p>
-                    </div>
+        <!-- 統計表示 -->
+        <div class="stats" id="stats">
+            <h2><i class="fas fa-chart-bar"></i> 店舗統計</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalStores">-</div>
+                    <div class="stat-label">総店舗数</div>
                 </div>
-                
-            </div>
-        </header>
-
-        <!-- ハンバーガーメニュー -->
-        <div class="hamburger-menu" id="hamburgerMenu">
-            <div class="hamburger-menu-content">
-                <div class="hamburger-menu-header">
-                    <div class="hamburger-user-info" id="hamburgerUserInfo">
-                        <div class="hamburger-user-avatar">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <div class="hamburger-user-details">
-                            <div class="hamburger-user-name" id="hamburgerUserName">未ログイン</div>
-                            <div class="hamburger-user-stats" id="hamburgerUserStats">ログインしてください</div>
-                        </div>
-                    </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="loadingStatus">読み込み中</div>
+                    <div class="stat-label">ステータス</div>
                 </div>
-                
-                <nav class="hamburger-nav">
-                    <ul class="hamburger-nav-list">
-                        <li class="hamburger-nav-item">
-                            <a href="profile.html" class="hamburger-nav-link">
-                                <i class="fas fa-user-edit"></i>
-                                <span>プロフィール設定</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="hamburger-nav-item">
-                            <a href="#" class="hamburger-nav-link" id="myReviewsLink">
-                                <i class="fas fa-comment-alt"></i>
-                                <span>マイレビュー</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="hamburger-nav-item">
-                            <a href="#" class="hamburger-nav-link" id="myStatsLink">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>統計・実績</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="hamburger-nav-item separator">
-                            <a href="#" class="hamburger-nav-link" id="aboutLink">
-                                <i class="fas fa-info-circle"></i>
-                                <span>このアプリについて</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="hamburger-nav-item login-item" id="hamburgerLoginItem" style="display: none;">
-                            <a href="login.html" class="hamburger-nav-link">
-                                <i class="fas fa-sign-in-alt"></i>
-                                <span>ログイン</span>
-                            </a>
-                        </li>
-                        <li class="hamburger-nav-item logout-item" id="hamburgerLogoutItem" style="display: none;">
-                            <a href="#" class="hamburger-nav-link" id="hamburgerLogout">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>ログアウト</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
             </div>
         </div>
 
-        <!-- ハンバーガーメニューオーバーレイ -->
-        <div class="hamburger-overlay" id="hamburgerOverlay"></div>
-
-        <!-- 検索とフィルター -->
-        <div class="controls">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="店名・住所で検索...">
-                <button class="advanced-search-toggle" id="advancedSearchToggle" title="高度な検索">
-                    <i class="fas fa-sliders-h"></i>
-                </button>
-            </div>
-            
-            <!-- 高度な検索パネル -->
-            <div class="advanced-search-panel" id="advancedSearchPanel" style="display: none;">
-                <h3><i class="fas fa-search-plus"></i> 高度な検索</h3>
-                
-                <div class="search-conditions" id="searchConditions">
-                    <!-- 検索条件がここに動的に追加される -->
-                </div>
-                
-                <div class="search-controls">
-                    <button class="add-condition-btn" id="addConditionBtn">
-                        <i class="fas fa-plus"></i> 条件を追加
-                    </button>
-                    <select id="searchOperator" class="search-operator">
-                        <option value="AND">すべての条件に一致（AND）</option>
-                        <option value="OR">いずれかの条件に一致（OR）</option>
-                    </select>
-                    <button class="clear-search-btn" id="clearSearchBtn">
-                        <i class="fas fa-times"></i> クリア
-                    </button>
-                </div>
-            </div>
-            
-            <div class="category-filters">
-                <button class="filter-btn active" data-category="all">
-                    <i class="fas fa-globe"></i> すべて
-                </button>
-                <button class="filter-btn" data-category="和食">
-                    <i class="fas fa-utensils"></i> 和食
-                </button>
-                <button class="filter-btn" data-category="洋食">
-                    <i class="fas fa-pizza-slice"></i> 洋食
-                </button>
-                <button class="filter-btn" data-category="カフェ">
-                    <i class="fas fa-coffee"></i> カフェ
-                </button>
-                <button class="filter-btn" data-category="パン屋">
-                    <i class="fas fa-bread-slice"></i> パン屋
-                </button>
-                <button class="filter-btn" data-category="販売店">
-                    <i class="fas fa-gift"></i> 販売店
-                </button>
-                <button class="filter-btn" data-category="スイーツ">
-                    <i class="fas fa-ice-cream"></i> スイーツ
-                </button>
-            </div>
-            
-            <!-- 店舗ステータス表示切り替え -->
-            <div class="store-status-toggles" id="storeStatusToggles" style="display: none;">
-                <button class="status-toggle-btn active" id="toggleAllStores" data-mode="all">
-                    <i class="fas fa-store"></i> 全店舗
-                </button>
-                <button class="status-toggle-btn" id="toggleVisitedStores" data-mode="visited">
-                    <i class="fas fa-check-circle"></i> 行った店
-                </button>
-                <button class="status-toggle-btn" id="toggleWishlistStores" data-mode="wishlist">
-                    <i class="fas fa-star"></i> 行きたい店
-                </button>
-            </div>
-            
-        </div>
-
-        <!-- 地図とリストのコンテナ -->
-        <div class="main-content">
-            <div id="map"></div>
-            
-            <!-- 現在地ボタン -->
-            <button class="current-location-btn" id="currentLocationBtn" title="現在地に戻る">
-                <i class="fas fa-location-arrow"></i>
-            </button>
-            
-            <!-- モバイル用トグルボタン -->
-            <button class="mobile-list-toggle" id="mobileListToggle">
-                <i class="fas fa-list"></i> リストを表示
-            </button>
-            
-            <!-- 店舗リスト -->
-            <div class="store-list" id="storeList">
-                <h3>店舗リスト</h3>
-                
-                <!-- 訪問ステータスフィルター -->
-                <div class="visit-status-filters-inline">
-                    <button class="filter-btn-small active" data-visit-status="all">
-                        <i class="fas fa-list"></i> 全て
-                    </button>
-                    <button class="filter-btn-small" data-visit-status="naco">
-                        🔴 naco
-                    </button>
-                    <button class="filter-btn-small" data-visit-status="member">
-                        🟡 メンバー
-                    </button>
-                    <button class="filter-btn-small" data-visit-status="unvisited">
-                        🤍 未確認
-                    </button>
-                </div>
-                
-                <div id="storeListContent"></div>
-            </div>
-        </div>
-
-        <!-- 店舗詳細モーダル -->
-        <div class="modal" id="storeModal">
-            <div class="modal-content">
-                <span class="close-btn" id="closeModal">&times;</span>
-                <div id="modalContent"></div>
-            </div>
+        <!-- 地図 -->
+        <div id="map" class="loading">
+            <i class="fas fa-spinner"></i>
+            地図を読み込み中...
         </div>
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Auth JS (認証処理) -->
-    <script type="module" src="auth.js"></script>
-    
-    <!-- Review System JS -->
-    <script type="module" src="review-system.js"></script>
-    
-    <!-- Store Status Manager JS -->
-    <script type="module" src="store-status-manager.js"></script>
-    
-    <!-- Hamburger Menu JS -->
-    <script type="module" src="hamburger-menu.js"></script>
-    
-    <!-- Custom JS -->
-    <script type="module" src="app-fixed-lightbox.js"></script>
+    <!-- アプリケーション -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>

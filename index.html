@@ -3,85 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="セリアック病・グルテン過敏症の方向けの名古屋市内グルテンフリー対応店舗マップ。">
-    <title>名古屋グルテンフリーマップ - ログイン</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="favicon.png" type="image/png">
-    
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL6YY713PG"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-CL6YY713PG');
-    </script>
-</head>
-<body>
-    <script>
-        // 認証チェックとリダイレクト処理
-        console.log('🔄 index.htmlからリダイレクト処理開始...');
-        
-        // Supabaseクライアントを一時的に作成してセッションチェック
-        import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({ createClient }) => {
-            const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
-            
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            supabase.auth.getSession().then(({ data: { session }, error }) => {
-                if (error) {
-                    console.error('❌ セッション確認エラー:', error);
-                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-                    return;
-                }
-                
-                if (session && session.user) {
-                    console.log('✅ セッション有効 - map.htmlにリダイレクト');
-                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/map.html';
-                } else {
-                    console.log('ℹ️ セッションなし - login.htmlにリダイレクト');
-                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-                }
-            });
-        }).catch(error => {
-            console.error('❌ Supabaseクライアント作成エラー:', error);
-            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-        });
-    </script>
-    
-    <div style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
-        color: white;
-        text-align: center;
-    ">
-        <div>
-            <div style="font-size: 48px; margin-bottom: 20px;">🍰</div>
-            <h1>名古屋グルテンフリーマップ</h1>
-            <p style="margin: 20px 0;">認証情報を確認しています...</p>
-            <div style="
-                width: 40px;
-                height: 40px;
-                border: 4px solid rgba(255,255,255,0.3);
-                border-top-color: white;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin: 20px auto;
-            "></div>
-        </div>
-    </div>
-    
+    <title>グルテンフリーマップ</title>
     <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #98D8C8, #B8E8D8);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #98D8C8;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(152, 216, 200, 0.4);
+        }
+        
+        .version {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #999;
         }
     </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗾 グルテンフリーマップ</h1>
+        <p>
+            名古屋のグルテンフリー対応店舗を探すためのマップです。<br>
+            新しいバージョンを構築中です。
+        </p>
+        
+        <a href="map.html" class="btn">
+            📍 マップを開く
+        </a>
+        
+        <div class="version">
+            Version 2.0 - Clean Rebuild
+        </div>
+    </div>
 </body>
 </html>
