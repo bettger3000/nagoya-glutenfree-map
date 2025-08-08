@@ -51,11 +51,33 @@ class HamburgerMenu {
         this.hamburgerUserName = document.getElementById('hamburgerUserName');
         this.hamburgerUserStats = document.getElementById('hamburgerUserStats');
         
-        console.log('🔍 DOM要素取得:', {
+        // メニュー項目も確認
+        const myReviewsLink = document.getElementById('myReviewsLink');
+        const myStatsLink = document.getElementById('myStatsLink');
+        const aboutLink = document.getElementById('aboutLink');
+        const hamburgerLogout = document.getElementById('hamburgerLogout');
+        
+        console.log('🔍 詳細DOM要素取得結果:', {
+            device: window.innerWidth > 768 ? 'PC' : 'Mobile',
+            screenWidth: window.innerWidth,
             btn: !!this.hamburgerBtn,
             menu: !!this.hamburgerMenu,
-            overlay: !!this.hamburgerOverlay
+            overlay: !!this.hamburgerOverlay,
+            userName: !!this.hamburgerUserName,
+            userStats: !!this.hamburgerUserStats,
+            myReviewsLink: !!myReviewsLink,
+            myStatsLink: !!myStatsLink,
+            aboutLink: !!aboutLink,
+            hamburgerLogout: !!hamburgerLogout
         });
+        
+        // PC版で要素が見つからない場合の特別処理
+        if (window.innerWidth > 768 && (!myReviewsLink || !myStatsLink || !aboutLink)) {
+            console.error('🚨 PC版でメニュー要素が見つからない！DOM構造を確認:', {
+                hamburgerMenu: document.getElementById('hamburgerMenu'),
+                menuHTML: document.getElementById('hamburgerMenu')?.innerHTML
+            });
+        }
     }
     
     // 現在のユーザー情報を読み込み
@@ -150,28 +172,49 @@ class HamburgerMenu {
         const myReviewsLink = document.getElementById('myReviewsLink');
         if (myReviewsLink) {
             myReviewsLink.addEventListener('click', (e) => {
+                console.log('🖱️ マイレビューリンククリック');
                 e.preventDefault();
-                this.handleMyReviews();
+                try {
+                    this.handleMyReviews();
+                } catch (error) {
+                    console.error('❌ マイレビューハンドラエラー:', error);
+                }
             });
             console.log('✅ マイレビューリンク設定完了');
+        } else {
+            console.error('❌ myReviewsLink要素が見つからない');
         }
         
         const myStatsLink = document.getElementById('myStatsLink');
         if (myStatsLink) {
             myStatsLink.addEventListener('click', (e) => {
+                console.log('🖱️ 統計リンククリック');
                 e.preventDefault();
-                this.handleMyStats();
+                try {
+                    this.handleMyStats();
+                } catch (error) {
+                    console.error('❌ 統計ハンドラエラー:', error);
+                }
             });
             console.log('✅ 統計リンク設定完了');
+        } else {
+            console.error('❌ myStatsLink要素が見つからない');
         }
         
         const aboutLink = document.getElementById('aboutLink');
         if (aboutLink) {
             aboutLink.addEventListener('click', (e) => {
+                console.log('🖱️ このアプリについてリンククリック');
                 e.preventDefault();
-                this.handleAbout();
+                try {
+                    this.handleAbout();
+                } catch (error) {
+                    console.error('❌ このアプリについてハンドラエラー:', error);
+                }
             });
             console.log('✅ このアプリについてリンク設定完了');
+        } else {
+            console.error('❌ aboutLink要素が見つからない');
         }
         
         const hamburgerLogout = document.getElementById('hamburgerLogout');
