@@ -42,9 +42,17 @@ class AuthSystem {
     
     getDOMElements() {
         // 認証関連のDOM要素を取得（動的に生成される場合も考慮）
-        this.elements.loginBtn = document.getElementById('login-btn');
-        this.elements.userInfo = document.getElementById('user-info');
-        this.elements.logoutBtn = document.getElementById('logout-btn');
+        try {
+            this.elements.loginBtn = document.getElementById('login-btn');
+            this.elements.userInfo = document.getElementById('user-info');
+            this.elements.logoutBtn = document.getElementById('logout-btn');
+            
+            if (!this.elements.loginBtn) {
+                console.warn('⚠️ ログインボタンが見つかりません');
+            }
+        } catch (error) {
+            console.warn('⚠️ DOM要素取得中にエラー:', error);
+        }
     }
     
     async checkAuthState() {
@@ -99,14 +107,47 @@ class AuthSystem {
     setupEventListeners() {
         // ログインボタンのクリックイベント
         if (this.elements.loginBtn) {
-            this.elements.loginBtn.addEventListener('click', () => {
+            this.elements.loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.signInWithGoogle();
             });
+        } else {
+            console.warn('⚠️ ログインボタンにイベントリスナーを設定できませんでした');
         }
         
         // ログアウトボタンのクリックイベント
         if (this.elements.logoutBtn) {
-            this.elements.logoutBtn.addEventListener('click', () => {
+            this.elements.logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.signOut();
+            });
+        }
+        
+        // 遅延実行でDOM要素を再取得（フォールバック）
+        setTimeout(() => {
+            this.setupFallbackEventListeners();
+        }, 1000);
+    }
+    
+    setupFallbackEventListeners() {
+        // DOM要素が後から生成される場合のフォールバック
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        if (loginBtn && !this.elements.loginBtn) {
+            console.log('🔄 フォールバック: ログインボタン発見');
+            this.elements.loginBtn = loginBtn;
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.signInWithGoogle();
+            });
+        }
+        
+        if (logoutBtn && !this.elements.logoutBtn) {
+            console.log('🔄 フォールバック: ログアウトボタン発見');
+            this.elements.logoutBtn = logoutBtn;
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.signOut();
             });
         }
@@ -222,21 +263,27 @@ class AuthSystem {
     }
     
     showWelcomeMessage(user) {
-        const name = user.user_metadata?.name || user.email.split('@')[0];
-        
-        // 一時的な通知を表示
-        const notification = document.createElement('div');
-        notification.className = 'auth-notification success';
-        notification.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>こんにちは、${name}さん！</span>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        try {
+            const name = user.user_metadata?.name || user.email.split('@')[0];
+            
+            // 一時的な通知を表示
+            const notification = document.createElement('div');
+            notification.className = 'auth-notification success';
+            notification.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>こんにちは、${name}さん！</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        } catch (error) {
+            console.warn('⚠️ ウェルカムメッセージ表示エラー:', error);
+        }
     }
     
     showGoodbyeMessage() {
