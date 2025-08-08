@@ -105,42 +105,82 @@ function displayStores(stores) {
     // 既存マーカーをクリア
     clearMarkers();
     
+    let validMarkers = 0;
+    let invalidMarkers = 0;
+    
     stores.forEach(store => {
         const marker = createStoreMarker(store);
-        markers.push(marker);
-        marker.addTo(map);
+        if (marker) {
+            markers.push(marker);
+            marker.addTo(map);
+            validMarkers++;
+        } else {
+            invalidMarkers++;
+        }
     });
     
-    console.log(`✅ ${stores.length}個のマーカーを配置完了`);
+    console.log(`✅ ${validMarkers}個の有効マーカーを配置完了`);
+    if (invalidMarkers > 0) {
+        console.warn(`⚠️ ${invalidMarkers}個の無効な店舗データをスキップ`);
+    }
 }
 
 // 店舗マーカー作成
 function createStoreMarker(store) {
+    // 緯度経度の検証
+    const lat = parseFloat(store.latitude);
+    const lng = parseFloat(store.longitude);
+    
+    if (!isValidLatLng(lat, lng)) {
+        console.warn(`❌ 無効な座標データ: ${store.name} (${store.latitude}, ${store.longitude})`);
+        return null; // 無効な座標の場合はnullを返す
+    }
+    
     const category = store.category || 'その他';
     const style = categoryStyles[category] || categoryStyles['その他'];
     
-    const marker = L.marker([store.latitude, store.longitude], {
-        icon: L.divIcon({
-            className: 'custom-marker',
-            html: `
-                <div class="marker-pin category-${category}" style="background-color: ${style.color};">
-                    <i class="fas ${style.icon}"></i>
-                </div>
-            `,
-            iconSize: [30, 30],
-            iconAnchor: [15, 30]
-        })
-    });
-    
-    // クリックイベント
-    marker.on('click', () => {
-        showStorePopup(store);
-    });
-    
-    // ストアデータを保存
-    marker.storeData = store;
-    
-    return marker;
+    try {
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: `
+                    <div class="marker-pin category-${category}" style="background-color: ${style.color};">
+                        <i class="fas ${style.icon}"></i>
+                    </div>
+                `,
+                iconSize: [30, 30],
+                iconAnchor: [15, 30]
+            })
+        });
+        
+        // クリックイベント
+        marker.on('click', () => {
+            showStorePopup(store);
+        });
+        
+        // ストアデータを保存
+        marker.storeData = store;
+        
+        return marker;
+        
+    } catch (error) {
+        console.error(`❌ マーカー作成エラー: ${store.name}`, error);
+        return null;
+    }
+}
+
+// 緯度経度の妥当性チェック
+function isValidLatLng(lat, lng) {
+    return (
+        !isNaN(lat) && 
+        !isNaN(lng) && 
+        lat >= -90 && 
+        lat <= 90 && 
+        lng >= -180 && 
+        lng <= 180 &&
+        lat !== 0 && 
+        lng !== 0
+    );
 }
 
 // 店舗ポップアップ表示
