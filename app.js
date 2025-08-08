@@ -283,16 +283,22 @@ class GlutenFreeMap {
         });
         
         // ハンバーガーメニュー
-        this.elements.hamburgerBtn.addEventListener('click', () => {
+        this.elements.hamburgerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.toggleHamburgerMenu();
         });
         
-        this.elements.closeHamburger.addEventListener('click', () => {
+        this.elements.closeHamburger.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.closeHamburgerMenu();
         });
         
         // オーバーレイクリック
-        this.elements.hamburgerMenu.querySelector('.hamburger-overlay').addEventListener('click', () => {
+        this.elements.hamburgerMenu.querySelector('.hamburger-overlay').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.closeHamburgerMenu();
         });
         
@@ -339,24 +345,37 @@ class GlutenFreeMap {
     
     // ハンバーガーメニュー操作
     toggleHamburgerMenu() {
+        console.log('🍔 ハンバーガーメニュートグル');
         const isOpen = this.elements.hamburgerMenu.classList.contains('show');
+        
         if (isOpen) {
+            console.log('🍔 メニューを閉じる');
             this.closeHamburgerMenu();
         } else {
+            console.log('🍔 メニューを開く');
             this.openHamburgerMenu();
         }
     }
     
     openHamburgerMenu() {
+        console.log('🍔 メニューオープン処理');
         this.elements.hamburgerMenu.classList.add('show');
         this.elements.hamburgerBtn.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
     
     closeHamburgerMenu() {
+        console.log('🍔 メニュークローズ処理');
         this.elements.hamburgerMenu.classList.remove('show');
         this.elements.hamburgerBtn.classList.remove('active');
         document.body.style.overflow = 'auto';
+        
+        // 確実に状態をリセット
+        setTimeout(() => {
+            if (!this.elements.hamburgerMenu.classList.contains('show')) {
+                this.elements.hamburgerBtn.classList.remove('active');
+            }
+        }, 100);
     }
 }
 
