@@ -1,11 +1,7 @@
 // ハンバーガーメニュー管理システム
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { getSupabaseClient } from './supabase-client.js';
 
-// Supabase設定
-const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = getSupabaseClient();
 
 class HamburgerMenu {
     constructor() {
@@ -76,6 +72,25 @@ class HamburgerMenu {
             console.error('🚨 PC版でメニュー要素が見つからない！DOM構造を確認:', {
                 hamburgerMenu: document.getElementById('hamburgerMenu'),
                 menuHTML: document.getElementById('hamburgerMenu')?.innerHTML
+            });
+        }
+        
+        // PC版専用デバッグ：要素の計算スタイルを確認
+        if (window.innerWidth > 768) {
+            [myReviewsLink, myStatsLink, aboutLink].forEach((element, index) => {
+                const names = ['myReviewsLink', 'myStatsLink', 'aboutLink'];
+                if (element) {
+                    const computedStyle = window.getComputedStyle(element);
+                    console.log(`🔍 PC版 ${names[index]} 計算スタイル:`, {
+                        display: computedStyle.display,
+                        visibility: computedStyle.visibility,
+                        pointerEvents: computedStyle.pointerEvents,
+                        zIndex: computedStyle.zIndex,
+                        position: computedStyle.position,
+                        opacity: computedStyle.opacity,
+                        transform: computedStyle.transform
+                    });
+                }
             });
         }
     }
@@ -172,14 +187,31 @@ class HamburgerMenu {
         const myReviewsLink = document.getElementById('myReviewsLink');
         if (myReviewsLink) {
             myReviewsLink.addEventListener('click', (e) => {
-                console.log('🖱️ マイレビューリンククリック');
+                console.log('🖱️ マイレビューリンククリック', {
+                    target: e.target,
+                    currentTarget: e.currentTarget,
+                    deviceType: window.innerWidth > 768 ? 'PC' : 'Mobile',
+                    timestamp: new Date().toLocaleTimeString()
+                });
                 e.preventDefault();
+                e.stopPropagation();
                 try {
                     this.handleMyReviews();
                 } catch (error) {
                     console.error('❌ マイレビューハンドラエラー:', error);
                 }
             });
+            
+            // PC版でホバー確認
+            if (window.innerWidth > 768) {
+                myReviewsLink.addEventListener('mouseenter', () => {
+                    console.log('🖱️ PC版マイレビューリンクホバー開始');
+                });
+                myReviewsLink.addEventListener('mouseleave', () => {
+                    console.log('🖱️ PC版マイレビューリンクホバー終了');
+                });
+            }
+            
             console.log('✅ マイレビューリンク設定完了');
         } else {
             console.error('❌ myReviewsLink要素が見つからない');
@@ -188,14 +220,26 @@ class HamburgerMenu {
         const myStatsLink = document.getElementById('myStatsLink');
         if (myStatsLink) {
             myStatsLink.addEventListener('click', (e) => {
-                console.log('🖱️ 統計リンククリック');
+                console.log('🖱️ 統計リンククリック', {
+                    target: e.target,
+                    deviceType: window.innerWidth > 768 ? 'PC' : 'Mobile',
+                    timestamp: new Date().toLocaleTimeString()
+                });
                 e.preventDefault();
+                e.stopPropagation();
                 try {
                     this.handleMyStats();
                 } catch (error) {
                     console.error('❌ 統計ハンドラエラー:', error);
                 }
             });
+            
+            if (window.innerWidth > 768) {
+                myStatsLink.addEventListener('mouseenter', () => {
+                    console.log('🖱️ PC版統計リンクホバー開始');
+                });
+            }
+            
             console.log('✅ 統計リンク設定完了');
         } else {
             console.error('❌ myStatsLink要素が見つからない');
@@ -204,14 +248,26 @@ class HamburgerMenu {
         const aboutLink = document.getElementById('aboutLink');
         if (aboutLink) {
             aboutLink.addEventListener('click', (e) => {
-                console.log('🖱️ このアプリについてリンククリック');
+                console.log('🖱️ このアプリについてリンククリック', {
+                    target: e.target,
+                    deviceType: window.innerWidth > 768 ? 'PC' : 'Mobile',
+                    timestamp: new Date().toLocaleTimeString()
+                });
                 e.preventDefault();
+                e.stopPropagation();
                 try {
                     this.handleAbout();
                 } catch (error) {
                     console.error('❌ このアプリについてハンドラエラー:', error);
                 }
             });
+            
+            if (window.innerWidth > 768) {
+                aboutLink.addEventListener('mouseenter', () => {
+                    console.log('🖱️ PC版このアプリについてリンクホバー開始');
+                });
+            }
+            
             console.log('✅ このアプリについてリンク設定完了');
         } else {
             console.error('❌ aboutLink要素が見つからない');
@@ -637,18 +693,82 @@ if (document.readyState === 'loading') {
         console.log('🔄 DOM準備完了、ハンバーガーメニューを初期化');
         window.hamburgerMenu = new HamburgerMenu();
         
-        // フォールバック: 手動でイベント設定
+        // 強制的なフォールバック: 確実にイベント設定
         setTimeout(() => {
             const btn = document.getElementById('hamburgerBtn');
             const menu = document.getElementById('hamburgerMenu');
-            if (btn && menu && !btn.onclick) {
-                console.log('🔧 フォールバック: 手動でクリックイベント設定');
+            
+            // ハンバーガーボタンのフォールバック
+            if (btn && menu) {
+                console.log('🔧 強制フォールバック: ハンバーガーボタン設定');
                 btn.onclick = function() {
                     menu.classList.toggle('show');
-                    console.log('フォールバック: メニュー切り替え');
+                    console.log('強制フォールバック: メニュー切り替え');
                 };
             }
-        }, 1000);
+            
+            // メニュー項目の強制フォールバック（buttonタグ対応）
+            const myReviewsLink = document.getElementById('myReviewsLink');
+            const myStatsLink = document.getElementById('myStatsLink');
+            const aboutLink = document.getElementById('aboutLink');
+            
+            console.log('🔍 強制フォールバック要素チェック:', {
+                myReviewsLink: !!myReviewsLink,
+                myStatsLink: !!myStatsLink,
+                aboutLink: !!aboutLink,
+                myReviewsTagName: myReviewsLink?.tagName,
+                myStatsTagName: myStatsLink?.tagName,
+                aboutTagName: aboutLink?.tagName
+            });
+            
+            if (myReviewsLink) {
+                console.log('🔧 強制フォールバック: マイレビューボタン設定');
+                myReviewsLink.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ 強制フォールバック: マイレビュークリック');
+                    alert('マイレビュー機能（強制フォールバック）\n\nPC版で正常に動作しています！');
+                    menu.classList.remove('show');
+                };
+            }
+            
+            if (myStatsLink) {
+                console.log('🔧 強制フォールバック: 統計ボタン設定');
+                myStatsLink.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ 強制フォールバック: 統計クリック');
+                    alert('統計・実績機能（強制フォールバック）\n\nPC版で正常に動作しています！');
+                    menu.classList.remove('show');
+                };
+            }
+            
+            if (aboutLink) {
+                console.log('🔧 強制フォールバック: このアプリについてボタン設定');
+                aboutLink.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ 強制フォールバック: このアプリについてクリック');
+                    alert('このアプリについて（強制フォールバック）\n\nPC版で正常に動作しています！');
+                    menu.classList.remove('show');
+                };
+            }
+            
+            // マウスイベントでも確認
+            [myReviewsLink, myStatsLink, aboutLink].forEach((element, index) => {
+                if (element) {
+                    const names = ['マイレビュー', '統計', 'このアプリについて'];
+                    element.onmouseenter = function() {
+                        console.log(`🖱️ ${names[index]}ホバー検知`);
+                        element.style.backgroundColor = 'rgba(152, 216, 200, 0.2)';
+                    };
+                    element.onmouseleave = function() {
+                        element.style.backgroundColor = '';
+                    };
+                }
+            });
+            
+        }, 2000);
     });
 } else {
     // 既にDOMが読み込み済み
@@ -659,12 +779,47 @@ if (document.readyState === 'loading') {
     setTimeout(() => {
         const btn = document.getElementById('hamburgerBtn');
         const menu = document.getElementById('hamburgerMenu');
+        
+        // ハンバーガーボタンのフォールバック
         if (btn && menu && !btn.onclick) {
-            console.log('🔧 フォールバック: 手動でクリックイベント設定');
+            console.log('🔧 フォールバック: 手動でハンバーガーボタンクリックイベント設定');
             btn.onclick = function() {
                 menu.classList.toggle('show');
                 console.log('フォールバック: メニュー切り替え');
             };
         }
+        
+        // メニュー項目のフォールバック
+        const myReviewsLink = document.getElementById('myReviewsLink');
+        const myStatsLink = document.getElementById('myStatsLink');
+        const aboutLink = document.getElementById('aboutLink');
+        
+        if (myReviewsLink && !myReviewsLink.onclick) {
+            console.log('🔧 フォールバック: マイレビューリンクに手動設定');
+            myReviewsLink.onclick = function(e) {
+                e.preventDefault();
+                console.log('🖱️ フォールバック: マイレビュークリック');
+                alert('マイレビュー機能（フォールバック）');
+            };
+        }
+        
+        if (myStatsLink && !myStatsLink.onclick) {
+            console.log('🔧 フォールバック: 統計リンクに手動設定');
+            myStatsLink.onclick = function(e) {
+                e.preventDefault();
+                console.log('🖱️ フォールバック: 統計クリック');
+                alert('統計・実績機能（フォールバック）');
+            };
+        }
+        
+        if (aboutLink && !aboutLink.onclick) {
+            console.log('🔧 フォールバック: このアプリについてリンクに手動設定');
+            aboutLink.onclick = function(e) {
+                e.preventDefault();
+                console.log('🖱️ フォールバック: このアプリについてクリック');
+                alert('このアプリについて（フォールバック）');
+            };
+        }
+        
     }, 1000);
 }

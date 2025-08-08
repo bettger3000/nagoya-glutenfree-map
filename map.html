@@ -85,25 +85,25 @@
                             </a>
                         </li>
                         <li class="hamburger-nav-item">
-                            <a href="#" class="hamburger-nav-link" id="myReviewsLink">
+                            <button class="hamburger-nav-link" id="myReviewsLink" style="background: none; border: none; width: 100%; text-align: left;">
                                 <i class="fas fa-comment-alt"></i>
                                 <span>マイレビュー</span>
                                 <i class="fas fa-chevron-right"></i>
-                            </a>
+                            </button>
                         </li>
                         <li class="hamburger-nav-item">
-                            <a href="#" class="hamburger-nav-link" id="myStatsLink">
+                            <button class="hamburger-nav-link" id="myStatsLink" style="background: none; border: none; width: 100%; text-align: left;">
                                 <i class="fas fa-chart-bar"></i>
                                 <span>統計・実績</span>
                                 <i class="fas fa-chevron-right"></i>
-                            </a>
+                            </button>
                         </li>
                         <li class="hamburger-nav-item separator">
-                            <a href="#" class="hamburger-nav-link" id="aboutLink">
+                            <button class="hamburger-nav-link" id="aboutLink" style="background: none; border: none; width: 100%; text-align: left;">
                                 <i class="fas fa-info-circle"></i>
                                 <span>このアプリについて</span>
                                 <i class="fas fa-chevron-right"></i>
-                            </a>
+                            </button>
                         </li>
                         <li class="hamburger-nav-item login-item" id="hamburgerLoginItem" style="display: none;">
                             <a href="login.html" class="hamburger-nav-link">
@@ -246,6 +246,9 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
+    <!-- Supabase Client (最初に読み込み) -->
+    <script type="module" src="supabase-client.js"></script>
+    
     <!-- Auth JS (認証処理) -->
     <script type="module" src="auth.js"></script>
     
@@ -256,9 +259,9 @@
     <script type="module" src="store-status-manager.js"></script>
     
     <!-- Hamburger Menu JS -->
-    <script type="module" src="hamburger-menu.js?v=20250808-fix-cache"></script>
+    <script type="module" src="hamburger-menu.js?v=20250808-force-fix"></script>
     
     <!-- Custom JS -->
-    <script type="module" src="app.js?v=20250808-fix-cache"></script>
+    <script type="module" src="app.js?v=20250808-force-fix"></script>
 </body>
 </html>
