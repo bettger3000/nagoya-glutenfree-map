@@ -24,13 +24,9 @@ async function checkAuthentication() {
             setTimeout(() => reject(new Error('認証チェックタイムアウト')), 3000)
         );
         
-        const sessionCheckPromise = (async () => {
-            // Supabaseクライアントを作成
-            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            return await supabaseClient.auth.getSession();
-        })();
+        // 認証をスキップ（パブリックアクセス版）
+        console.log('🔓 認証をスキップしています（パブリックアクセス版）');
+        return { data: { session: null }, error: null };
         
         const { data: { session }, error } = await Promise.race([
             sessionCheckPromise,
@@ -63,9 +59,7 @@ async function checkAuthentication() {
     }
 }
 
-// Supabaseクライアント（直接設定）
-const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+// Supabaseクライアント設定は supabase-client.js で一元管理
 
 let supabase;
 
@@ -101,13 +95,12 @@ async function initApp() {
             throw new Error(`必要な要素が見つかりません: ${missingElements.join(', ')}`);
         }
         
-        // Supabaseクライアント初期化
+        // Supabaseクライアント初期化（共有クライアント使用）
         if (window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            window.supabase = supabase; // グローバルアクセス用
-            console.log('✅ Supabaseクライアント初期化完了');
+            supabase = window.supabase;
+            console.log('✅ 共有Supabaseクライアント利用');
         } else {
-            throw new Error('Supabaseライブラリが読み込まれていません');
+            console.warn('⚠️ Supabaseクライアントが利用できません（パブリックアクセス版）');
         }
         
         // ハンバーガーメニュー初期化
