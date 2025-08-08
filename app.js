@@ -160,6 +160,11 @@ class GlutenFreeMap {
     showStoreDetail(store) {
         console.log('📋 店舗詳細を表示:', store.name);
         
+        // ハンバーガーメニューが開いている場合は閉じる
+        if (this.elements.hamburgerMenu.classList.contains('show')) {
+            this.closeHamburgerMenu();
+        }
+        
         this.elements.modalTitle.textContent = store.name;
         
         this.elements.modalBody.innerHTML = `
@@ -302,6 +307,11 @@ class GlutenFreeMap {
             this.closeHamburgerMenu();
         });
         
+        // ドキュメント全体でのクリックイベント（ハンバーガーメニュー外クリック対応）
+        document.addEventListener('click', (e) => {
+            this.handleDocumentClick(e);
+        });
+        
         console.log('✅ UI初期化完了');
     }
     
@@ -376,6 +386,31 @@ class GlutenFreeMap {
                 this.elements.hamburgerBtn.classList.remove('active');
             }
         }, 100);
+    }
+    
+    // ドキュメントクリック処理（ハンバーガーメニュー外クリック検出）
+    handleDocumentClick(event) {
+        // ハンバーガーメニューが開いていない場合は何もしない
+        if (!this.elements.hamburgerMenu.classList.contains('show')) {
+            return;
+        }
+        
+        // クリックされた要素がハンバーガーメニュー関連要素かチェック
+        const clickedElement = event.target;
+        
+        // ハンバーガーボタン自体またはその子要素の場合は無視
+        if (this.elements.hamburgerBtn.contains(clickedElement)) {
+            return;
+        }
+        
+        // ハンバーガーメニューコンテンツ内のクリックの場合は無視
+        if (this.elements.hamburgerMenu.querySelector('.hamburger-content').contains(clickedElement)) {
+            return;
+        }
+        
+        // それ以外の場合（地図、モーダル、フィルターボタン等）はメニューを閉じる
+        console.log('🍔 メニュー外クリック検出 - メニューを閉じます');
+        this.closeHamburgerMenu();
     }
 }
 
