@@ -95,8 +95,13 @@ async function loadStores() {
             console.log('🔍 利用可能なフィールド:', Object.keys(storesData[0]));
         }
         
+        // Googleマップリンクから座標を抽出
+        const processedStores = storesData.map(store => {
+            return processStoreCoordinates(store);
+        });
+        
         // マーカーを表示
-        displayStores(storesData);
+        displayStores(processedStores);
         
     } catch (error) {
         console.error('❌ 店舗データ取得エラー:', error);
@@ -187,6 +192,90 @@ function isValidLatLng(lat, lng) {
         lat !== 0 && 
         lng !== 0
     );
+}
+
+// 店舗データの座標処理
+function processStoreCoordinates(store) {
+    // 既に latitude, longitude がある場合はそのまま
+    if (store.latitude && store.longitude) {
+        return store;
+    }
+    
+    // Googleマップリンクから座標を抽出
+    const coordinates = extractCoordinatesFromGoogleMaps(store);
+    
+    if (coordinates) {
+        store.latitude = coordinates.lat;
+        store.longitude = coordinates.lng;
+        console.log(`📍 ${store.name}: 座標抽出成功 (${coordinates.lat}, ${coordinates.lng})`);
+    } else {
+        console.warn(`⚠️ ${store.name}: 座標抽出失敗`);
+    }
+    
+    return store;
+}
+
+// GoogleマップリンクやURLから座標を抽出
+function extractCoordinatesFromGoogleMaps(store) {
+    // 検索するフィールド名のリスト
+    const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+    
+    let mapUrl = null;
+    
+    // URLを含むフィールドを探す
+    for (const field of urlFields) {
+        if (store[field] && typeof store[field] === 'string' && store[field].includes('google')) {
+            mapUrl = store[field];
+            break;
+        }
+    }
+    
+    if (!mapUrl) {
+        // 全フィールドからGoogleマップURLを探す
+        for (const [key, value] of Object.entries(store)) {
+            if (typeof value === 'string' && (
+                value.includes('maps.google') || 
+                value.includes('goo.gl/maps') ||
+                value.includes('@') && value.includes(',')
+            )) {
+                mapUrl = value;
+                console.log(`🔍 ${store.name}: URLフィールド "${key}" で発見: ${value.substring(0, 50)}...`);
+                break;
+            }
+        }
+    }
+    
+    if (!mapUrl) {
+        return null;
+    }
+    
+    // 座標抽出のパターン
+    const patterns = [
+        // @lat,lng,zoom パターン
+        /@(-?\d+\.?\d*),(-?\d+\.?\d*),/,
+        // !3d緯度!4d経度 パターン  
+        /!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/,
+        // ll=lat,lng パターン
+        /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+        // q=lat,lng パターン
+        /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+        // center=lat,lng パターン
+        /center=(-?\d+\.?\d*),(-?\d+\.?\d*)/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = mapUrl.match(pattern);
+        if (match) {
+            const lat = parseFloat(match[1]);
+            const lng = parseFloat(match[2]);
+            
+            if (isValidLatLng(lat, lng)) {
+                return { lat, lng };
+            }
+        }
+    }
+    
+    return null;
 }
 
 // 店舗ポップアップ表示
