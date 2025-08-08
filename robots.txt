@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /
+
+# 名古屋グルテンフリーマップ - コミュニティ専用
+# This is a private community map for gluten-free resources in Nagoya
+# Not intended for public search engine indexing
