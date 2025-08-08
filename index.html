@@ -4,134 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
-    <title>グルテンフリーマップ</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #98D8C8, #B8E8D8);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .container {
-            text-align: center;
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            max-width: 500px;
-            margin: 20px;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 1rem;
-        }
-        
-        p {
-            color: #666;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-        
-        .btn {
-            display: inline-block;
-            background: #98D8C8;
-            color: white;
-            text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(152, 216, 200, 0.4);
-        }
-        
-        .version {
-            margin-top: 2rem;
-            font-size: 0.9rem;
-            color: #999;
-        }
-    </style>
+    <title>名古屋グルテンフリーマップ v3</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🗾 グルテンフリーマップ</h1>
-        <p>
-            名古屋のグルテンフリー対応店舗を探すためのマップです。<br>
-            新しいバージョンを構築中です。
-        </p>
-        
-        <a href="#" class="btn" id="openMapBtn">
-            📍 マップを開く
-        </a>
-        
-        <div id="loadingMessage" style="display: none; margin-top: 20px; color: #666; font-size: 14px;">
-            認証情報を確認中...
+    <div id="app">
+        <!-- ローディング画面 -->
+        <div id="loading" class="loading-screen">
+            <div class="loading-content">
+                <div class="loader">🍰</div>
+                <h2>グルテンフリーマップ</h2>
+                <p>読み込み中...</p>
+            </div>
         </div>
         
-        <div class="version">
-            Version 2.0 Social - 初代版機能復活
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-map-marked-alt"></i>
+                    名古屋グルテンフリーマップ v3
+                </h1>
+                <div class="header-stats">
+                    <span id="store-count">0</span> 店舗
+                </div>
+            </div>
+        </header>
+        
+        <!-- 検索セクション -->
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="店名・住所・説明で検索..." 
+                    class="search-input"
+                >
+                <div class="filter-tabs" id="filter-tabs">
+                    <button class="filter-tab active" data-category="all">
+                        すべて
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 地図コンテナ -->
+        <div id="map" class="map-container"></div>
+        
+        <!-- 店舗詳細モーダル -->
+        <div id="store-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">店舗詳細</h3>
+                    <button class="close-btn" id="close-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- 動的に生成 -->
+                </div>
+            </div>
         </div>
     </div>
     
-    <!-- 認証チェックスクリプト -->
-    <script type="module">
-        console.log('🗺️ 認証なし版 - 直接マップにアクセス');
-        // 認証チェックなしで直接アクセス
-        
-        let isChecking = false;
-        
-        document.getElementById('openMapBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            if (isChecking) {
-                console.log('マップを読み込み中...');
-                return;
-            }
-            
-            isChecking = true;
-            const loadingMessage = document.getElementById('loadingMessage');
-            const btn = document.getElementById('openMapBtn');
-            
-            try {
-                // ローディング表示
-                loadingMessage.style.display = 'block';
-                loadingMessage.textContent = 'マップを読み込み中...';
-                btn.style.opacity = '0.6';
-                btn.style.pointerEvents = 'none';
-                
-                console.log('🗺️ マップページに移動中...');
-                
-                // 少し待ってからマップページへ直接移動（認証チェックなし）
-                setTimeout(() => {
-                    window.location.href = 'map.html';
-                }, 500);
-                
-            } catch (error) {
-                console.error('❗ ページ移動エラー:', error);
-                window.location.href = 'map.html';
-            } finally {
-                // ローディング終了
-                setTimeout(() => {
-                    loadingMessage.style.display = 'none';
-                    btn.style.opacity = '1';
-                    btn.style.pointerEvents = 'auto';
-                    isChecking = false;
-                }, 1000);
-            }
-        });
-        
-        // ページ読み込み時の初期化
-        console.log('🍰 グルテンフリーマップ v2 Social - インデックスページ読み込み完了');
-    </script>
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="supabase-client.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
