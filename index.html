@@ -73,8 +73,12 @@
             📍 マップを開く
         </a>
         
+        <div id="loadingMessage" style="display: none; margin-top: 20px; color: #666; font-size: 14px;">
+            認証情報を確認中...
+        </div>
+        
         <div class="version">
-            Version 2.0 - Clean Rebuild
+            Version 2.0 Social - 初代版機能復活
         </div>
     </div>
     
@@ -87,24 +91,69 @@
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
+        let isChecking = false;
+        
         document.getElementById('openMapBtn').addEventListener('click', async (e) => {
             e.preventDefault();
             
+            if (isChecking) {
+                console.log('認証チェック中...');
+                return;
+            }
+            
+            isChecking = true;
+            const loadingMessage = document.getElementById('loadingMessage');
+            const btn = document.getElementById('openMapBtn');
+            
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                // ローディング表示
+                loadingMessage.style.display = 'block';
+                btn.style.opacity = '0.6';
+                btn.style.pointerEvents = 'none';
+                
+                console.log('🔒 認証チェック開始...');
+                
+                // 3秒のタイムアウトを設定
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('タイムアウト')), 3000)
+                );
+                
+                const sessionPromise = supabase.auth.getSession();
+                
+                const { data: { session }, error } = await Promise.race([
+                    sessionPromise,
+                    timeoutPromise
+                ]);
+                
+                if (error) {
+                    throw error;
+                }
                 
                 if (session && session.user) {
-                    // 認証済み - マップページへ
+                    console.log('✅ 認証済みユーザー:', session.user.email);
                     window.location.href = 'map.html';
                 } else {
-                    // 未認証 - ログインページへ
+                    console.log('🚪 未認証 - ログインページへ');
                     window.location.href = 'login.html';
                 }
             } catch (error) {
-                console.error('認証チェックエラー:', error);
-                window.location.href = 'login.html';
+                console.error('❗ 認証チェックエラー:', error);
+                
+                // エラー時はログインページへ
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 500);
+            } finally {
+                // ローディング終了
+                loadingMessage.style.display = 'none';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                isChecking = false;
             }
         });
+        
+        // ページ読み込み時の初期化
+        console.log('🍰 グルテンフリーマップ v2 Social - インデックスページ読み込み完了');
     </script>
 </body>
 </html>

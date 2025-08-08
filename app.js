@@ -12,24 +12,42 @@ let currentUser = null;
 // 認証チェック関数
 async function checkAuthentication() {
     try {
+        console.log('🔒 認証チェック開始...');
+        
+        // Supabaseクライアントを作成
         if (!window.supabase) {
-            console.error('❗ Supabaseクライアントが利用できません');
-            window.location.href = 'login.html';
-            return false;
+            console.warn('❗ window.supabaseが利用できません、直接作成します');
         }
         
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        // タイムアウトを設定 (3秒)
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('認証チェックタイムアウト')), 3000)
+        );
+        
+        const sessionCheckPromise = (async () => {
+            // Supabaseクライアントを作成
+            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            return await supabaseClient.auth.getSession();
+        })();
+        
+        const { data: { session }, error } = await Promise.race([
+            sessionCheckPromise,
+            timeoutPromise
+        ]);
         
         if (error) {
             console.error('❗ 認証エラー:', error);
-            window.location.href = 'login.html';
+            // エラー時はログインページへリダイレクト
+            setTimeout(() => window.location.href = 'login.html', 1000);
             return false;
         }
         
         if (!session || !session.user) {
-            console.log('🔒 認証が必要です');
-            window.location.href = 'login.html';
+            console.log('🚪 認証セッションがありません');
+            // ログインページへリダイレクト
+            setTimeout(() => window.location.href = 'login.html', 1000);
             return false;
         }
         
@@ -39,7 +57,8 @@ async function checkAuthentication() {
         
     } catch (error) {
         console.error('❗ 認証チェックエラー:', error);
-        window.location.href = 'login.html';
+        // エラー時はログインページへリダイレクト
+        setTimeout(() => window.location.href = 'login.html', 1000);
         return false;
     }
 }
@@ -66,8 +85,12 @@ async function initApp() {
     console.log('🚀 グルテンフリーマップ v2 Social 初期化開始');
     
     try {
-        // 認証チェック
-        await checkAuthentication();
+        // 認証チェック (マップページでのみ)
+        const authResult = await checkAuthentication();
+        if (!authResult) {
+            console.log('認証に失敗しました。リダイレクト中...');
+            return; // 初期化を中断
+        }
         
         // 必要な要素の存在確認
         const requiredElements = ['map', 'totalStores', 'visibleStores', 'loadingStatus'];
