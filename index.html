@@ -97,7 +97,7 @@
             e.preventDefault();
             
             if (isChecking) {
-                console.log('認証チェック中...');
+                console.log('マップを読み込み中...');
                 return;
             }
             
@@ -108,47 +108,28 @@
             try {
                 // ローディング表示
                 loadingMessage.style.display = 'block';
+                loadingMessage.textContent = 'マップを読み込み中...';
                 btn.style.opacity = '0.6';
                 btn.style.pointerEvents = 'none';
                 
-                console.log('🔒 認証チェック開始...');
+                console.log('🗺️ マップページに移動中...');
                 
-                // 3秒のタイムアウトを設定
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('タイムアウト')), 3000)
-                );
-                
-                const sessionPromise = supabase.auth.getSession();
-                
-                const { data: { session }, error } = await Promise.race([
-                    sessionPromise,
-                    timeoutPromise
-                ]);
-                
-                if (error) {
-                    throw error;
-                }
-                
-                if (session && session.user) {
-                    console.log('✅ 認証済みユーザー:', session.user.email);
-                    window.location.href = 'map.html';
-                } else {
-                    console.log('🚪 未認証 - ログインページへ');
-                    window.location.href = 'login.html';
-                }
-            } catch (error) {
-                console.error('❗ 認証チェックエラー:', error);
-                
-                // エラー時はログインページへ
+                // 少し待ってからマップページへ直接移動（認証チェックなし）
                 setTimeout(() => {
-                    window.location.href = 'login.html';
+                    window.location.href = 'map.html';
                 }, 500);
+                
+            } catch (error) {
+                console.error('❗ ページ移動エラー:', error);
+                window.location.href = 'map.html';
             } finally {
                 // ローディング終了
-                loadingMessage.style.display = 'none';
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
-                isChecking = false;
+                setTimeout(() => {
+                    loadingMessage.style.display = 'none';
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                    isChecking = false;
+                }, 1000);
             }
         });
         
