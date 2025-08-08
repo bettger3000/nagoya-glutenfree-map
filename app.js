@@ -1,13 +1,16 @@
 // グルテンフリーマップ v2 - メインアプリケーション
-import { getSupabaseClient } from './supabase-client.js';
+// import { getSupabaseClient } from './supabase-client.js';
 
 // グローバル変数
 let map;
 let markers = [];
 let storesData = [];
 
-// Supabaseクライアント
-const supabase = getSupabaseClient();
+// Supabaseクライアント（直接設定）
+const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+
+let supabase;
 
 // カテゴリー別スタイル
 const categoryStyles = {
@@ -25,6 +28,14 @@ async function initApp() {
     console.log('🚀 グルテンフリーマップ v2 初期化開始');
     
     try {
+        // Supabaseクライアント初期化
+        if (window.supabase) {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Supabaseクライアント初期化完了');
+        } else {
+            throw new Error('Supabaseライブラリが読み込まれていません');
+        }
+        
         // 地図を初期化
         initMap();
         
@@ -38,7 +49,7 @@ async function initApp() {
         
     } catch (error) {
         console.error('❌ 初期化エラー:', error);
-        showError('アプリケーションの初期化に失敗しました');
+        showError('アプリケーションの初期化に失敗しました: ' + error.message);
     }
 }
 
