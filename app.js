@@ -1,9 +1,11 @@
 // 名古屋グルテンフリーマップ v3 - メインアプリケーション
 import { getSupabaseClient } from './supabase-client.js';
+import { getAuthSystem } from './auth.js';
 
 class GlutenFreeMap {
     constructor() {
         this.supabase = getSupabaseClient();
+        this.authSystem = null;
         this.map = null;
         this.markers = [];
         this.stores = [];
@@ -33,6 +35,12 @@ class GlutenFreeMap {
         console.log('🚀 グルテンフリーマップ v3 初期化開始');
         
         try {
+            // 認証システム初期化
+            this.authSystem = getAuthSystem();
+            
+            // 認証イベントリスナー設定
+            this.setupAuthListeners();
+            
             // 地図初期化
             this.initMap();
             
@@ -411,6 +419,60 @@ class GlutenFreeMap {
         // それ以外の場合（地図、モーダル、フィルターボタン等）はメニューを閉じる
         console.log('🍔 メニュー外クリック検出 - メニューを閉じます');
         this.closeHamburgerMenu();
+    }
+    
+    // 認証イベントリスナー設定
+    setupAuthListeners() {
+        // ユーザーがサインインした時
+        document.addEventListener('userSignedIn', (event) => {
+            const user = event.detail.user;
+            console.log('🎉 ユーザーサインイン検出:', user.email);
+            this.onUserSignedIn(user);
+        });
+        
+        // ユーザーがサインアウトした時
+        document.addEventListener('userSignedOut', () => {
+            console.log('👋 ユーザーサインアウト検出');
+            this.onUserSignedOut();
+        });
+    }
+    
+    // ユーザーサインイン時の処理
+    onUserSignedIn(user) {
+        console.log('✅ ユーザー認証完了:', user.email);
+        
+        // 認証が必要な機能を有効化
+        this.enableAuthenticatedFeatures();
+        
+        // ユーザー固有のデータを読み込み（将来のレビュー機能で使用）
+        // this.loadUserData(user);
+    }
+    
+    // ユーザーサインアウト時の処理
+    onUserSignedOut() {
+        console.log('📤 ユーザーサインアウト処理');
+        
+        // 認証が必要な機能を無効化
+        this.disableAuthenticatedFeatures();
+        
+        // ユーザー固有のデータをクリア
+        // this.clearUserData();
+    }
+    
+    // 認証済みユーザー向け機能を有効化
+    enableAuthenticatedFeatures() {
+        console.log('🔓 認証済み機能を有効化');
+        
+        // 将来のレビュー機能やユーザー限定機能で使用
+        // 現在は基本機能のみなので特に処理なし
+    }
+    
+    // 認証済みユーザー向け機能を無効化
+    disableAuthenticatedFeatures() {
+        console.log('🔒 認証済み機能を無効化');
+        
+        // 将来のレビュー機能やユーザー限定機能で使用
+        // 現在は基本機能のみなので特に処理なし
     }
 }
 

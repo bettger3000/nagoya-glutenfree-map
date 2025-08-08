@@ -40,8 +40,25 @@
                         グルテンフリーマップ v3
                     </h1>
                 </div>
-                <div class="header-stats">
-                    <span id="store-count">0</span> 店舗
+                <div class="header-right">
+                    <!-- 認証情報表示 -->
+                    <div id="user-info" class="user-info" style="display: none;"></div>
+                    
+                    <!-- ログインボタン -->
+                    <button id="login-btn" class="login-btn">
+                        <i class="fab fa-google"></i>
+                        ログイン
+                    </button>
+                    
+                    <!-- ログアウトボタン -->
+                    <button id="logout-btn" class="logout-btn" style="display: none;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        ログアウト
+                    </button>
+                    
+                    <div class="header-stats">
+                        <span id="store-count">0</span> 店舗
+                    </div>
                 </div>
             </div>
         </header>
@@ -115,6 +132,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="supabase-client.js"></script>
+    <script type="module" src="auth.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>
