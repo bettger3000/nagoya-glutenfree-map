@@ -14,11 +14,12 @@ class HamburgerMenu {
         this.userProfile = null;
         this.userStats = null;
         
-        this.hamburgerBtn = document.getElementById('hamburgerBtn');
-        this.hamburgerMenu = document.getElementById('hamburgerMenu');
-        this.hamburgerOverlay = document.getElementById('hamburgerOverlay');
-        this.hamburgerUserName = document.getElementById('hamburgerUserName');
-        this.hamburgerUserStats = document.getElementById('hamburgerUserStats');
+        // DOM要素は後で取得
+        this.hamburgerBtn = null;
+        this.hamburgerMenu = null;
+        this.hamburgerOverlay = null;
+        this.hamburgerUserName = null;
+        this.hamburgerUserStats = null;
         
         this.init();
     }
@@ -26,6 +27,9 @@ class HamburgerMenu {
     // 初期化
     async init() {
         console.log('🍔 ハンバーガーメニューを初期化中...');
+        
+        // DOM要素を取得
+        this.getDOMElements();
         
         // 現在のユーザー情報を取得
         await this.loadCurrentUser();
@@ -37,6 +41,21 @@ class HamburgerMenu {
         this.updateUserDisplay();
         
         console.log('✅ ハンバーガーメニュー初期化完了');
+    }
+    
+    // DOM要素を取得
+    getDOMElements() {
+        this.hamburgerBtn = document.getElementById('hamburgerBtn');
+        this.hamburgerMenu = document.getElementById('hamburgerMenu');  
+        this.hamburgerOverlay = document.getElementById('hamburgerOverlay');
+        this.hamburgerUserName = document.getElementById('hamburgerUserName');
+        this.hamburgerUserStats = document.getElementById('hamburgerUserStats');
+        
+        console.log('🔍 DOM要素取得:', {
+            btn: !!this.hamburgerBtn,
+            menu: !!this.hamburgerMenu,
+            overlay: !!this.hamburgerOverlay
+        });
     }
     
     // 現在のユーザー情報を読み込み
@@ -101,14 +120,24 @@ class HamburgerMenu {
     // イベントリスナー設定
     setupEventListeners() {
         // ハンバーガーボタン
-        this.hamburgerBtn.addEventListener('click', () => {
-            this.toggleMenu();
-        });
+        if (this.hamburgerBtn && this.hamburgerMenu) {
+            this.hamburgerBtn.addEventListener('click', () => {
+                this.toggleMenu();
+            });
+            console.log('✅ ハンバーガーボタンイベント設定完了');
+        } else {
+            console.error('❌ ハンバーガー要素が見つからない:', {
+                btn: !!this.hamburgerBtn,
+                menu: !!this.hamburgerMenu
+            });
+        }
         
         // オーバーレイクリック
-        this.hamburgerOverlay.addEventListener('click', () => {
-            this.closeMenu();
-        });
+        if (this.hamburgerOverlay) {
+            this.hamburgerOverlay.addEventListener('click', () => {
+                this.closeMenu();
+            });
+        }
         
         // ESCキーでメニューを閉じる
         document.addEventListener('keydown', (e) => {
@@ -520,5 +549,14 @@ class HamburgerMenu {
     }
 }
 
-// グローバルインスタンス作成
-window.hamburgerMenu = new HamburgerMenu();
+// DOMContentLoaded後にインスタンス作成
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 DOM準備完了、ハンバーガーメニューを初期化');
+    window.hamburgerMenu = new HamburgerMenu();
+});
+
+// 既にDOMが読み込み済みの場合
+if (document.readyState !== 'loading') {
+    console.log('🔄 DOM既に準備済み、ハンバーガーメニューを初期化');
+    window.hamburgerMenu = new HamburgerMenu();
+}
