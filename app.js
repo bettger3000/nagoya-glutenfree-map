@@ -320,6 +320,9 @@ class GlutenFreeMap {
             this.handleDocumentClick(e);
         });
         
+        // メニュー項目の直接イベントリスナー（フォールバック）
+        this.setupMenuItemListeners();
+        
         console.log('✅ UI初期化完了');
     }
     
@@ -411,7 +414,19 @@ class GlutenFreeMap {
             return;
         }
         
-        // ハンバーガーメニューコンテンツ内のクリックの場合は無視
+        // メニュー項目（.menu-item）がクリックされた場合はメニューを閉じる
+        if (clickedElement.closest('.menu-item')) {
+            console.log('🍔 メニュー項目クリック検出 - メニューを閉じます');
+            this.closeHamburgerMenu();
+            return;
+        }
+        
+        // ハンバーガーメニューヘッダー内のクリック（閉じるボタン等）は無視
+        if (this.elements.hamburgerMenu.querySelector('.hamburger-header').contains(clickedElement)) {
+            return;
+        }
+        
+        // ハンバーガーメニューコンテンツ内のその他クリックは無視
         if (this.elements.hamburgerMenu.querySelector('.hamburger-content').contains(clickedElement)) {
             return;
         }
@@ -419,6 +434,24 @@ class GlutenFreeMap {
         // それ以外の場合（地図、モーダル、フィルターボタン等）はメニューを閉じる
         console.log('🍔 メニュー外クリック検出 - メニューを閉じます');
         this.closeHamburgerMenu();
+    }
+    
+    // メニュー項目のイベントリスナー設定
+    setupMenuItemListeners() {
+        // 遅延実行でDOM要素が確実に存在する状態でセット
+        setTimeout(() => {
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    console.log('🍔 メニュー項目直接クリック検出 - メニューを閉じます');
+                    this.closeHamburgerMenu();
+                });
+            });
+            
+            if (menuItems.length > 0) {
+                console.log(`✅ ${menuItems.length}個のメニュー項目にクローズイベント設定完了`);
+            }
+        }, 500);
     }
     
     // 認証イベントリスナー設定
