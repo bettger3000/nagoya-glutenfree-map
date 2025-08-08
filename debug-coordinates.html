@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>座標デバッグツール</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .store-item {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .store-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .coordinate-info {
+            font-family: monospace;
+            background: #e8e8e8;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .map-url {
+            font-size: 0.9em;
+            color: #666;
+            word-break: break-all;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 座標デバッグツール</h1>
+        <p>店舗の座標データを分析して、問題のある座標を特定します。</p>
+        
+        <button onclick="analyzeCoordinates()">座標分析開始</button>
+        <button onclick="showOnlyProblematic()">問題のある店舗のみ表示</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let storesData = [];
+        let problematicStores = [];
+        
+        // 名古屋市の大まかな座標範囲
+        const NAGOYA_BOUNDS = {
+            north: 35.3,
+            south: 35.0,
+            east: 137.0,
+            west: 136.7
+        };
+        
+        async function analyzeCoordinates() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>データを読み込み中...</p>';
+            
+            try {
+                const { data: stores, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                storesData = stores || [];
+                problematicStores = [];
+                
+                let html = `<h2>分析結果 (${storesData.length}店舗)</h2>`;
+                
+                let validCoords = 0;
+                let invalidCoords = 0;
+                let missingCoords = 0;
+                let outsideNagoya = 0;
+                
+                storesData.forEach(store => {
+                    const analysis = analyzeStore(store);
+                    
+                    if (analysis.hasProblems) {
+                        problematicStores.push({ store, analysis });
+                    }
+                    
+                    switch (analysis.status) {
+                        case 'valid': validCoords++; break;
+                        case 'invalid': invalidCoords++; break;
+                        case 'missing': missingCoords++; break;
+                        case 'outside': outsideNagoya++; break;
+                    }
+                    
+                    html += createStoreHTML(store, analysis);
+                });
+                
+                // 統計情報
+                const statsHtml = `
+                    <div class="success">
+                        <h3>📊 座標統計</h3>
+                        <p>✅ 有効な座標: ${validCoords}店舗</p>
+                        <p>❌ 無効な座標: ${invalidCoords}店舗</p>
+                        <p>⚠️ 座標なし: ${missingCoords}店舗</p>
+                        <p>🗺️ 名古屋市外: ${outsideNagoya}店舗</p>
+                        <p><strong>問題のある店舗: ${problematicStores.length}店舗</strong></p>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = statsHtml + html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">エラー: ${error.message}</div>`;
+            }
+        }
+        
+        function analyzeStore(store) {
+            const lat = parseFloat(store.latitude);
+            const lng = parseFloat(store.longitude);
+            
+            let status = 'valid';
+            let issues = [];
+            let hasProblems = false;
+            
+            // 座標の存在チェック
+            if (!store.latitude || !store.longitude) {
+                status = 'missing';
+                issues.push('座標データが存在しません');
+                hasProblems = true;
+            }
+            // 座標の有効性チェック
+            else if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                status = 'invalid';
+                issues.push('無効な座標値です');
+                hasProblems = true;
+            }
+            // 名古屋市内かチェック
+            else if (lat < NAGOYA_BOUNDS.south || lat > NAGOYA_BOUNDS.north || 
+                     lng < NAGOYA_BOUNDS.west || lng > NAGOYA_BOUNDS.east) {
+                status = 'outside';
+                issues.push('名古屋市外の座標です');
+                hasProblems = true;
+            }
+            
+            // GoogleマップURL分析
+            const extractedCoords = extractCoordinatesFromGoogleMaps(store);
+            
+            return {
+                status,
+                issues,
+                hasProblems,
+                currentCoords: { lat, lng },
+                extractedCoords,
+                hasUrl: hasGoogleMapsUrl(store)
+            };
+        }
+        
+        function createStoreHTML(store, analysis) {
+            let cssClass = '';
+            let statusIcon = '';
+            
+            switch (analysis.status) {
+                case 'valid':
+                    cssClass = 'success';
+                    statusIcon = '✅';
+                    break;
+                case 'invalid':
+                    cssClass = 'error';
+                    statusIcon = '❌';
+                    break;
+                case 'missing':
+                    cssClass = 'warning';
+                    statusIcon = '⚠️';
+                    break;
+                case 'outside':
+                    cssClass = 'warning';
+                    statusIcon = '🗺️';
+                    break;
+            }
+            
+            return `
+                <div class="store-item ${cssClass}">
+                    <div class="store-name">${statusIcon} ${store.name} (${store.category || 'カテゴリなし'})</div>
+                    <div class="coordinate-info">
+                        現在の座標: ${store.latitude || 'なし'}, ${store.longitude || 'なし'}
+                        ${analysis.extractedCoords ? 
+                            `<br>抽出可能座標: ${analysis.extractedCoords.lat}, ${analysis.extractedCoords.lng}` : 
+                            '<br>URL座標: 抽出失敗'
+                        }
+                    </div>
+                    ${analysis.issues.length > 0 ? 
+                        `<div class="warning">問題: ${analysis.issues.join(', ')}</div>` : ''
+                    }
+                    <div class="map-url">住所: ${store.address || '住所なし'}</div>
+                    ${getUrlsFromStore(store)}
+                </div>
+            `;
+        }
+        
+        function getUrlsFromStore(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            let urls = [];
+            
+            urlFields.forEach(field => {
+                if (store[field] && store[field].includes('google')) {
+                    urls.push(`<div class="map-url">${field}: ${store[field]}</div>`);
+                }
+            });
+            
+            return urls.join('');
+        }
+        
+        function hasGoogleMapsUrl(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            
+            for (const field of urlFields) {
+                if (store[field] && typeof store[field] === 'string' && store[field].includes('google')) {
+                    return true;
+                }
+            }
+            
+            return Object.values(store).some(value => 
+                typeof value === 'string' && (
+                    value.includes('maps.google') || 
+                    value.includes('goo.gl/maps') ||
+                    (value.includes('@') && value.includes(','))
+                )
+            );
+        }
+        
+        function extractCoordinatesFromGoogleMaps(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            let mapUrl = null;
+            
+            for (const field of urlFields) {
+                if (store[field] && typeof store[field] === 'string' && store[field].includes('google')) {
+                    mapUrl = store[field];
+                    break;
+                }
+            }
+            
+            if (!mapUrl) {
+                for (const [key, value] of Object.entries(store)) {
+                    if (typeof value === 'string' && (
+                        value.includes('maps.google') || 
+                        value.includes('goo.gl/maps') ||
+                        (value.includes('@') && value.includes(','))
+                    )) {
+                        mapUrl = value;
+                        break;
+                    }
+                }
+            }
+            
+            if (!mapUrl) return null;
+            
+            const patterns = [
+                /@(-?\d+\.?\d*),(-?\d+\.?\d*),/,
+                /!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/,
+                /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+                /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+                /center=(-?\d+\.?\d*),(-?\d+\.?\d*)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = mapUrl.match(pattern);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    
+                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        return { lat, lng };
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        function showOnlyProblematic() {
+            if (problematicStores.length === 0) {
+                alert('先に分析を実行してください');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            let html = `<h2>🚨 問題のある店舗 (${problematicStores.length}店舗)</h2>`;
+            
+            problematicStores.forEach(({ store, analysis }) => {
+                html += createStoreHTML(store, analysis);
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

@@ -18,12 +18,22 @@
     <header>
         <div class="header-content">
             <div class="header-left">
+                <!-- ハンバーガーメニューボタン -->
+                <button class="hamburger-btn" id="hamburgerBtn" title="メニュー">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                
                 <h1 class="header-title">
                     <i class="fas fa-map-marked-alt"></i>
                     グルテンフリーマップ
                 </h1>
             </div>
             <div class="header-right">
+                <button onclick="toggleAdminMode()" class="admin-toggle-btn" id="adminToggleBtn">
+                    <i class="fas fa-cog"></i> 管理
+                </button>
                 <span class="version-badge">v2.0</span>
             </div>
         </div>
@@ -39,8 +49,54 @@
                     <div class="stat-label">総店舗数</div>
                 </div>
                 <div class="stat-item">
+                    <div class="stat-number" id="visibleStores">-</div>
+                    <div class="stat-label">表示中</div>
+                </div>
+                <div class="stat-item">
                     <div class="stat-number" id="loadingStatus">読み込み中</div>
                     <div class="stat-label">ステータス</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 検索とフィルター -->
+        <div class="controls">
+            <!-- 検索バー -->
+            <div class="search-section">
+                <h3><i class="fas fa-search"></i> 店舗検索</h3>
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="店名・住所・説明文で検索..." class="search-input">
+                    <button id="clearSearch" class="clear-search-btn" title="検索クリア">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- フィルター -->
+            <div class="filter-section">
+                <h3><i class="fas fa-filter"></i> カテゴリーフィルター</h3>
+                <div class="filter-buttons" id="filterButtons">
+                    <button class="filter-btn active" data-category="all">
+                        <i class="fas fa-th"></i> すべて
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 管理者モード -->
+            <div class="admin-section" style="display: none;" id="adminSection">
+                <h3><i class="fas fa-wrench"></i> 座標修正モード</h3>
+                <div class="admin-controls">
+                    <input type="text" id="googleMapUrlInput" placeholder="GoogleマップのURLを入力..." class="url-input">
+                    <button onclick="extractCoordinatesFromUrl()" class="admin-btn">
+                        <i class="fas fa-map-marker-alt"></i> 座標抽出
+                    </button>
+                    <button onclick="saveExtractedCoordinates()" class="admin-btn save-btn" id="saveCoordinatesBtn" disabled>
+                        <i class="fas fa-save"></i> 座標保存
+                    </button>
+                    <div class="extracted-coords" id="extractedCoords" style="display: none;">
+                        <div>抽出座標: <span id="coordsDisplay"></span></div>
+                        <div>対象店舗: <span id="targetStore"></span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -58,7 +114,66 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- ハンバーガーメニュー -->
+    <div class="hamburger-overlay" id="hamburgerOverlay"></div>
+    <div class="hamburger-menu" id="hamburgerMenu">
+        <div class="hamburger-header">
+            <div class="hamburger-user-info">
+                <div class="hamburger-avatar">🍰</div>
+                <div class="hamburger-user-details">
+                    <div class="hamburger-user-name" id="hamburgerUserName">ゲスト</div>
+                    <div class="hamburger-user-stats" id="hamburgerUserStats">
+                        <div class="stat-item">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">レビュー</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">訪問済み</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hamburger-content">
+            <div class="hamburger-section">
+                <h3><i class="fas fa-user"></i> プロフィール</h3>
+                <a href="#" class="hamburger-link" id="profileLink">
+                    <i class="fas fa-edit"></i> プロフィール編集
+                </a>
+            </div>
+            
+            <div class="hamburger-section">
+                <h3><i class="fas fa-star"></i> マイアクティビティ</h3>
+                <a href="#" class="hamburger-link" id="myReviewsLink">
+                    <i class="fas fa-comment-alt"></i> マイレビュー
+                </a>
+                <a href="#" class="hamburger-link" id="visitedStoresLink">
+                    <i class="fas fa-check-circle"></i> 訪問済み店舗
+                </a>
+            </div>
+            
+            <div class="hamburger-section">
+                <h3><i class="fas fa-cog"></i> 設定</h3>
+                <a href="#" class="hamburger-link" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> ログアウト
+                </a>
+            </div>
+        </div>
+        
+        <div class="hamburger-footer">
+            <div class="app-info">
+                <div class="app-version">Version 2.0 Social</div>
+                <div class="app-credit">© 2025 ビーグル俱楽部 presents by naco</div>
+            </div>
+        </div>
+    </div>
+
     <!-- アプリケーション -->
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="hamburger-menu.js"></script>
+    <script type="module" src="review-system.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

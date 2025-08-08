@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動座標取得システム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f8ff;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .map-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .google-map-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+        .step {
+            background: #e8f4ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 5px solid #007bff;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .store-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .store-item:hover {
+            background: #e9ecef;
+        }
+        .store-item.selected {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .store-item.processed {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        .coordinates {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        .result-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .auto-mode {
+            background: #007bff;
+            margin: 15px 0;
+        }
+        .auto-mode:hover {
+            background: #0056b3;
+        }
+        .coordinate-input {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .coordinate-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .manual-coords {
+            background: #ffc107;
+            color: #000;
+        }
+        .manual-coords:hover {
+            background: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左側: コントロールパネル -->
+        <div class="control-panel">
+            <h2>🤖 自動座標取得システム</h2>
+            
+            <div class="step">
+                <h4>🚀 自動処理</h4>
+                <p>1️⃣ Googleマップリンクを入力</p>
+                <p>2️⃣ 自動でマップが表示される</p>
+                <p>3️⃣ 座標を確認してデータベース保存</p>
+            </div>
+            
+            <button onclick="loadStores()">店舗データを読み込み</button>
+            <button onclick="startAutoProcess()" class="auto-mode">🔄 全店舗を自動処理</button>
+            
+            <div id="storesList"></div>
+            
+            <div id="currentProcess" style="display: none;">
+                <h3>現在処理中の店舗</h3>
+                <div id="currentStore"></div>
+                
+                <h4>Googleマップリンク</h4>
+                <input type="text" id="googleMapUrl" class="url-input" placeholder="GoogleマップのURLを入力またはペーストしてください">
+                <button onclick="loadGoogleMapFromUrl()">マップを表示</button>
+                
+                <h4>抽出した座標</h4>
+                <div class="coordinate-input">
+                    <input type="number" id="extractedLat" placeholder="緯度" step="any">
+                    <input type="number" id="extractedLng" placeholder="経度" step="any">
+                </div>
+                
+                <button onclick="saveCoordinates()">座標をデータベースに保存</button>
+                <button onclick="useManualCoordinates()" class="manual-coords">手動で座標を入力</button>
+                <button onclick="skipCurrentStore()">この店舗をスキップ</button>
+                
+                <div class="result-display" id="resultDisplay"></div>
+            </div>
+        </div>
+        
+        <!-- 右側: Googleマップ -->
+        <div class="map-container">
+            <div id="mapContent" style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                <div>
+                    <i class="fas fa-map-marked-alt" style="font-size: 48px; margin-bottom: 20px;"></i>
+                    <br>
+                    店舗を選択してGoogleマップを表示
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let stores = [];
+        let currentStoreIndex = -1;
+        let autoProcessing = false;
+        
+        // 店舗データ読み込み
+        async function loadStores() {
+            log('店舗データを読み込み中...');
+            
+            try {
+                const { data: allStores, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                stores = allStores || [];
+                log(`${stores.length}店舗のデータを取得しました`);
+                
+                displayStoresList();
+                
+            } catch (error) {
+                log(`エラー: ${error.message}`, 'error');
+            }
+        }
+        
+        // 店舗リスト表示
+        function displayStoresList() {
+            const storesList = document.getElementById('storesList');
+            let html = '<h3>店舗一覧 (クリックして選択)</h3>';
+            
+            stores.forEach((store, index) => {
+                const hasCoordinates = store.latitude && store.longitude && 
+                    parseFloat(store.latitude) !== 0 && parseFloat(store.longitude) !== 0;
+                
+                const statusClass = hasCoordinates ? 'processed' : '';
+                const statusIcon = hasCoordinates ? '✅' : '❌';
+                
+                html += `
+                    <div class="store-item ${statusClass}" onclick="selectStore(${index})">
+                        <strong>${statusIcon} ${store.name}</strong>
+                        <div class="coordinates">
+                            座標: ${hasCoordinates ? store.latitude + ', ' + store.longitude : 'なし'}
+                        </div>
+                        <small>${store.address || '住所情報なし'}</small>
+                    </div>
+                `;
+            });
+            
+            storesList.innerHTML = html;
+        }
+        
+        // 店舗選択
+        function selectStore(index) {
+            currentStoreIndex = index;
+            const store = stores[index];
+            
+            // 選択状態を更新
+            document.querySelectorAll('.store-item').forEach((item, i) => {
+                item.classList.toggle('selected', i === index);
+            });
+            
+            // 現在処理中セクションを表示
+            document.getElementById('currentProcess').style.display = 'block';
+            
+            // 店舗情報表示
+            document.getElementById('currentStore').innerHTML = `
+                <strong>${store.name}</strong><br>
+                <small>ID: ${store.id}</small>
+            `;
+            
+            // GoogleマップURLを自動検索・設定
+            const googleMapUrl = findGoogleMapUrl(store);
+            document.getElementById('googleMapUrl').value = googleMapUrl;
+            
+            log(`店舗選択: ${store.name}`);
+            
+            // 自動でマップを読み込み
+            if (googleMapUrl) {
+                loadGoogleMapFromUrl();
+            }
+        }
+        
+        // Googleマップリンク検索
+        function findGoogleMapUrl(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'website', 'google_maps'];
+            
+            // 定義されたフィールドから検索
+            for (const field of urlFields) {
+                const url = store[field];
+                if (url && typeof url === 'string' && 
+                    (url.includes('maps.google') || url.includes('goo.gl/maps'))) {
+                    return url;
+                }
+            }
+            
+            // 全フィールドから検索
+            for (const [key, value] of Object.entries(store)) {
+                if (typeof value === 'string' && 
+                    (value.includes('maps.google') || value.includes('goo.gl/maps'))) {
+                    return value;
+                }
+            }
+            
+            return '';
+        }
+        
+        // GoogleマップをURLから読み込み
+        function loadGoogleMapFromUrl() {
+            const url = document.getElementById('googleMapUrl').value.trim();
+            if (!url) {
+                log('Googleマップリンクが入力されていません', 'error');
+                return;
+            }
+            
+            log(`Googleマップを読み込み中...`);
+            
+            // 座標を抽出
+            const coordinates = extractCoordinatesFromGoogleMaps(url);
+            if (coordinates) {
+                document.getElementById('extractedLat').value = coordinates.lat;
+                document.getElementById('extractedLng').value = coordinates.lng;
+                log(`座標抽出成功: ${coordinates.lat}, ${coordinates.lng}`);
+            } else {
+                log('URLから座標を抽出できませんでした', 'error');
+            }
+            
+            // GoogleマップのiFrameを作成
+            let embedUrl = url;
+            
+            // 通常のGoogleマップリンクを埋め込み用に変換
+            if (url.includes('maps.google.') && !url.includes('embed')) {
+                // @座標形式の場合
+                const atMatch = url.match(/@(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/);
+                if (atMatch) {
+                    embedUrl = `https://www.google.com/maps/embed/v1/view?key=dummy&center=${atMatch[1]},${atMatch[2]}&zoom=18`;
+                } else {
+                    // q=パラメータがある場合
+                    const qMatch = url.match(/[?&]q=([^&]+)/);
+                    if (qMatch) {
+                        const query = encodeURIComponent(decodeURIComponent(qMatch[1]));
+                        embedUrl = `https://www.google.com/maps/embed/v1/place?key=dummy&q=${query}`;
+                    }
+                }
+            }
+            
+            // OpenStreetMapを使用（APIキー不要）
+            if (coordinates) {
+                const mapContent = document.getElementById('mapContent');
+                mapContent.innerHTML = `
+                    <div style="width: 100%; height: 100%; position: relative;">
+                        <div id="leafletMap" style="width: 100%; height: 100%; border-radius: 10px;"></div>
+                        <div style="position: absolute; top: 10px; right: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                            <strong>抽出座標</strong><br>
+                            ${coordinates.lat.toFixed(6)}<br>
+                            ${coordinates.lng.toFixed(6)}
+                        </div>
+                    </div>
+                `;
+                
+                // Leafletマップを初期化
+                setTimeout(() => {
+                    if (typeof L !== 'undefined') {
+                        const leafletMap = L.map('leafletMap').setView([coordinates.lat, coordinates.lng], 18);
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '© OpenStreetMap contributors'
+                        }).addTo(leafletMap);
+                        
+                        // マーカーを追加
+                        L.marker([coordinates.lat, coordinates.lng])
+                            .addTo(leafletMap)
+                            .bindPopup(`${stores[currentStoreIndex].name}<br>座標: ${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`)
+                            .openPopup();
+                    }
+                }, 100);
+            } else {
+                // 座標が抽出できない場合はGoogleマップのiframeを試行
+                const mapContent = document.getElementById('mapContent');
+                mapContent.innerHTML = `
+                    <iframe 
+                        src="${embedUrl}" 
+                        class="google-map-frame"
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                `;
+            }
+        }
+        
+        // GoogleマップURLから座標を抽出
+        function extractCoordinatesFromGoogleMaps(url) {
+            const patterns = [
+                // @lat,lng,zoom パターン
+                /@(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/,
+                // !3d緯度!4d経度 パターン  
+                /!3d(-?\\d+\\.\\d+).*!4d(-?\\d+\\.\\d+)/,
+                // ll=lat,lng パターン
+                /ll=(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/,
+                // q=lat,lng パターン（数字のみ）
+                /q=(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/,
+                // center=lat,lng パターン
+                /center=(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    
+                    if (isValidCoordinate(lat, lng)) {
+                        return { lat, lng };
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        // 座標の妥当性チェック
+        function isValidCoordinate(lat, lng) {
+            return !isNaN(lat) && !isNaN(lng) && 
+                   lat >= -90 && lat <= 90 && 
+                   lng >= -180 && lng <= 180 &&
+                   lat !== 0 && lng !== 0;
+        }
+        
+        // 座標を保存
+        async function saveCoordinates() {
+            const lat = parseFloat(document.getElementById('extractedLat').value);
+            const lng = parseFloat(document.getElementById('extractedLng').value);
+            
+            if (!isValidCoordinate(lat, lng)) {
+                log('無効な座標です', 'error');
+                return;
+            }
+            
+            const store = stores[currentStoreIndex];
+            log(`座標保存中: ${store.name} → (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+            
+            try {
+                const success = await updateStoreCoordinates(store.id, lat, lng);
+                
+                if (success) {
+                    // ローカルデータも更新
+                    stores[currentStoreIndex].latitude = lat.toString();
+                    stores[currentStoreIndex].longitude = lng.toString();
+                    
+                    log(`✅ 座標保存成功: ${store.name}`, 'success');
+                    
+                    // リスト表示を更新
+                    displayStoresList();
+                    
+                    // 自動処理中なら次の店舗へ
+                    if (autoProcessing) {
+                        setTimeout(() => {
+                            nextStore();
+                        }, 1000);
+                    }
+                } else {
+                    log(`❌ 座標保存失敗: ${store.name}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`エラー: ${error.message}`, 'error');
+            }
+        }
+        
+        // データベース座標更新
+        async function updateStoreCoordinates(storeId, lat, lng) {
+            try {
+                const updateData = {
+                    latitude: lat.toString(),
+                    longitude: lng.toString()
+                };
+                
+                const { error } = await supabase
+                    .from('stores')
+                    .update(updateData)
+                    .eq('id', storeId);
+                
+                return !error;
+                
+            } catch (error) {
+                console.error('データベース更新エラー:', error);
+                return false;
+            }
+        }
+        
+        // 全店舗自動処理
+        async function startAutoProcess() {
+            autoProcessing = true;
+            log('全店舗の自動処理を開始します', 'success');
+            
+            // 座標がない店舗を検索
+            const unprocessedStores = stores
+                .map((store, index) => ({ store, index }))
+                .filter(({ store }) => 
+                    !store.latitude || !store.longitude || 
+                    parseFloat(store.latitude) === 0 || parseFloat(store.longitude) === 0
+                );
+            
+            if (unprocessedStores.length === 0) {
+                log('すべての店舗に座標が設定済みです', 'success');
+                return;
+            }
+            
+            log(`${unprocessedStores.length}店舗を処理します`);
+            
+            // 最初の店舗を選択
+            selectStore(unprocessedStores[0].index);
+        }
+        
+        // 次の店舗へ
+        function nextStore() {
+            const nextIndex = stores.findIndex((store, index) => 
+                index > currentStoreIndex && 
+                (!store.latitude || !store.longitude || 
+                 parseFloat(store.latitude) === 0 || parseFloat(store.longitude) === 0)
+            );
+            
+            if (nextIndex !== -1) {
+                selectStore(nextIndex);
+            } else {
+                log('全ての店舗の処理が完了しました！', 'success');
+                autoProcessing = false;
+                document.getElementById('currentProcess').style.display = 'none';
+            }
+        }
+        
+        // 手動座標入力
+        function useManualCoordinates() {
+            const lat = prompt('緯度を入力してください:');
+            const lng = prompt('経度を入力してください:');
+            
+            if (lat && lng && isValidCoordinate(parseFloat(lat), parseFloat(lng))) {
+                document.getElementById('extractedLat').value = lat;
+                document.getElementById('extractedLng').value = lng;
+                log(`手動座標設定: ${lat}, ${lng}`);
+            }
+        }
+        
+        // 店舗スキップ
+        function skipCurrentStore() {
+            log(`店舗をスキップしました: ${stores[currentStoreIndex].name}`);
+            if (autoProcessing) {
+                nextStore();
+            }
+        }
+        
+        // ログ機能
+        function log(message, type = 'info') {
+            const resultDisplay = document.getElementById('resultDisplay');
+            if (!resultDisplay) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            
+            resultDisplay.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+            resultDisplay.scrollTop = resultDisplay.scrollHeight;
+            
+            console.log(message);
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('自動座標取得システムが準備できました');
+        });
+    </script>
+    
+    <!-- Leaflet.js for map display -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

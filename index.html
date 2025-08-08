@@ -69,7 +69,7 @@
             新しいバージョンを構築中です。
         </p>
         
-        <a href="map.html" class="btn">
+        <a href="#" class="btn" id="openMapBtn">
             📍 マップを開く
         </a>
         
@@ -77,5 +77,34 @@
             Version 2.0 - Clean Rebuild
         </div>
     </div>
+    
+    <!-- 認証チェックスクリプト -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        document.getElementById('openMapBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session && session.user) {
+                    // 認証済み - マップページへ
+                    window.location.href = 'map.html';
+                } else {
+                    // 未認証 - ログインページへ
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('認証チェックエラー:', error);
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 </body>
 </html>

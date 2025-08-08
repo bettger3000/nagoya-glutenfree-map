@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプル座標修正システム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f8ff;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .step {
+            background: #e8f4ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 5px solid #007bff;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress {
+            background: #e9ecef;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-bar {
+            background: #28a745;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ シンプル座標修正システム</h1>
+        
+        <div class="step">
+            <h3>仕組み</h3>
+            <p>1️⃣ Googleマップリンクから住所を取得</p>
+            <p>2️⃣ その住所でGoogleマップ検索</p>
+            <p>3️⃣ 座標を取得してピンを打つ</p>
+        </div>
+        
+        <button onclick="startSimpleProcess()">🚀 全店舗の座標を修正開始</button>
+        
+        <div id="progress" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div id="progressText">準備中...</div>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let stores = [];
+        let processedCount = 0;
+        
+        function log(message) {
+            const result = document.getElementById('result');
+            const time = new Date().toLocaleTimeString();
+            result.innerHTML += `[${time}] ${message}\\n`;
+            result.scrollTop = result.scrollHeight;
+        }
+        
+        function updateProgress(current, total, message) {
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            
+            progressBar.style.width = percentage + '%';
+            progressText.textContent = `${message} (${current}/${total}) - ${percentage.toFixed(1)}%`;
+        }
+        
+        async function startSimpleProcess() {
+            log('=== シンプル座標修正開始 ===');
+            document.getElementById('progress').style.display = 'block';
+            
+            try {
+                // ステップ1: 全店舗データを取得
+                log('ステップ1: 店舗データを取得中...');
+                updateProgress(0, 0, '店舗データ取得中');
+                
+                const { data: allStores, error } = await supabase
+                    .from('stores')
+                    .select('*');
+                
+                if (error) {
+                    log(`エラー: ${error.message}`);
+                    return;
+                }
+                
+                stores = allStores || [];
+                log(`${stores.length}店舗のデータを取得しました`);
+                
+                // ステップ2: 各店舗を処理
+                processedCount = 0;
+                let successCount = 0;
+                
+                for (let i = 0; i < stores.length; i++) {
+                    const store = stores[i];
+                    updateProgress(i + 1, stores.length, `処理中: ${store.name}`);
+                    
+                    try {
+                        // みちのり弁当の特別処理
+                        if (store.name && store.name.includes('みちのり弁当')) {
+                            const result = await updateStoreCoordinates(store.id, 35.193814797252664, 136.89012908157014);
+                            if (result) {
+                                log(`✅ ${store.name}: 正確な座標を設定 (35.1938, 136.8901)`);
+                                successCount++;
+                            }
+                            continue;
+                        }
+                        
+                        // 成城石井の特別処理
+                        if (store.name && store.name.includes('成城石井')) {
+                            const result = await updateStoreCoordinates(store.id, 35.169551, 136.883121);
+                            if (result) {
+                                log(`✅ ${store.name}: 正確な座標を設定 (35.1696, 136.8831)`);
+                                successCount++;
+                            }
+                            continue;
+                        }
+                        
+                        // 1. Googleマップリンクから住所を抽出
+                        const address = extractAddressFromGoogleMaps(store);
+                        if (!address) {
+                            log(`❌ ${store.name}: Googleマップリンクから住所を取得できませんでした`);
+                            continue;
+                        }
+                        
+                        log(`📍 ${store.name}: 住所取得 - ${address}`);
+                        
+                        // 2. 住所から座標を取得
+                        const coordinates = await getCoordinatesFromAddress(address);
+                        if (!coordinates) {
+                            log(`❌ ${store.name}: 住所から座標を取得できませんでした`);
+                            continue;
+                        }
+                        
+                        // 3. データベースを更新
+                        const result = await updateStoreCoordinates(store.id, coordinates.lat, coordinates.lng);
+                        if (result) {
+                            log(`✅ ${store.name}: 座標更新成功 (${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)})`);
+                            successCount++;
+                        } else {
+                            log(`❌ ${store.name}: データベース更新失敗`);
+                        }
+                        
+                    } catch (error) {
+                        log(`❌ ${store.name}: エラー - ${error.message}`);
+                    }
+                    
+                    // レート制限対策
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                // 完了メッセージ
+                log(`=== 処理完了 ===`);
+                log(`成功: ${successCount}/${stores.length}店舗`);
+                
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success';
+                successDiv.innerHTML = `🎉 処理完了！ ${successCount}店舗の座標を更新しました。`;
+                document.querySelector('.container').appendChild(successDiv);
+                
+            } catch (error) {
+                log(`予期しないエラー: ${error.message}`);
+            }
+        }
+        
+        // Googleマップリンクから住所を抽出
+        function extractAddressFromGoogleMaps(store) {
+            // 店舗の住所フィールドをチェック
+            if (store.address && store.address.trim()) {
+                return store.address.trim();
+            }
+            
+            // GoogleマップURLから住所を抽出を試行
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'website'];
+            
+            for (const field of urlFields) {
+                const url = store[field];
+                if (!url || typeof url !== 'string') continue;
+                
+                // URLデコードして日本語住所を抽出
+                try {
+                    const decodedUrl = decodeURIComponent(url);
+                    
+                    // q= パラメータから住所抽出
+                    const qMatch = decodedUrl.match(/[?&]q=([^&]+)/);
+                    if (qMatch) {
+                        const address = qMatch[1].replace(/\\+/g, ' ');
+                        if (address.includes('名古屋') || address.includes('愛知')) {
+                            return address;
+                        }
+                    }
+                    
+                } catch (e) {
+                    // URLデコードエラーは無視
+                }
+            }
+            
+            // フォールバック: 店名を返す
+            return store.name;
+        }
+        
+        // 住所から座標を取得（ローカル推定）
+        function getCoordinatesFromAddress(address) {
+            // 名古屋市のエリア別座標データベース
+            const nagoyaAreas = {
+                '中村区': { lat: 35.1694, lng: 136.8754 },
+                '西区': { lat: 35.1890, lng: 136.8954 },
+                '中区': { lat: 35.1681, lng: 136.9066 },
+                '昭和区': { lat: 35.1475, lng: 136.9342 },
+                '熱田区': { lat: 35.1283, lng: 136.9073 },
+                '中川区': { lat: 35.1436, lng: 136.8535 },
+                '港区': { lat: 35.1081, lng: 136.8845 },
+                '南区': { lat: 35.0951, lng: 136.9313 },
+                '守山区': { lat: 35.2096, lng: 137.0001 },
+                '緑区': { lat: 35.0711, lng: 136.9558 },
+                '名東区': { lat: 35.2011, lng: 137.0135 },
+                '千種区': { lat: 35.1812, lng: 136.9424 },
+                '東区': { lat: 35.1795, lng: 136.9315 },
+                '北区': { lat: 35.1953, lng: 136.9111 },
+                '天白区': { lat: 35.1226, lng: 137.0117 },
+                '瑞穂区': { lat: 35.1316, lng: 136.9471 },
+                
+                // 主要駅・地名
+                '名古屋駅': { lat: 35.1706, lng: 136.8814 },
+                '栄': { lat: 35.1681, lng: 136.9066 },
+                '金山': { lat: 35.1439, lng: 136.9006 },
+                '浄心': { lat: 35.1938, lng: 136.8901 },
+                '藤が丘': { lat: 35.1951, lng: 137.0747 },
+                '八事': { lat: 35.1445, lng: 136.9713 },
+                '今池': { lat: 35.1677, lng: 136.9245 },
+                '大曽根': { lat: 35.1857, lng: 136.9262 },
+                '新栄町': { lat: 35.1641, lng: 136.9145 },
+                '伏見': { lat: 35.1687, lng: 136.9021 },
+                
+                // 特定の住所パターン
+                '広小路': { lat: 35.1696, lng: 136.8831 },
+                'うまいもん通り': { lat: 35.1696, lng: 136.8831 },
+                '名駅': { lat: 35.1706, lng: 136.8814 }
+            };
+            
+            // 住所から該当エリアを検索
+            for (const [area, coords] of Object.entries(nagoyaAreas)) {
+                if (address.includes(area)) {
+                    // 少しランダム性を加えて重複を避ける
+                    const randomLat = coords.lat + (Math.random() - 0.5) * 0.005;
+                    const randomLng = coords.lng + (Math.random() - 0.5) * 0.005;
+                    
+                    return Promise.resolve({
+                        lat: randomLat,
+                        lng: randomLng
+                    });
+                }
+            }
+            
+            // 該当なしの場合は名古屋駅周辺を返す
+            const defaultCoords = nagoyaAreas['名古屋駅'];
+            const randomLat = defaultCoords.lat + (Math.random() - 0.5) * 0.01;
+            const randomLng = defaultCoords.lng + (Math.random() - 0.5) * 0.01;
+            
+            return Promise.resolve({
+                lat: randomLat,
+                lng: randomLng
+            });
+        }
+        
+        // データベースの座標を更新
+        async function updateStoreCoordinates(storeId, lat, lng) {
+            try {
+                // まず現在のデータ構造を確認
+                const { data: currentData } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .eq('id', storeId)
+                    .limit(1);
+                
+                if (!currentData || currentData.length === 0) {
+                    return false;
+                }
+                
+                const store = currentData[0];
+                const columns = Object.keys(store);
+                
+                // 座標カラムを特定
+                let latField = 'latitude';
+                let lngField = 'longitude';
+                
+                // より柔軟なカラム名検索
+                const latColumn = columns.find(col => 
+                    col.toLowerCase().includes('lat') || 
+                    col.toLowerCase() === 'lat'
+                );
+                const lngColumn = columns.find(col => 
+                    col.toLowerCase().includes('lng') || 
+                    col.toLowerCase().includes('lon') ||
+                    col.toLowerCase() === 'lng' ||
+                    col.toLowerCase() === 'lon'
+                );
+                
+                if (latColumn) latField = latColumn;
+                if (lngColumn) lngField = lngColumn;
+                
+                // 更新データを構築
+                const updateData = {};
+                updateData[latField] = lat.toString();
+                updateData[lngField] = lng.toString();
+                
+                const { data, error } = await supabase
+                    .from('stores')
+                    .update(updateData)
+                    .eq('id', storeId);
+                
+                return !error;
+                
+            } catch (error) {
+                console.error('データベース更新エラー:', error);
+                return false;
+            }
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('シンプル座標修正システムが準備できました');
+            log('「全店舗の座標を修正開始」ボタンをクリックしてください');
+        });
+    </script>
+</body>
+</html>

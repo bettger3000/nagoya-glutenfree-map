@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全店舗データ監査システム</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn.success { background: #28a745; }
+        .btn.warning { background: #ffc107; color: #212529; }
+        .btn.danger { background: #dc3545; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-number.error { color: #dc3545; }
+        .stat-number.warning { color: #ffc107; }
+        .stat-number.success { color: #28a745; }
+        
+        .filters {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .store-card {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            background: white;
+        }
+        .store-card.error { border-color: #dc3545; background: #fff5f5; }
+        .store-card.warning { border-color: #ffc107; background: #fffbf0; }
+        .store-card.success { border-color: #28a745; background: #f8fff8; }
+        
+        .store-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .store-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status-badge.error { background: #dc3545; color: white; }
+        .status-badge.warning { background: #ffc107; color: #212529; }
+        .status-badge.success { background: #28a745; color: white; }
+        
+        .data-section {
+            margin-bottom: 15px;
+        }
+        .data-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+        .data-value {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .data-value.error { background: #f8d7da; color: #721c24; }
+        .data-value.warning { background: #fff3cd; color: #856404; }
+        
+        .issues-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        .issues-list li {
+            padding: 5px;
+            margin: 3px 0;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .issues-list li.error { background: #f8d7da; color: #721c24; }
+        .issues-list li.warning { background: #fff3cd; color: #856404; }
+        
+        .quick-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .quick-actions button {
+            font-size: 0.8em;
+            padding: 5px 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .loading i {
+            font-size: 2em;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+            max-width: 300px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 全店舗データ監査システム</h1>
+        <p>全ての店舗データを分析し、座標・住所・URL情報の整合性をチェックします。</p>
+        
+        <div class="controls">
+            <button class="btn" onclick="startFullAudit()">
+                <i class="fas fa-play"></i> 完全監査開始
+            </button>
+            <button class="btn warning" onclick="showProblematicOnly()">
+                <i class="fas fa-exclamation-triangle"></i> 問題のある店舗のみ
+            </button>
+            <button class="btn success" onclick="showValidOnly()">
+                <i class="fas fa-check"></i> 正常な店舗のみ
+            </button>
+            <button class="btn" onclick="exportResults()">
+                <i class="fas fa-download"></i> 結果をエクスポート
+            </button>
+        </div>
+        
+        <div class="filters">
+            <label>🔍 店舗検索:</label>
+            <input type="text" id="searchInput" class="search-input" placeholder="店名で検索..." onkeyup="filterStores()">
+            <label>📂 カテゴリ:</label>
+            <select id="categoryFilter" onchange="filterStores()">
+                <option value="">全カテゴリ</option>
+            </select>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;"></div>
+        
+        <div id="results">
+            <div class="loading">
+                <i class="fas fa-cog"></i>
+                <p>「完全監査開始」ボタンをクリックしてデータ分析を開始してください</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let allStores = [];
+        let auditResults = [];
+        let filteredResults = [];
+        
+        // 名古屋市の範囲
+        const NAGOYA_BOUNDS = {
+            north: 35.3, south: 35.0, east: 137.0, west: 136.7
+        };
+        
+        async function startFullAudit() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-cog"></i>
+                    <p>全店舗データを取得中...</p>
+                </div>
+            `;
+            
+            try {
+                const { data: stores, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                allStores = stores || [];
+                
+                resultsDiv.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-cog"></i>
+                        <p>${allStores.length}店舗を分析中... (${getCurrentTime()})</p>
+                    </div>
+                `;
+                
+                // 各店舗を分析
+                auditResults = [];
+                for (let i = 0; i < allStores.length; i++) {
+                    const store = allStores[i];
+                    const analysis = await auditStore(store);
+                    auditResults.push({ store, analysis });
+                    
+                    // プログレス更新
+                    if (i % 5 === 0 || i === allStores.length - 1) {
+                        resultsDiv.innerHTML = `
+                            <div class="loading">
+                                <i class="fas fa-cog"></i>
+                                <p>分析中: ${i + 1}/${allStores.length} (${Math.round((i + 1) / allStores.length * 100)}%)</p>
+                            </div>
+                        `;
+                        await new Promise(resolve => setTimeout(resolve, 10)); // UI更新
+                    }
+                }
+                
+                // 結果を表示
+                displayResults();
+                populateCategoryFilter();
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">エラー: ${error.message}</div>`;
+            }
+        }
+        
+        async function auditStore(store) {
+            const issues = [];
+            let severity = 'success'; // success, warning, error
+            
+            // 座標分析
+            const coordinateAnalysis = analyzeCoordinates(store);
+            if (coordinateAnalysis.issues.length > 0) {
+                issues.push(...coordinateAnalysis.issues);
+                if (coordinateAnalysis.severity === 'error') severity = 'error';
+                else if (coordinateAnalysis.severity === 'warning' && severity !== 'error') severity = 'warning';
+            }
+            
+            // URL分析
+            const urlAnalysis = analyzeUrls(store);
+            if (urlAnalysis.issues.length > 0) {
+                issues.push(...urlAnalysis.issues);
+                if (urlAnalysis.severity === 'warning' && severity === 'success') severity = 'warning';
+            }
+            
+            // 住所分析
+            const addressAnalysis = analyzeAddress(store);
+            if (addressAnalysis.issues.length > 0) {
+                issues.push(...addressAnalysis.issues);
+                if (addressAnalysis.severity === 'warning' && severity === 'success') severity = 'warning';
+            }
+            
+            // 重複チェック
+            const duplicateAnalysis = checkDuplicates(store);
+            if (duplicateAnalysis.issues.length > 0) {
+                issues.push(...duplicateAnalysis.issues);
+                if (duplicateAnalysis.severity === 'warning' && severity === 'success') severity = 'warning';
+            }
+            
+            return {
+                severity,
+                issues,
+                coordinateAnalysis,
+                urlAnalysis,
+                addressAnalysis,
+                duplicateAnalysis,
+                recommendedActions: generateRecommendations(store, issues)
+            };
+        }
+        
+        function analyzeCoordinates(store) {
+            const lat = parseFloat(store.latitude);
+            const lng = parseFloat(store.longitude);
+            const issues = [];
+            let severity = 'success';
+            
+            // 座標の存在チェック
+            if (!store.latitude || !store.longitude) {
+                issues.push({ type: 'error', message: '座標データが存在しません' });
+                severity = 'error';
+            }
+            // 座標の有効性チェック
+            else if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                issues.push({ type: 'error', message: '無効な座標値です' });
+                severity = 'error';
+            }
+            // 名古屋市内かチェック
+            else if (lat < NAGOYA_BOUNDS.south || lat > NAGOYA_BOUNDS.north || 
+                     lng < NAGOYA_BOUNDS.west || lng > NAGOYA_BOUNDS.east) {
+                issues.push({ type: 'warning', message: '名古屋市外の座標です' });
+                if (severity !== 'error') severity = 'warning';
+            }
+            
+            // URL座標との比較
+            const extractedCoords = extractCoordinatesFromGoogleMaps(store);
+            if (extractedCoords && isValidCoordinate(lat, lng)) {
+                const distance = calculateDistance(lat, lng, extractedCoords.lat, extractedCoords.lng);
+                if (distance > 1) { // 1km以上離れている
+                    issues.push({ 
+                        type: 'warning', 
+                        message: `URL座標と${distance.toFixed(1)}km離れています` 
+                    });
+                    if (severity !== 'error') severity = 'warning';
+                }
+            }
+            
+            return { issues, severity, extractedCoords };
+        }
+        
+        function analyzeUrls(store) {
+            const issues = [];
+            let severity = 'success';
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            
+            let hasGoogleMapsUrl = false;
+            urlFields.forEach(field => {
+                if (store[field] && store[field].includes('google')) {
+                    hasGoogleMapsUrl = true;
+                    
+                    // URLの有効性チェック
+                    try {
+                        new URL(store[field]);
+                    } catch {
+                        issues.push({ type: 'warning', message: `${field}が無効なURLです` });
+                        if (severity !== 'error') severity = 'warning';
+                    }
+                }
+            });
+            
+            if (!hasGoogleMapsUrl) {
+                issues.push({ type: 'warning', message: 'GoogleマップURLが見つかりません' });
+                if (severity !== 'error') severity = 'warning';
+            }
+            
+            return { issues, severity };
+        }
+        
+        function analyzeAddress(store) {
+            const issues = [];
+            let severity = 'success';
+            
+            if (!store.address || store.address.trim() === '') {
+                issues.push({ type: 'warning', message: '住所が入力されていません' });
+                severity = 'warning';
+            } else {
+                // 住所の妥当性チェック
+                if (!store.address.includes('名古屋') && !store.address.includes('愛知')) {
+                    issues.push({ type: 'warning', message: '名古屋市外の住所です' });
+                    severity = 'warning';
+                }
+            }
+            
+            return { issues, severity };
+        }
+        
+        function checkDuplicates(store) {
+            const issues = [];
+            let severity = 'success';
+            
+            // 同じ名前の店舗をチェック
+            const sameNameStores = allStores.filter(s => 
+                s.id !== store.id && 
+                s.name && store.name &&
+                s.name.toLowerCase().trim() === store.name.toLowerCase().trim()
+            );
+            
+            if (sameNameStores.length > 0) {
+                issues.push({ 
+                    type: 'warning', 
+                    message: `同名の店舗が他に${sameNameStores.length}件あります` 
+                });
+                severity = 'warning';
+            }
+            
+            return { issues, severity };
+        }
+        
+        function generateRecommendations(store, issues) {
+            const recommendations = [];
+            
+            issues.forEach(issue => {
+                if (issue.message.includes('座標データが存在しません')) {
+                    recommendations.push('GoogleマップURLから座標を自動抽出');
+                }
+                if (issue.message.includes('無効な座標値')) {
+                    recommendations.push('住所から座標を再取得');
+                }
+                if (issue.message.includes('km離れています')) {
+                    recommendations.push('URL座標で更新することを検討');
+                }
+                if (issue.message.includes('住所が入力されていません')) {
+                    recommendations.push('GoogleマップAPIで住所を取得');
+                }
+            });
+            
+            return [...new Set(recommendations)]; // 重複削除
+        }
+        
+        // ユーティリティ関数群
+        function extractCoordinatesFromGoogleMaps(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            let mapUrl = null;
+            
+            for (const field of urlFields) {
+                if (store[field] && typeof store[field] === 'string' && store[field].includes('google')) {
+                    mapUrl = store[field];
+                    break;
+                }
+            }
+            
+            if (!mapUrl) {
+                for (const [key, value] of Object.entries(store)) {
+                    if (typeof value === 'string' && (
+                        value.includes('maps.google') || 
+                        value.includes('goo.gl/maps') ||
+                        (value.includes('@') && value.includes(','))
+                    )) {
+                        mapUrl = value;
+                        break;
+                    }
+                }
+            }
+            
+            if (!mapUrl) return null;
+            
+            const patterns = [
+                /@(-?\d+\.?\d*),(-?\d+\.?\d*),/,
+                /!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/,
+                /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+                /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+                /center=(-?\d+\.?\d*),(-?\d+\.?\d*)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = mapUrl.match(pattern);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    
+                    if (isValidCoordinate(lat, lng)) {
+                        return { lat, lng };
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        function isValidCoordinate(lat, lng) {
+            return !isNaN(lat) && !isNaN(lng) && 
+                   lat >= -90 && lat <= 90 && 
+                   lng >= -180 && lng <= 180 &&
+                   lat !== 0 && lng !== 0;
+        }
+        
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // 地球の半径 (km)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString('ja-JP');
+        }
+        
+        function displayResults() {
+            const stats = calculateStats();
+            displayStats(stats);
+            
+            filteredResults = auditResults;
+            renderStoreCards();
+        }
+        
+        function calculateStats() {
+            const total = auditResults.length;
+            const errorCount = auditResults.filter(r => r.analysis.severity === 'error').length;
+            const warningCount = auditResults.filter(r => r.analysis.severity === 'warning').length;
+            const successCount = total - errorCount - warningCount;
+            
+            const noCoordinates = auditResults.filter(r => 
+                !r.store.latitude || !r.store.longitude).length;
+            const outsideNagoya = auditResults.filter(r => {
+                const lat = parseFloat(r.store.latitude);
+                const lng = parseFloat(r.store.longitude);
+                return isValidCoordinate(lat, lng) && 
+                       (lat < NAGOYA_BOUNDS.south || lat > NAGOYA_BOUNDS.north ||
+                        lng < NAGOYA_BOUNDS.west || lng > NAGOYA_BOUNDS.east);
+            }).length;
+            
+            return {
+                total, errorCount, warningCount, successCount,
+                noCoordinates, outsideNagoya
+            };
+        }
+        
+        function displayStats(stats) {
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total}</div>
+                    <div class="stat-label">総店舗数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number success">${stats.successCount}</div>
+                    <div class="stat-label">正常</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number warning">${stats.warningCount}</div>
+                    <div class="stat-label">要注意</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number error">${stats.errorCount}</div>
+                    <div class="stat-label">エラー</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number error">${stats.noCoordinates}</div>
+                    <div class="stat-label">座標なし</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number warning">${stats.outsideNagoya}</div>
+                    <div class="stat-label">市外座標</div>
+                </div>
+            `;
+            
+            document.getElementById('stats').innerHTML = statsHtml;
+            document.getElementById('stats').style.display = 'grid';
+        }
+        
+        function renderStoreCards() {
+            const resultsDiv = document.getElementById('results');
+            
+            if (filteredResults.length === 0) {
+                resultsDiv.innerHTML = '<div class="loading"><p>該当する店舗がありません</p></div>';
+                return;
+            }
+            
+            const cardsHtml = filteredResults.map(result => createStoreCard(result)).join('');
+            resultsDiv.innerHTML = `<div class="store-grid">${cardsHtml}</div>`;
+        }
+        
+        function createStoreCard({ store, analysis }) {
+            const severityIcon = {
+                success: '✅',
+                warning: '⚠️',
+                error: '❌'
+            };
+            
+            const issuesHtml = analysis.issues.length > 0 ? `
+                <div class="data-section">
+                    <div class="data-label">🚨 問題点:</div>
+                    <ul class="issues-list">
+                        ${analysis.issues.map(issue => 
+                            `<li class="${issue.type}">${issue.message}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            ` : '';
+            
+            const recommendationsHtml = analysis.recommendedActions.length > 0 ? `
+                <div class="data-section">
+                    <div class="data-label">💡 推奨アクション:</div>
+                    <ul class="issues-list">
+                        ${analysis.recommendedActions.map(action => 
+                            `<li style="background: #e8f5e8; color: #155724;">${action}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            ` : '';
+            
+            return `
+                <div class="store-card ${analysis.severity}">
+                    <div class="store-header">
+                        <div class="store-name">${store.name || '店名なし'}</div>
+                        <div class="status-badge ${analysis.severity}">
+                            ${severityIcon[analysis.severity]} ${analysis.severity.toUpperCase()}
+                        </div>
+                    </div>
+                    
+                    <div class="data-section">
+                        <div class="data-label">📍 住所:</div>
+                        <div class="data-value">${store.address || '住所なし'}</div>
+                    </div>
+                    
+                    <div class="data-section">
+                        <div class="data-label">🗺️ 座標:</div>
+                        <div class="data-value ${!store.latitude || !store.longitude ? 'error' : ''}">
+                            緯度: ${store.latitude || 'なし'} / 経度: ${store.longitude || 'なし'}
+                        </div>
+                        ${analysis.coordinateAnalysis.extractedCoords ? `
+                            <div class="data-value" style="background: #d4edda; color: #155724; margin-top: 5px;">
+                                URL座標: ${analysis.coordinateAnalysis.extractedCoords.lat}, ${analysis.coordinateAnalysis.extractedCoords.lng}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="data-section">
+                        <div class="data-label">📂 カテゴリ:</div>
+                        <div class="data-value">${store.category || 'カテゴリなし'}</div>
+                    </div>
+                    
+                    ${issuesHtml}
+                    ${recommendationsHtml}
+                    
+                    <div class="quick-actions">
+                        <button class="btn" onclick="inspectStore('${store.id}')">
+                            <i class="fas fa-search"></i> 詳細調査
+                        </button>
+                        <button class="btn success" onclick="fixStore('${store.id}')">
+                            <i class="fas fa-wrench"></i> 修正
+                        </button>
+                        <button class="btn warning" onclick="viewOnMap('${store.id}')">
+                            <i class="fas fa-map"></i> 地図で確認
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateCategoryFilter() {
+            const categories = [...new Set(allStores.map(s => s.category).filter(Boolean))];
+            const select = document.getElementById('categoryFilter');
+            select.innerHTML = '<option value="">全カテゴリ</option>' +
+                categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        }
+        
+        function filterStores() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            filteredResults = auditResults.filter(result => {
+                const matchesSearch = !searchTerm || 
+                    result.store.name?.toLowerCase().includes(searchTerm) ||
+                    result.store.address?.toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = !categoryFilter || result.store.category === categoryFilter;
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            renderStoreCards();
+        }
+        
+        function showProblematicOnly() {
+            filteredResults = auditResults.filter(r => r.analysis.severity !== 'success');
+            renderStoreCards();
+        }
+        
+        function showValidOnly() {
+            filteredResults = auditResults.filter(r => r.analysis.severity === 'success');
+            renderStoreCards();
+        }
+        
+        function inspectStore(storeId) {
+            const result = auditResults.find(r => r.store.id == storeId);
+            if (result) {
+                alert(`店舗詳細:\n${JSON.stringify(result.store, null, 2)}\n\n分析結果:\n${JSON.stringify(result.analysis, null, 2)}`);
+            }
+        }
+        
+        function fixStore(storeId) {
+            alert(`店舗ID: ${storeId} の修正機能は開発中です`);
+        }
+        
+        function viewOnMap(storeId) {
+            const store = auditResults.find(r => r.store.id == storeId)?.store;
+            if (store && store.latitude && store.longitude) {
+                const url = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
+                window.open(url, '_blank');
+            } else {
+                alert('座標データがありません');
+            }
+        }
+        
+        function exportResults() {
+            const data = auditResults.map(r => ({
+                店名: r.store.name,
+                住所: r.store.address,
+                カテゴリ: r.store.category,
+                緯度: r.store.latitude,
+                経度: r.store.longitude,
+                ステータス: r.analysis.severity,
+                問題数: r.analysis.issues.length,
+                問題内容: r.analysis.issues.map(i => i.message).join('; ')
+            }));
+            
+            const csv = convertToCSV(data);
+            downloadCSV(csv, `店舗監査結果_${new Date().toISOString().split('T')[0]}.csv`);
+        }
+        
+        function convertToCSV(data) {
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => 
+                    headers.map(header => {
+                        const cell = row[header] || '';
+                        return typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell;
+                    }).join(',')
+                )
+            ].join('\n');
+            return csvContent;
+        }
+        
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    </script>
+</body>
+</html>

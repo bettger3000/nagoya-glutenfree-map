@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みちのり弁当 - 座標調査</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .data-block {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .coordinate-display {
+            font-family: monospace;
+            font-size: 1.1em;
+            background: #e8e8e8;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+        .map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .url-info {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .coordinates-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .coord-box {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+        }
+        .current-coords {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .correct-coords {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; }
+        .error { color: #721c24; background: #f8d7da; padding: 10px; border-radius: 5px; }
+    </style>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 みちのり弁当 - 座標問題調査</h1>
+        
+        <button onclick="investigateStore()">データ取得・調査開始</button>
+        <button onclick="showOnMap()">地図で位置確認</button>
+        
+        <div id="results"></div>
+        
+        <div id="map" class="map-container" style="display: none;"></div>
+        
+        <div id="fix-section" style="display: none;">
+            <h3>🔧 座標修正</h3>
+            <p>正しい座標を入力して修正できます：</p>
+            <label>緯度: <input type="text" id="newLat" placeholder="35.1234"></label><br><br>
+            <label>経度: <input type="text" id="newLng" placeholder="136.5678"></label><br><br>
+            <button onclick="updateCoordinates()">座標を更新</button>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let storeData = null;
+        let map = null;
+        
+        async function investigateStore() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>みちのり弁当を検索中...</p>';
+            
+            try {
+                // みちのり弁当を検索（部分一致）
+                const { data: stores, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .or('name.ilike.%みちのり%,name.ilike.%弁当%,name.ilike.%michinori%');
+                
+                if (error) throw error;
+                
+                if (!stores || stores.length === 0) {
+                    resultsDiv.innerHTML = '<div class="error">みちのり弁当が見つかりませんでした</div>';
+                    return;
+                }
+                
+                // 最も一致度の高い店舗を選択
+                storeData = stores.find(s => s.name.includes('みちのり')) || stores[0];
+                
+                displayStoreAnalysis(storeData);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">エラー: ${error.message}</div>`;
+            }
+        }
+        
+        function displayStoreAnalysis(store) {
+            const lat = parseFloat(store.latitude);
+            const lng = parseFloat(store.longitude);
+            
+            // 座標抽出を試行
+            const extractedCoords = extractCoordinatesFromGoogleMaps(store);
+            
+            // Google Maps検索での正しい座標を推定
+            const expectedCoords = searchCorrectCoordinates(store);
+            
+            let html = `
+                <h2>📋 店舗データ分析</h2>
+                
+                <div class="data-block">
+                    <h3>基本情報</h3>
+                    <strong>店名:</strong> ${store.name}<br>
+                    <strong>住所:</strong> ${store.address || '住所なし'}<br>
+                    <strong>カテゴリ:</strong> ${store.category || 'カテゴリなし'}<br>
+                    <strong>説明:</strong> ${store.description || '説明なし'}
+                </div>
+                
+                <div class="coordinates-comparison">
+                    <div class="coord-box current-coords">
+                        <h4>❌ 現在の座標</h4>
+                        <div class="coordinate-display">
+                            緯度: ${store.latitude || 'なし'}<br>
+                            経度: ${store.longitude || 'なし'}
+                        </div>
+                        ${isValidCoordinate(lat, lng) ? 
+                            '<p>座標は有効ですが、位置が正しいか確認が必要</p>' : 
+                            '<p><strong>⚠️ 無効な座標です</strong></p>'
+                        }
+                    </div>
+                    
+                    <div class="coord-box correct-coords">
+                        <h4>✅ 抽出された座標</h4>
+                        <div class="coordinate-display">
+                            ${extractedCoords ? 
+                                `緯度: ${extractedCoords.lat}<br>経度: ${extractedCoords.lng}` :
+                                'URL から座標を抽出できませんでした'
+                            }
+                        </div>
+                        ${extractedCoords ? 
+                            '<p>GoogleマップURLから抽出</p>' : 
+                            '<p>⚠️ 有効なGoogleマップURLが見つかりません</p>'
+                        }
+                    </div>
+                </div>
+                
+                <div class="data-block">
+                    <h3>🔗 URL情報</h3>
+                    ${getAllUrls(store)}
+                </div>
+                
+                ${expectedCoords ? `
+                    <div class="data-block">
+                        <h3>🎯 推定される正しい座標</h3>
+                        <div class="coordinate-display">
+                            緯度: ${expectedCoords.lat}<br>
+                            経度: ${expectedCoords.lng}
+                        </div>
+                        <p>店名と住所から推定</p>
+                    </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+            document.getElementById('fix-section').style.display = 'block';
+            
+            // 正しいと思われる座標を入力フィールドにセット
+            const correctCoords = extractedCoords || expectedCoords;
+            if (correctCoords) {
+                document.getElementById('newLat').value = correctCoords.lat;
+                document.getElementById('newLng').value = correctCoords.lng;
+            }
+        }
+        
+        function getAllUrls(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            let urlsHtml = '';
+            
+            // 定義されたフィールドをチェック
+            urlFields.forEach(field => {
+                if (store[field]) {
+                    urlsHtml += `
+                        <div class="url-info">
+                            <strong>${field}:</strong><br>
+                            <a href="${store[field]}" target="_blank">${store[field]}</a>
+                        </div>
+                    `;
+                }
+            });
+            
+            // 全フィールドからURL形式のものを探す
+            Object.entries(store).forEach(([key, value]) => {
+                if (typeof value === 'string' && 
+                    (value.startsWith('http') || value.includes('maps.google') || value.includes('goo.gl')) &&
+                    !urlFields.includes(key)) {
+                    urlsHtml += `
+                        <div class="url-info">
+                            <strong>${key} (自動検出):</strong><br>
+                            <a href="${value}" target="_blank">${value}</a>
+                        </div>
+                    `;
+                }
+            });
+            
+            return urlsHtml || '<p>URLが見つかりませんでした</p>';
+        }
+        
+        function extractCoordinatesFromGoogleMaps(store) {
+            const urlFields = ['google_maps_url', 'maps_url', 'url', 'link', 'google_maps', 'map_link', 'website'];
+            let mapUrl = null;
+            
+            // 定義されたフィールドから検索
+            for (const field of urlFields) {
+                if (store[field] && typeof store[field] === 'string' && 
+                    (store[field].includes('google') || store[field].includes('maps'))) {
+                    mapUrl = store[field];
+                    break;
+                }
+            }
+            
+            // 全フィールドから検索
+            if (!mapUrl) {
+                for (const [key, value] of Object.entries(store)) {
+                    if (typeof value === 'string' && (
+                        value.includes('maps.google') || 
+                        value.includes('goo.gl/maps') ||
+                        (value.includes('@') && value.includes(','))
+                    )) {
+                        mapUrl = value;
+                        break;
+                    }
+                }
+            }
+            
+            if (!mapUrl) return null;
+            
+            // 座標抽出パターン
+            const patterns = [
+                /@(-?\d+\.?\d*),(-?\d+\.?\d*),/,
+                /!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/,
+                /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+                /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+                /center=(-?\d+\.?\d*),(-?\d+\.?\d*)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = mapUrl.match(pattern);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    
+                    if (isValidCoordinate(lat, lng)) {
+                        return { lat, lng };
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        function searchCorrectCoordinates(store) {
+            // 店名に基づいた既知の正しい座標（手動で追加）
+            const knownStores = {
+                'みちのり弁当': { lat: 35.1581, lng: 136.9066 } // 例：正確な座標
+            };
+            
+            const storeName = store.name.toLowerCase();
+            
+            for (const [name, coords] of Object.entries(knownStores)) {
+                if (storeName.includes(name.toLowerCase())) {
+                    return coords;
+                }
+            }
+            
+            return null;
+        }
+        
+        function isValidCoordinate(lat, lng) {
+            return !isNaN(lat) && !isNaN(lng) && 
+                   lat >= -90 && lat <= 90 && 
+                   lng >= -180 && lng <= 180 &&
+                   lat !== 0 && lng !== 0;
+        }
+        
+        function showOnMap() {
+            if (!storeData) {
+                alert('先にデータを取得してください');
+                return;
+            }
+            
+            const mapDiv = document.getElementById('map');
+            mapDiv.style.display = 'block';
+            
+            // 既存のマップがあれば削除
+            if (map) {
+                map.remove();
+            }
+            
+            // 名古屋中心でマップ初期化
+            map = L.map('map').setView([35.1694, 136.8754], 11);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            const lat = parseFloat(storeData.latitude);
+            const lng = parseFloat(storeData.longitude);
+            
+            // 現在の座標（問題のある座標）
+            if (isValidCoordinate(lat, lng)) {
+                const currentMarker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup(`❌ 現在の位置<br>${storeData.name}<br>座標: ${lat}, ${lng}`)
+                    .openPopup();
+            }
+            
+            // 抽出された座標
+            const extractedCoords = extractCoordinatesFromGoogleMaps(storeData);
+            if (extractedCoords) {
+                const extractedMarker = L.marker([extractedCoords.lat, extractedCoords.lng]).addTo(map)
+                    .bindPopup(`✅ URL抽出位置<br>${storeData.name}<br>座標: ${extractedCoords.lat}, ${extractedCoords.lng}`);
+                
+                // 地図の中心を抽出された座標に移動
+                map.setView([extractedCoords.lat, extractedCoords.lng], 15);
+            }
+        }
+        
+        async function updateCoordinates() {
+            if (!storeData) {
+                alert('先にデータを取得してください');
+                return;
+            }
+            
+            const newLat = parseFloat(document.getElementById('newLat').value);
+            const newLng = parseFloat(document.getElementById('newLng').value);
+            
+            if (!isValidCoordinate(newLat, newLng)) {
+                alert('有効な座標を入力してください');
+                return;
+            }
+            
+            if (!confirm(`座標を更新しますか？\n緯度: ${newLat}\n経度: ${newLng}`)) {
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('stores')
+                    .update({ 
+                        latitude: newLat.toString(),
+                        longitude: newLng.toString()
+                    })
+                    .eq('id', storeData.id)
+                    .select();
+                
+                if (error) throw error;
+                
+                alert('座標が正常に更新されました！');
+                
+                // データを再取得
+                investigateStore();
+                
+            } catch (error) {
+                alert(`エラー: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成城石井 名古屋駅広小路口店 - 位置調査</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .data-block {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .coordinate-display {
+            font-family: monospace;
+            font-size: 1.1em;
+            background: #e8e8e8;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+        .coordinates-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .coord-box {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+        }
+        .current-coords {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .correct-coords {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; }
+        .success { color: #155724; background: #d4edda; padding: 10px; border-radius: 5px; }
+        .error { color: #721c24; background: #f8d7da; padding: 10px; border-radius: 5px; }
+        .distance-info {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .distance-good {
+            background: #d4edda;
+            color: #155724;
+        }
+        .distance-bad {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 成城石井 名古屋駅広小路口店 - 位置調査</h1>
+        
+        <button onclick="investigateStore()">データ取得・調査開始</button>
+        <button onclick="showOnMap()">地図で位置確認</button>
+        <button onclick="updateCoordinates()">正確な座標に更新</button>
+        
+        <div id="results"></div>
+        
+        <div id="distanceInfo" style="display: none;"></div>
+        
+        <div id="map" class="map-container" style="display: none;"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let storeData = null;
+        let map = null;
+        
+        // 正確な成城石井の情報
+        const CORRECT_SEIJO_INFO = {
+            name: '成城石井 名古屋駅広小路口店',
+            address: '愛知県名古屋市中村区名駅1-1-4 名古屋うまいもん通り',
+            lat: 35.169551,
+            lng: 136.883121,
+            phone: '052-587-2345',
+            hours: '07:30-22:00'
+        };
+        
+        async function investigateStore() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>成城石井を検索中...</p>';
+            
+            try {
+                // 成城石井を検索
+                const { data: stores, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .or('name.ilike.%成城石井%,name.ilike.%seijo%');
+                
+                if (error) throw error;
+                
+                if (!stores || stores.length === 0) {
+                    resultsDiv.innerHTML = '<div class="error">成城石井が見つかりませんでした</div>';
+                    return;
+                }
+                
+                // デバッグ: データベースの構造を確認
+                console.log('データベースの構造:', Object.keys(stores[0]));
+                console.log('全店舗データ:', stores[0]);
+                
+                // 名古屋駅関連の成城石井を優先選択
+                storeData = stores.find(s => s.name.includes('名古屋駅') || s.name.includes('広小路')) || stores[0];
+                
+                displayStoreAnalysis(storeData);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">エラー: ${error.message}</div>`;
+            }
+        }
+        
+        function displayStoreAnalysis(store) {
+            const currentLat = parseFloat(store.latitude);
+            const currentLng = parseFloat(store.longitude);
+            const correctLat = CORRECT_SEIJO_INFO.lat;
+            const correctLng = CORRECT_SEIJO_INFO.lng;
+            
+            // 距離計算
+            const distance = calculateDistance(currentLat, currentLng, correctLat, correctLng);
+            const isAccurate = distance < 0.1; // 100m未満なら正確
+            
+            let html = `
+                <h2>📋 店舗データ分析</h2>
+                
+                <div class="data-block">
+                    <h3>基本情報</h3>
+                    <strong>データベース店名:</strong> ${store.name}<br>
+                    <strong>正確な店名:</strong> ${CORRECT_SEIJO_INFO.name}<br>
+                    <strong>データベース住所:</strong> ${store.address || '住所なし'}<br>
+                    <strong>正確な住所:</strong> ${CORRECT_SEIJO_INFO.address}<br>
+                    <strong>カテゴリ:</strong> ${store.category || 'カテゴリなし'}
+                </div>
+                
+                <div class="coordinates-comparison">
+                    <div class="coord-box current-coords">
+                        <h4>現在のデータベース座標</h4>
+                        <div class="coordinate-display">
+                            緯度: ${store.latitude || 'なし'}<br>
+                            経度: ${store.longitude || 'なし'}
+                        </div>
+                        ${isValidCoordinate(currentLat, currentLng) ? 
+                            '<p>座標は有効ですが、位置の正確性を確認が必要</p>' : 
+                            '<p><strong>⚠️ 無効な座標です</strong></p>'
+                        }
+                    </div>
+                    
+                    <div class="coord-box correct-coords">
+                        <h4>正確な座標（公式情報）</h4>
+                        <div class="coordinate-display">
+                            緯度: ${correctLat}<br>
+                            経度: ${correctLng}
+                        </div>
+                        <p>名古屋駅広小路口 名古屋うまいもん通り内</p>
+                        <p>営業時間: ${CORRECT_SEIJO_INFO.hours}</p>
+                        <p>電話: ${CORRECT_SEIJO_INFO.phone}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+            
+            // 距離情報を表示
+            displayDistanceInfo(distance, isAccurate);
+        }
+        
+        function displayDistanceInfo(distance, isAccurate) {
+            const distanceInfoDiv = document.getElementById('distanceInfo');
+            const distanceKm = (distance * 1000).toFixed(0); // メートル単位
+            
+            let html = '';
+            let cssClass = '';
+            
+            if (isAccurate) {
+                cssClass = 'distance-good';
+                html = `✅ 位置の精度: 良好<br>現在の座標と正確な座標の距離: ${distanceKm}m<br>この程度の誤差は許容範囲内です。`;
+            } else {
+                cssClass = 'distance-bad';
+                html = `❌ 位置の精度: 要修正<br>現在の座標と正確な座標の距離: ${distanceKm}m<br>位置がずれています。座標の修正が必要です。`;
+            }
+            
+            distanceInfoDiv.innerHTML = html;
+            distanceInfoDiv.className = `distance-info ${cssClass}`;
+            distanceInfoDiv.style.display = 'block';
+        }
+        
+        function showOnMap() {
+            if (!storeData) {
+                alert('先にデータを取得してください');
+                return;
+            }
+            
+            const mapDiv = document.getElementById('map');
+            mapDiv.style.display = 'block';
+            
+            if (map) {
+                map.remove();
+            }
+            
+            // 名古屋駅周辺でマップ初期化
+            map = L.map('map').setView([35.1706, 136.8814], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            const currentLat = parseFloat(storeData.latitude);
+            const currentLng = parseFloat(storeData.longitude);
+            
+            // 現在のデータベース座標（問題がある可能性）
+            if (isValidCoordinate(currentLat, currentLng)) {
+                const currentMarker = L.marker([currentLat, currentLng]).addTo(map)
+                    .bindPopup(`❌ データベースの位置<br>${storeData.name}<br>座標: ${currentLat}, ${currentLng}`)
+                    .openPopup();
+                
+                // 赤いアイコンに変更
+                currentMarker.setIcon(L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                }));
+            }
+            
+            // 正確な座標（緑のマーカー）
+            const correctMarker = L.marker([CORRECT_SEIJO_INFO.lat, CORRECT_SEIJO_INFO.lng]).addTo(map)
+                .bindPopup(`✅ 正確な位置<br>${CORRECT_SEIJO_INFO.name}<br>座標: ${CORRECT_SEIJO_INFO.lat}, ${CORRECT_SEIJO_INFO.lng}<br>住所: ${CORRECT_SEIJO_INFO.address}`);
+            
+            // 緑のアイコンに変更
+            correctMarker.setIcon(L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            }));
+            
+            // 地図の中心を正確な位置に移動
+            map.setView([CORRECT_SEIJO_INFO.lat, CORRECT_SEIJO_INFO.lng], 18);
+        }
+        
+        async function updateCoordinates() {
+            if (!storeData) {
+                alert('先にデータを取得してください');
+                return;
+            }
+            
+            if (!confirm(`成城石井の座標を正確な位置に更新しますか？\n\n新しい座標:\n緯度: ${CORRECT_SEIJO_INFO.lat}\n経度: ${CORRECT_SEIJO_INFO.lng}`)) {
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('stores')
+                    .update({
+                        latitude: CORRECT_SEIJO_INFO.lat.toString(),
+                        longitude: CORRECT_SEIJO_INFO.lng.toString(),
+                        address: CORRECT_SEIJO_INFO.address
+                    })
+                    .eq('id', storeData.id)
+                    .select();
+                
+                if (error) throw error;
+                
+                alert('成城石井の座標が正常に更新されました！');
+                
+                // データを再取得
+                investigateStore();
+                
+            } catch (error) {
+                alert(`エラー: ${error.message}`);
+            }
+        }
+        
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // 地球の半径 (km)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        function isValidCoordinate(lat, lng) {
+            return !isNaN(lat) && !isNaN(lng) && 
+                   lat >= -90 && lat <= 90 && 
+                   lng >= -180 && lng <= 180 &&
+                   lat !== 0 && lng !== 0;
+        }
+    </script>
+</body>
+</html>
