@@ -20,7 +20,10 @@ class GlutenFreeMap {
             modal: document.getElementById('store-modal'),
             modalTitle: document.getElementById('modal-title'),
             modalBody: document.getElementById('modal-body'),
-            closeModal: document.getElementById('close-modal')
+            closeModal: document.getElementById('close-modal'),
+            hamburgerBtn: document.getElementById('hamburger-btn'),
+            hamburgerMenu: document.getElementById('hamburger-menu'),
+            closeHamburger: document.getElementById('close-hamburger')
         };
         
         this.init();
@@ -279,6 +282,20 @@ class GlutenFreeMap {
             this.setFilter('all');
         });
         
+        // ハンバーガーメニュー
+        this.elements.hamburgerBtn.addEventListener('click', () => {
+            this.toggleHamburgerMenu();
+        });
+        
+        this.elements.closeHamburger.addEventListener('click', () => {
+            this.closeHamburgerMenu();
+        });
+        
+        // オーバーレイクリック
+        this.elements.hamburgerMenu.querySelector('.hamburger-overlay').addEventListener('click', () => {
+            this.closeHamburgerMenu();
+        });
+        
         console.log('✅ UI初期化完了');
     }
     
@@ -318,6 +335,28 @@ class GlutenFreeMap {
                 </button>
             </div>
         `;
+    }
+    
+    // ハンバーガーメニュー操作
+    toggleHamburgerMenu() {
+        const isOpen = this.elements.hamburgerMenu.classList.contains('show');
+        if (isOpen) {
+            this.closeHamburgerMenu();
+        } else {
+            this.openHamburgerMenu();
+        }
+    }
+    
+    openHamburgerMenu() {
+        this.elements.hamburgerMenu.classList.add('show');
+        this.elements.hamburgerBtn.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    closeHamburgerMenu() {
+        this.elements.hamburgerMenu.classList.remove('show');
+        this.elements.hamburgerBtn.classList.remove('active');
+        document.body.style.overflow = 'auto';
     }
 }
 
