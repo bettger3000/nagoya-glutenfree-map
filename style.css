@@ -365,6 +365,8 @@ body {
     flex-direction: column;
     gap: 4px;
     transition: transform 0.3s ease;
+    position: relative;
+    z-index: 10003;
 }
 
 .hamburger-btn:hover {
@@ -400,7 +402,7 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    z-index: 9999;
+    z-index: 10001;
     transition: left 0.3s ease;
 }
 
@@ -421,13 +423,14 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 300px;
-    max-width: 80%;
+    width: 320px;
+    max-width: 85%;
     height: 100%;
     background: var(--white);
-    box-shadow: 2px 0 10px var(--shadow);
+    box-shadow: 2px 0 15px var(--shadow);
     display: flex;
     flex-direction: column;
+    z-index: 10002;
 }
 
 .hamburger-header {
@@ -449,6 +452,14 @@ body {
     color: var(--white);
     font-size: 1.5rem;
     cursor: pointer;
+    position: relative;
+    z-index: 10004;
+    padding: 8px;
+    transition: transform 0.2s ease;
+}
+
+.close-hamburger:hover {
+    transform: scale(1.1);
 }
 
 .hamburger-body {
@@ -548,7 +559,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    z-index: 1001;
+    z-index: 10005;
     animation: slideInRight 0.3s ease;
 }
 
