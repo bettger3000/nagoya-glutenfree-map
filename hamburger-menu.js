@@ -146,26 +146,42 @@ class HamburgerMenu {
             }
         });
         
-        // メニュー項目のクリック処理
-        document.getElementById('myReviewsLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.handleMyReviews();
-        });
+        // メニュー項目のクリック処理（nullチェック付き）
+        const myReviewsLink = document.getElementById('myReviewsLink');
+        if (myReviewsLink) {
+            myReviewsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleMyReviews();
+            });
+            console.log('✅ マイレビューリンク設定完了');
+        }
         
-        document.getElementById('myStatsLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.handleMyStats();
-        });
+        const myStatsLink = document.getElementById('myStatsLink');
+        if (myStatsLink) {
+            myStatsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleMyStats();
+            });
+            console.log('✅ 統計リンク設定完了');
+        }
         
-        document.getElementById('aboutLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.handleAbout();
-        });
+        const aboutLink = document.getElementById('aboutLink');
+        if (aboutLink) {
+            aboutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleAbout();
+            });
+            console.log('✅ このアプリについてリンク設定完了');
+        }
         
-        document.getElementById('hamburgerLogout').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.handleLogout();
-        });
+        const hamburgerLogout = document.getElementById('hamburgerLogout');
+        if (hamburgerLogout) {
+            hamburgerLogout.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleLogout();
+            });
+            console.log('✅ ログアウトリンク設定完了');
+        }
     }
     
     // メニュー切り替え
@@ -227,14 +243,18 @@ class HamburgerMenu {
         const loginItem = document.getElementById('hamburgerLoginItem');
         const logoutItem = document.getElementById('hamburgerLogoutItem');
         const avatarElement = document.querySelector('.hamburger-user-avatar');
+        const userName = document.getElementById('hamburgerUserName');
+        const userStats = document.getElementById('hamburgerUserStats');
         
         if (this.currentUser && this.userProfile) {
-            this.hamburgerUserName.textContent = this.userProfile.nickname || 'ユーザー';
+            if (userName) userName.textContent = this.userProfile.nickname || 'ユーザー';
             
-            if (this.userStats) {
-                this.hamburgerUserStats.textContent = `レビュー ${this.userStats.reviewCount}件投稿`;
-            } else {
-                this.hamburgerUserStats.textContent = 'データ読み込み中...';
+            if (userStats) {
+                if (this.userStats) {
+                    userStats.textContent = `レビュー ${this.userStats.reviewCount}件投稿`;
+                } else {
+                    userStats.textContent = 'データ読み込み中...';
+                }
             }
             
             // アバター画像を設定
@@ -245,8 +265,8 @@ class HamburgerMenu {
             if (logoutItem) logoutItem.style.display = 'block';
             
         } else if (this.currentUser) {
-            this.hamburgerUserName.textContent = 'プロフィール未設定';
-            this.hamburgerUserStats.textContent = 'プロフィールを設定してください';
+            if (userName) userName.textContent = 'プロフィール未設定';
+            if (userStats) userStats.textContent = 'プロフィールを設定してください';
             
             // デフォルトアバターを表示
             this.updateAvatarDisplay(avatarElement);
@@ -256,8 +276,8 @@ class HamburgerMenu {
             if (logoutItem) logoutItem.style.display = 'block';
             
         } else {
-            this.hamburgerUserName.textContent = '未ログイン';
-            this.hamburgerUserStats.textContent = 'ログインしてください';
+            if (userName) userName.textContent = '未ログイン';
+            if (userStats) userStats.textContent = 'ログインしてください';
             
             // デフォルトアバターを表示
             this.updateAvatarDisplay(avatarElement);
