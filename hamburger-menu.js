@@ -179,28 +179,47 @@ class HamburgerMenu {
     
     // メニューを開く
     async openMenu() {
+        // DOM要素を再取得（確実性のため）
+        const btn = document.getElementById('hamburgerBtn');
+        const menu = document.getElementById('hamburgerMenu');
+        const overlay = document.getElementById('hamburgerOverlay');
+        
+        if (!menu) {
+            console.error('❌ メニュー要素が見つかりません');
+            return;
+        }
+        
         // 最新のユーザー情報を取得
         await this.loadCurrentUser();
         this.updateUserDisplay();
         
         this.isOpen = true;
-        this.hamburgerBtn.classList.add('active');
-        this.hamburgerMenu.classList.add('show');
-        this.hamburgerOverlay.classList.add('show');
+        if (btn) btn.classList.add('active');
+        menu.classList.add('show');
+        if (overlay) overlay.classList.add('show');
         
         // スクロールを無効化
         document.body.style.overflow = 'hidden';
+        
+        console.log('✅ メニューを開きました');
     }
     
     // メニューを閉じる
     closeMenu() {
+        // DOM要素を再取得（確実性のため）
+        const btn = document.getElementById('hamburgerBtn');
+        const menu = document.getElementById('hamburgerMenu');
+        const overlay = document.getElementById('hamburgerOverlay');
+        
         this.isOpen = false;
-        this.hamburgerBtn.classList.remove('active');
-        this.hamburgerMenu.classList.remove('show');
-        this.hamburgerOverlay.classList.remove('show');
+        if (btn) btn.classList.remove('active');
+        if (menu) menu.classList.remove('show');
+        if (overlay) overlay.classList.remove('show');
         
         // スクロールを復活
         document.body.style.overflow = '';
+        
+        console.log('✅ メニューを閉じました');
     }
     
     // ユーザー表示を更新
@@ -550,13 +569,39 @@ class HamburgerMenu {
 }
 
 // DOMContentLoaded後にインスタンス作成
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔄 DOM準備完了、ハンバーガーメニューを初期化');
-    window.hamburgerMenu = new HamburgerMenu();
-});
-
-// 既にDOMが読み込み済みの場合
-if (document.readyState !== 'loading') {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 DOM準備完了、ハンバーガーメニューを初期化');
+        window.hamburgerMenu = new HamburgerMenu();
+        
+        // フォールバック: 手動でイベント設定
+        setTimeout(() => {
+            const btn = document.getElementById('hamburgerBtn');
+            const menu = document.getElementById('hamburgerMenu');
+            if (btn && menu && !btn.onclick) {
+                console.log('🔧 フォールバック: 手動でクリックイベント設定');
+                btn.onclick = function() {
+                    menu.classList.toggle('show');
+                    console.log('フォールバック: メニュー切り替え');
+                };
+            }
+        }, 1000);
+    });
+} else {
+    // 既にDOMが読み込み済み
     console.log('🔄 DOM既に準備済み、ハンバーガーメニューを初期化');
     window.hamburgerMenu = new HamburgerMenu();
+    
+    // フォールバック: 手動でイベント設定
+    setTimeout(() => {
+        const btn = document.getElementById('hamburgerBtn');
+        const menu = document.getElementById('hamburgerMenu');
+        if (btn && menu && !btn.onclick) {
+            console.log('🔧 フォールバック: 手動でクリックイベント設定');
+            btn.onclick = function() {
+                menu.classList.toggle('show');
+                console.log('フォールバック: メニュー切り替え');
+            };
+        }
+    }, 1000);
 }
