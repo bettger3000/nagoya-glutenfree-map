@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みちのり亭座標調査</title>
+    <style>
+        body { 
+            font-family: 'Noto Sans JP', sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2D2D2D; 
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #F8C8DC;
+            color: #2D2D2D;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #E8B4FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 みちのり亭座標調査</h1>
+        
+        <div style="text-align: center;">
+            <button onclick="investigateStore()">🕵️ みちのり亭の座標を調査</button>
+            <button onclick="updateMichinoriDirectly()">📝 みちのり亭座標を直接更新</button>
+            <button onclick="checkAllStores()">📊 全店舗座標を確認</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function showResult(content, type = 'normal') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = content;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        async function investigateStore() {
+            try {
+                showResult('調査中...', 'normal');
+                
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .ilike('name', '%みちのり亭%');
+                    
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    const store = data[0];
+                    let result = `みちのり亭 調査結果:\n\n`;
+                    result += `店舗名: ${store.name}\n`;
+                    result += `ID: ${store.id}\n`;
+                    result += `緯度: ${store.latitude} (型: ${typeof store.latitude})\n`;
+                    result += `経度: ${store.longitude} (型: ${typeof store.longitude})\n`;
+                    result += `住所: ${store.address}\n`;
+                    result += `カテゴリ: ${store.category}\n`;
+                    result += `作成日: ${store.created_at}\n`;
+                    result += `更新日: ${store.updated_at}\n`;
+                    
+                    // 期待される座標と比較
+                    result += `\n期待される座標 (stores.jsonより):\n`;
+                    result += `緯度: 35.1695\n`;
+                    result += `経度: 136.879\n`;
+                    
+                    const isCorrect = (store.latitude == 35.1695 && store.longitude == 136.879);
+                    result += `\n座標は正確か: ${isCorrect ? '✅ はい' : '❌ いいえ'}`;
+                    
+                    showResult(result, isCorrect ? 'success' : 'error');
+                } else {
+                    showResult('みちのり亭が見つかりませんでした', 'error');
+                }
+            } catch (error) {
+                showResult(`エラー: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateMichinoriDirectly() {
+            try {
+                showResult('みちのり亭の座標を更新中...', 'normal');
+                
+                // まず店舗を検索
+                const { data: stores, error: searchError } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .ilike('name', '%みちのり亭%');
+                    
+                if (searchError) throw searchError;
+                
+                if (stores && stores.length > 0) {
+                    const store = stores[0];
+                    
+                    // 座標を更新
+                    const { data, error } = await supabase
+                        .from('stores')
+                        .update({
+                            latitude: 35.1695,
+                            longitude: 136.879
+                        })
+                        .eq('id', store.id)
+                        .select();
+                        
+                    if (error) throw error;
+                    
+                    let result = `✅ みちのり亭の座標を更新しました！\n\n`;
+                    if (data && data.length > 0) {
+                        const updated = data[0];
+                        result += `更新後の座標:\n`;
+                        result += `緯度: ${updated.latitude}\n`;
+                        result += `経度: ${updated.longitude}\n`;
+                        result += `更新日時: ${updated.updated_at}`;
+                    }
+                    
+                    showResult(result, 'success');
+                } else {
+                    showResult('みちのり亭が見つかりませんでした', 'error');
+                }
+            } catch (error) {
+                showResult(`エラー: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkAllStores() {
+            try {
+                showResult('全店舗の座標を確認中...', 'normal');
+                
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('id, name, latitude, longitude')
+                    .order('name');
+                    
+                if (error) throw error;
+                
+                let result = `全店舗座標確認結果:\n\n`;
+                let validCount = 0;
+                let invalidCount = 0;
+                
+                data.forEach(store => {
+                    const hasValidCoords = (
+                        store.latitude && 
+                        store.longitude && 
+                        store.latitude !== 'undefined' && 
+                        store.longitude !== 'undefined' &&
+                        !isNaN(parseFloat(store.latitude)) &&
+                        !isNaN(parseFloat(store.longitude))
+                    );
+                    
+                    if (hasValidCoords) {
+                        validCount++;
+                    } else {
+                        invalidCount++;
+                        result += `❌ ${store.name}: lat=${store.latitude}, lng=${store.longitude}\n`;
+                    }
+                });
+                
+                result = `📊 統計:\n有効な座標: ${validCount}件\n無効な座標: ${invalidCount}件\n\n` + result;
+                
+                showResult(result, invalidCount === 0 ? 'success' : 'error');
+            } catch (error) {
+                showResult(`エラー: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

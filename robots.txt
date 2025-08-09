@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+# This is a private community site
+# Not intended for public search indexing

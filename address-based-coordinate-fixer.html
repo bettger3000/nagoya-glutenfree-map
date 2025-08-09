@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住所ベース座標修正ツール</title>
+    <style>
+        body { 
+            font-family: 'Noto Sans JP', sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2D2D2D; 
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        button {
+            background: #F8C8DC;
+            color: #2D2D2D;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #E8B4FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #F8F0FF, #FFF0F8);
+            border-radius: 10px;
+            min-width: 100px;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8A6B8A;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #8A6B8A;
+            margin-top: 5px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            color: #2D2D2D;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .pending { background-color: #fff3cd; }
+        .updated { background-color: #cce5ff; }
+        .coordinate-input {
+            width: 80px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .update-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .update-btn:hover {
+            background: #218838;
+        }
+        .address-cell {
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+        .name-cell {
+            max-width: 150px;
+            word-wrap: break-word;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ 住所ベース座標修正ツール</h1>
+        
+        <div class="controls">
+            <button onclick="loadStores()">
+                📋 店舗データ読み込み
+            </button>
+            <button onclick="applyKnownCoordinates()">
+                🎯 既知の座標を適用
+            </button>
+            <button onclick="updateAllCoordinates()" id="updateAllBtn" style="display:none;">
+                💾 全ての変更を保存
+            </button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalStores">-</div>
+                <div class="stat-label">総店舗数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="coordsStores">0</div>
+                <div class="stat-label">座標設定済み</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="pendingStores">0</div>
+                <div class="stat-label">未設定</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="changedStores">0</div>
+                <div class="stat-label">変更済み</div>
+            </div>
+        </div>
+
+        <div class="log" id="logArea" style="display:none;"></div>
+
+        <table id="storesTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>店名</th>
+                    <th>カテゴリ</th>
+                    <th>住所</th>
+                    <th>現在の緯度</th>
+                    <th>現在の経度</th>
+                    <th>新しい緯度</th>
+                    <th>新しい経度</th>
+                    <th>操作</th>
+                    <th>状態</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let stores = [];
+        let changes = new Map();
+
+        // 主要都市・地域の大まかな座標データ
+        const knownCoordinates = {
+            // 東京都
+            '東京都世田谷区': { lat: 35.6464, lng: 139.6530 },
+            '東京都渋谷区': { lat: 35.6598, lng: 139.7006 },
+            '東京都港区': { lat: 35.6581, lng: 139.7414 },
+            '東京都新宿区': { lat: 35.6938, lng: 139.7034 },
+            '東京都': { lat: 35.6762, lng: 139.6503 },
+            
+            // 愛知県
+            '愛知県名古屋市中区': { lat: 35.1694, lng: 136.8754 },
+            '愛知県名古屋市': { lat: 35.1815, lng: 136.9066 },
+            '名古屋市': { lat: 35.1815, lng: 136.9066 },
+            '愛知県': { lat: 35.1815, lng: 136.9066 },
+            
+            // 大阪府
+            '大阪府大阪市': { lat: 34.6937, lng: 135.5023 },
+            '大阪市': { lat: 34.6937, lng: 135.5023 },
+            '大阪府': { lat: 34.6937, lng: 135.5023 },
+            
+            // 京都府
+            '京都府京都市': { lat: 35.0116, lng: 135.7681 },
+            '京都市': { lat: 35.0116, lng: 135.7681 },
+            '京都府': { lat: 35.0116, lng: 135.7681 },
+            
+            // 神奈川県
+            '神奈川県横浜市': { lat: 35.4478, lng: 139.6425 },
+            '横浜市': { lat: 35.4478, lng: 139.6425 },
+            '神奈川県': { lat: 35.4478, lng: 139.6425 },
+            
+            // 兵庫県
+            '兵庫県神戸市': { lat: 34.6901, lng: 135.1956 },
+            '神戸市': { lat: 34.6901, lng: 135.1956 },
+            '兵庫県': { lat: 34.6901, lng: 135.1956 },
+            
+            // 福岡県
+            '福岡県福岡市': { lat: 33.5904, lng: 130.4017 },
+            '福岡市': { lat: 33.5904, lng: 130.4017 },
+            '福岡県': { lat: 33.5904, lng: 130.4017 },
+            
+            // 北海道
+            '北海道札幌市': { lat: 43.0642, lng: 141.3469 },
+            '札幌市': { lat: 43.0642, lng: 141.3469 },
+            '北海道': { lat: 43.0642, lng: 141.3469 },
+            
+            // 宮城県
+            '宮城県仙台市': { lat: 38.2682, lng: 140.8694 },
+            '仙台市': { lat: 38.2682, lng: 140.8694 },
+            '宮城県': { lat: 38.2682, lng: 140.8694 }
+        };
+
+        function log(message) {
+            const logArea = document.getElementById('logArea');
+            logArea.style.display = 'block';
+            const timestamp = new Date().toLocaleTimeString();
+            logArea.textContent += `[${timestamp}] ${message}\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStats() {
+            const total = stores.length;
+            let coordsCount = 0;
+            let pendingCount = 0;
+            let changedCount = changes.size;
+            
+            stores.forEach(store => {
+                if ((store.latitude && store.longitude) || changes.has(store.id)) {
+                    coordsCount++;
+                } else {
+                    pendingCount++;
+                }
+            });
+            
+            document.getElementById('totalStores').textContent = total;
+            document.getElementById('coordsStores').textContent = coordsCount;
+            document.getElementById('pendingStores').textContent = pendingCount;
+            document.getElementById('changedStores').textContent = changedCount;
+            
+            if (changedCount > 0) {
+                document.getElementById('updateAllBtn').style.display = 'inline-block';
+            }
+        }
+
+        function findCoordinatesByAddress(address) {
+            // 住所から座標を推定
+            for (const [region, coords] of Object.entries(knownCoordinates)) {
+                if (address.includes(region)) {
+                    // より具体的な地域であれば、わずかにオフセット
+                    const offset = 0.01 * (Math.random() - 0.5);
+                    return {
+                        lat: coords.lat + offset,
+                        lng: coords.lng + offset,
+                        source: region
+                    };
+                }
+            }
+            
+            // 都道府県レベルでマッチ
+            const prefectures = ['東京', '大阪', '京都', '愛知', '神奈川', '兵庫', '福岡', '北海道', '宮城'];
+            for (const pref of prefectures) {
+                if (address.includes(pref)) {
+                    const coords = knownCoordinates[pref + '都'] || knownCoordinates[pref + '府'] || knownCoordinates[pref + '県'] || knownCoordinates[pref];
+                    if (coords) {
+                        const offset = 0.02 * (Math.random() - 0.5);
+                        return {
+                            lat: coords.lat + offset,
+                            lng: coords.lng + offset,
+                            source: pref
+                        };
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function createStoreRow(store) {
+            const row = document.createElement('tr');
+            
+            // 現在の座標または変更予定の座標を取得
+            const currentCoords = changes.get(store.id) || { lat: store.latitude, lng: store.longitude };
+            const hasValidCoords = currentCoords.lat && currentCoords.lng && 
+                                 !isNaN(currentCoords.lat) && !isNaN(currentCoords.lng);
+            
+            row.className = changes.has(store.id) ? 'updated' : (hasValidCoords ? 'success' : 'error');
+            
+            row.innerHTML = `
+                <td class="name-cell">${store.name || 'N/A'}</td>
+                <td>${store.category || 'N/A'}</td>
+                <td class="address-cell">${store.address || 'N/A'}</td>
+                <td>${store.latitude || 'undefined'}</td>
+                <td>${store.longitude || 'undefined'}</td>
+                <td><input type="number" class="coordinate-input" step="0.000001" 
+                    value="${currentCoords.lat || ''}" 
+                    onchange="updateCoordinate(${store.id}, 'lat', this.value)"></td>
+                <td><input type="number" class="coordinate-input" step="0.000001" 
+                    value="${currentCoords.lng || ''}" 
+                    onchange="updateCoordinate(${store.id}, 'lng', this.value)"></td>
+                <td>
+                    <button class="update-btn" onclick="suggestCoordinates(${store.id})">
+                        🎯 推定
+                    </button>
+                </td>
+                <td id="status-${store.id}">
+                    ${changes.has(store.id) ? '変更予定' : (hasValidCoords ? '設定済み' : '未設定')}
+                </td>
+            `;
+            
+            return row;
+        }
+
+        function updateCoordinate(storeId, type, value) {
+            try {
+                if (!changes.has(storeId)) {
+                    const store = stores.find(s => s.id === storeId);
+                    if (!store) return;
+                    
+                    changes.set(storeId, { 
+                        lat: store.latitude || null, 
+                        lng: store.longitude || null
+                    });
+                }
+                
+                const coords = changes.get(storeId);
+                if (coords) {
+                    coords[type] = parseFloat(value) || null;
+                    
+                    const statusElement = document.getElementById(`status-${storeId}`);
+                    if (statusElement) {
+                        statusElement.textContent = '変更予定';
+                    }
+                    updateStats();
+                }
+            } catch (error) {
+                console.error(`Error updating coordinate for store ${storeId}:`, error);
+            }
+        }
+
+        function suggestCoordinates(storeId) {
+            try {
+                const store = stores.find(s => s.id === storeId);
+                if (!store) return;
+                
+                const suggestion = findCoordinatesByAddress(store.address || '');
+                if (suggestion) {
+                    changes.set(storeId, {
+                        lat: suggestion.lat,
+                        lng: suggestion.lng
+                    });
+                    
+                    // 入力フィールドを更新 - 安全にアクセス
+                    const statusElement = document.getElementById(`status-${storeId}`);
+                    if (statusElement) {
+                        const row = statusElement.closest('tr');
+                        if (row) {
+                            const inputs = row.querySelectorAll('input[step="0.000001"]');
+                            if (inputs.length >= 2) {
+                                inputs[0].value = suggestion.lat.toFixed(6);
+                                inputs[1].value = suggestion.lng.toFixed(6);
+                            }
+                            
+                            statusElement.textContent = `推定完了 (${suggestion.source})`;
+                            row.className = 'updated';
+                        }
+                    }
+                    
+                    updateStats();
+                    log(`座標推定: ${store.name || 'Unknown'} -> ${suggestion.lat.toFixed(6)}, ${suggestion.lng.toFixed(6)} (${suggestion.source})`);
+                } else {
+                    log(`座標推定失敗: ${store.name || 'Unknown'} - 住所から地域を特定できません`);
+                }
+            } catch (error) {
+                console.error(`Error in suggestCoordinates for store ${storeId}:`, error);
+                log(`エラー: 店舗ID ${storeId} の座標推定中にエラーが発生しました`);
+            }
+        }
+
+        async function loadStores() {
+            try {
+                log('店舗データを読み込み中...');
+                
+                const { data: storesData, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                stores = storesData;
+                log(`${stores.length}件の店舗データを読み込み完了`);
+                
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+                
+                stores.forEach(store => {
+                    tbody.appendChild(createStoreRow(store));
+                });
+                
+                document.getElementById('storesTable').style.display = 'table';
+                updateStats();
+                
+            } catch (error) {
+                log(`エラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function applyKnownCoordinates() {
+            let appliedCount = 0;
+            
+            stores.forEach(store => {
+                try {
+                    // 既に座標がある場合はスキップ
+                    if ((store.latitude && store.longitude) || changes.has(store.id)) {
+                        return;
+                    }
+                    
+                    const suggestion = findCoordinatesByAddress(store.address || '');
+                    if (suggestion) {
+                        changes.set(store.id, {
+                            lat: suggestion.lat,
+                            lng: suggestion.lng
+                        });
+                        appliedCount++;
+                        
+                        // UIを更新 - 安全にアクセス
+                        const statusElement = document.getElementById(`status-${store.id}`);
+                        if (statusElement) {
+                            const row = statusElement.closest('tr');
+                            if (row) {
+                                const inputs = row.querySelectorAll('input[step="0.000001"]');
+                                if (inputs.length >= 2) {
+                                    inputs[0].value = suggestion.lat.toFixed(6);
+                                    inputs[1].value = suggestion.lng.toFixed(6);
+                                }
+                                
+                                statusElement.textContent = `自動推定 (${suggestion.source})`;
+                                row.className = 'updated';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error processing store ${store.name}:`, error);
+                    log(`エラー: ${store.name || 'Unknown'} の処理中にエラーが発生しました`);
+                }
+            });
+            
+            log(`${appliedCount}件の店舗に座標を自動適用しました`);
+            updateStats();
+        }
+
+        async function updateAllCoordinates() {
+            if (changes.size === 0) {
+                log('更新する変更がありません');
+                return;
+            }
+            
+            try {
+                log(`${changes.size}件の座標をデータベースに保存中...`);
+                
+                for (const [storeId, coords] of changes) {
+                    const store = stores.find(s => s.id === storeId);
+                    
+                    const { error } = await supabase
+                        .from('stores')
+                        .update({
+                            latitude: coords.lat,
+                            longitude: coords.lng
+                        })
+                        .eq('id', storeId);
+                        
+                    if (error) {
+                        log(`❌ 更新失敗: ${store.name} - ${error.message}`);
+                    } else {
+                        log(`✅ 更新成功: ${store.name} -> ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`);
+                    }
+                }
+                
+                log('🎉 全ての座標更新が完了しました！');
+                changes.clear();
+                updateStats();
+                
+                // UIをリフレッシュ
+                await loadStores();
+                
+            } catch (error) {
+                log(`❌ データベース更新エラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // グローバル関数として公開
+        window.updateCoordinate = updateCoordinate;
+        window.suggestCoordinates = suggestCoordinates;
+    </script>
+</body>
+</html>

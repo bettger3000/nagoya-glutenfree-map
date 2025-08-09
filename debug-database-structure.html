@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データベース構造確認＆修正</title>
+    <style>
+        body { 
+            font-family: 'Noto Sans JP', sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2D2D2D; 
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #F8C8DC;
+            color: #2D2D2D;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #E8B4FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .sql-box {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 データベース構造確認＆修正</h1>
+        
+        <div style="text-align: center;">
+            <button onclick="checkTableStructure()">🔍 テーブル構造を確認</button>
+            <button onclick="addCoordinateColumns()">➕ 座標カラムを追加</button>
+            <button onclick="checkColumnsExist()">✅ カラム存在確認</button>
+        </div>
+
+        <div class="warning" style="margin: 20px 0;">
+            <strong>⚠️ 注意：</strong><br>
+            このツールは情報確認用です。実際のカラム追加はSupabaseダッシュボードで行う必要があります。<br>
+            以下のSQLコマンドを参考にしてください。
+        </div>
+
+        <div class="sql-box">
+-- Supabaseで実行するSQL（座標カラムを追加）
+ALTER TABLE stores 
+ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8),
+ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+
+-- インデックスを追加（検索性能向上）
+CREATE INDEX IF NOT EXISTS idx_stores_coordinates 
+ON stores (latitude, longitude);
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function showResult(content, type = 'normal') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = content;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        async function checkTableStructure() {
+            try {
+                showResult('テーブル構造を確認中...', 'normal');
+                
+                // 1つのレコードを取得してカラム構造を確認
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .limit(1);
+                    
+                if (error) throw error;
+                
+                let result = `storesテーブルの構造:\n\n`;
+                
+                if (data && data.length > 0) {
+                    const store = data[0];
+                    const columns = Object.keys(store);
+                    
+                    result += `利用可能なカラム (${columns.length}個):\n`;
+                    columns.forEach((col, index) => {
+                        const value = store[col];
+                        const type = typeof value;
+                        result += `${index + 1}. ${col}: ${type} (値例: ${JSON.stringify(value)})\n`;
+                    });
+                    
+                    // 座標カラムの存在確認
+                    const hasLatitude = columns.includes('latitude');
+                    const hasLongitude = columns.includes('longitude');
+                    
+                    result += `\n座標カラムの確認:\n`;
+                    result += `latitude: ${hasLatitude ? '✅ 存在' : '❌ なし'}\n`;
+                    result += `longitude: ${hasLongitude ? '✅ 存在' : '❌ なし'}\n`;
+                    
+                    if (!hasLatitude || !hasLongitude) {
+                        result += `\n🚨 座標カラムが不足しています！\n`;
+                        result += `Supabaseダッシュボードでカラムを追加してください。`;
+                        showResult(result, 'error');
+                    } else {
+                        result += `\n✅ 座標カラムは存在しています。`;
+                        showResult(result, 'success');
+                    }
+                } else {
+                    showResult('テーブルにデータがありません', 'warning');
+                }
+            } catch (error) {
+                showResult(`エラー: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkColumnsExist() {
+            try {
+                showResult('カラム存在確認中...', 'normal');
+                
+                // latitudeとlongitudeカラムを明示的にクエリしてみる
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('id, name, latitude, longitude')
+                    .limit(1);
+                    
+                if (error) {
+                    let result = `❌ 座標カラムが存在しません！\n\n`;
+                    result += `エラー: ${error.message}\n\n`;
+                    result += `解決方法:\n`;
+                    result += `1. Supabaseダッシュボード (${SUPABASE_URL}) にアクセス\n`;
+                    result += `2. Table Editor > stores テーブルを選択\n`;
+                    result += `3. "Add column" をクリック\n`;
+                    result += `4. 以下のカラムを追加:\n`;
+                    result += `   - latitude: DECIMAL(10,8)\n`;
+                    result += `   - longitude: DECIMAL(11,8)\n`;
+                    showResult(result, 'error');
+                } else {
+                    let result = `✅ 座標カラムが存在します！\n\n`;
+                    if (data && data.length > 0) {
+                        const store = data[0];
+                        result += `サンプルデータ:\n`;
+                        result += `店舗名: ${store.name}\n`;
+                        result += `緯度: ${store.latitude} (${typeof store.latitude})\n`;
+                        result += `経度: ${store.longitude} (${typeof store.longitude})\n`;
+                    }
+                    showResult(result, 'success');
+                }
+            } catch (error) {
+                showResult(`予期しないエラー: ${error.message}`, 'error');
+            }
+        }
+
+        async function addCoordinateColumns() {
+            showResult(`⚠️ このツールからは直接カラムを追加できません。\n\n以下の手順で手動で追加してください:\n\n1. Supabaseダッシュボードにアクセス: ${SUPABASE_URL}\n2. "Table Editor" → "stores" テーブルを選択\n3. "Add column" をクリック\n4. 以下のカラムを追加:\n   - 名前: latitude, 型: numeric, 精度: (10,8)\n   - 名前: longitude, 型: numeric, 精度: (11,8)\n\nまたは、SQL Editorで以下のSQLを実行:\n\nALTER TABLE stores \nADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8),\nADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);`, 'warning');
+        }
+    </script>
+</body>
+</html>

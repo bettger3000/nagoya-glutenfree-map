@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>stores.jsonから座標を復元</title>
+    <style>
+        body { 
+            font-family: 'Noto Sans JP', sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2D2D2D; 
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        button {
+            background: #F8C8DC;
+            color: #2D2D2D;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #E8B4FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #F8F0FF, #FFF0F8);
+            border-radius: 10px;
+            min-width: 100px;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8A6B8A;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #8A6B8A;
+            margin-top: 5px;
+        }
+        .progress-container {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #F8C8DC, #E8B4FF);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ stores.jsonから座標データを復元</h1>
+        
+        <div class="info-box">
+            <strong>📋 処理内容：</strong><br>
+            元のstores.jsonファイルから正確な座標データ（lat, lng）を読み込み、<br>
+            Supabaseデータベースのlatitude, longitudeフィールドを更新します。
+        </div>
+        
+        <div class="controls">
+            <button onclick="startRestoration()">
+                🚀 座標データ復元開始
+            </button>
+            <button onclick="location.reload()">
+                🔄 リセット
+            </button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalStores">-</div>
+                <div class="stat-label">JSONファイル店舗数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="processedStores">0</div>
+                <div class="stat-label">処理完了</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="successStores">0</div>
+                <div class="stat-label">更新成功</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="failedStores">0</div>
+                <div class="stat-label">更新失敗</div>
+            </div>
+        </div>
+
+        <div class="progress-container" id="progressContainer" style="display:none;">
+            <div id="progressText">準備中...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="log" id="logArea" style="display:none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function log(message) {
+            const logArea = document.getElementById('logArea');
+            logArea.style.display = 'block';
+            const timestamp = new Date().toLocaleTimeString();
+            logArea.textContent += `[${timestamp}] ${message}\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStats(processed, success, failed) {
+            document.getElementById('processedStores').textContent = processed;
+            document.getElementById('successStores').textContent = success;
+            document.getElementById('failedStores').textContent = failed;
+        }
+
+        function updateProgress(current, total) {
+            const progress = (current / total) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = 
+                `処理中... ${current}/${total} (${Math.round(progress)}%)`;
+        }
+
+        async function loadStoresJson() {
+            try {
+                log('stores.jsonファイルを読み込み中...');
+                
+                const response = await fetch('stores.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.stores || !Array.isArray(data.stores)) {
+                    throw new Error('stores.jsonの形式が正しくありません');
+                }
+                
+                log(`✅ ${data.stores.length}件の店舗データを読み込み完了`);
+                return data.stores;
+                
+            } catch (error) {
+                throw new Error(`stores.json読み込みエラー: ${error.message}`);
+            }
+        }
+
+        async function getSupabaseStores() {
+            try {
+                log('Supabaseから現在の店舗データを取得中...');
+                
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                log(`✅ Supabaseから${data.length}件の店舗データを取得完了`);
+                return data;
+                
+            } catch (error) {
+                throw new Error(`Supabaseデータ取得エラー: ${error.message}`);
+            }
+        }
+
+        async function updateStoreCoordinates(storeId, lat, lng, storeName) {
+            try {
+                const { error } = await supabase
+                    .from('stores')
+                    .update({
+                        latitude: lat,
+                        longitude: lng
+                    })
+                    .eq('id', storeId);
+                    
+                if (error) throw error;
+                
+                log(`✅ 更新成功: ${storeName} -> [${lat}, ${lng}]`);
+                return true;
+                
+            } catch (error) {
+                log(`❌ 更新失敗: ${storeName} - ${error.message}`);
+                return false;
+            }
+        }
+
+        function findMatchingStore(jsonStore, supabaseStores) {
+            // 名前で完全一致
+            let match = supabaseStores.find(s => s.name === jsonStore.name);
+            if (match) return match;
+            
+            // 名前の部分一致（前後のスペース除去）
+            match = supabaseStores.find(s => 
+                s.name && s.name.trim() === jsonStore.name.trim()
+            );
+            if (match) return match;
+            
+            // 住所で部分一致
+            if (jsonStore.address) {
+                match = supabaseStores.find(s => 
+                    s.address && s.address.includes(jsonStore.address.slice(0, 10))
+                );
+                if (match) return match;
+            }
+            
+            return null;
+        }
+
+        async function startRestoration() {
+            try {
+                document.getElementById('progressContainer').style.display = 'block';
+                
+                // stores.jsonを読み込み
+                const jsonStores = await loadStoresJson();
+                document.getElementById('totalStores').textContent = jsonStores.length;
+                
+                // Supabaseから現在のデータを取得
+                const supabaseStores = await getSupabaseStores();
+                
+                log('座標データの復元を開始します...');
+                
+                let processed = 0;
+                let success = 0;
+                let failed = 0;
+                
+                for (const jsonStore of jsonStores) {
+                    try {
+                        // JSONに座標データがあるかチェック
+                        if (!jsonStore.lat || !jsonStore.lng) {
+                            log(`⚠️ スキップ: ${jsonStore.name} - JSONに座標データなし`);
+                            processed++;
+                            updateProgress(processed, jsonStores.length);
+                            updateStats(processed, success, failed);
+                            continue;
+                        }
+                        
+                        // Supabaseで対応する店舗を検索
+                        const matchedStore = findMatchingStore(jsonStore, supabaseStores);
+                        
+                        if (!matchedStore) {
+                            log(`⚠️ スキップ: ${jsonStore.name} - Supabaseで対応店舗が見つからない`);
+                            failed++;
+                        } else {
+                            // 座標を更新
+                            const updateSuccess = await updateStoreCoordinates(
+                                matchedStore.id,
+                                jsonStore.lat,
+                                jsonStore.lng,
+                                jsonStore.name
+                            );
+                            
+                            if (updateSuccess) {
+                                success++;
+                            } else {
+                                failed++;
+                            }
+                        }
+                        
+                        processed++;
+                        updateProgress(processed, jsonStores.length);
+                        updateStats(processed, success, failed);
+                        
+                        // 少し待機してレート制限を避ける
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                    } catch (error) {
+                        log(`❌ エラー: ${jsonStore.name} - ${error.message}`);
+                        failed++;
+                        processed++;
+                        updateProgress(processed, jsonStores.length);
+                        updateStats(processed, success, failed);
+                    }
+                }
+                
+                log(`\n🎉 座標データ復元完了！`);
+                log(`📊 結果: 処理済み ${processed}件, 成功 ${success}件, 失敗 ${failed}件`);
+                
+                if (success > 0) {
+                    log(`\n💡 メインアプリをリロードして結果を確認してください！`);
+                }
+                
+            } catch (error) {
+                log(`❌ 復元処理エラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

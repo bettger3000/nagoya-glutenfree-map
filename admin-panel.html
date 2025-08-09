@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>グルテンフリーマップ 統合管理ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #2D2D2D, #1a1a1a);
+            color: white;
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid #444;
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            color: #2D2D2D;
+        }
+
+        .sidebar-header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(248, 200, 220, 0.1);
+            color: #F8C8DC;
+            border-left-color: #F8C8DC;
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            color: #2D2D2D;
+            padding: 25px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .section-header p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .section-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2D2D2D;
+            font-size: 14px;
+        }
+
+        .form-group input, 
+        .form-group textarea, 
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #F0F0F0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus, 
+        .form-group select:focus {
+            outline: none;
+            border-color: #E8B4FF;
+            box-shadow: 0 0 0 3px rgba(232, 180, 255, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Button Styles */
+        .btn {
+            background: linear-gradient(135deg, #F8C8DC, #E8B4FF);
+            color: #2D2D2D;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .data-table th, .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2D2D2D;
+            font-size: 14px;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Card Styles */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid #f0f0f0;
+        }
+
+        .info-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #E8B4FF;
+            margin-bottom: 8px;
+        }
+
+        .info-card .label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Search and Filter */
+        .search-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #E8B4FF;
+        }
+
+        /* Status Indicators */
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.active { background: #d4edda; color: #155724; }
+        .status.inactive { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+
+        /* Coordinate Display */
+        .coordinate-display {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #495057;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 5px;
+        }
+
+        /* Map Preview */
+        .map-preview {
+            width: 100%;
+            height: 250px;
+            border-radius: 10px;
+            border: 2px solid #f0f0f0;
+            margin-top: 15px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #F8C8DC, #E8B4FF);
+            height: 100%;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Log Area */
+        .log-area {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+
+        /* Mobile Menu Toggle Button */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1002;
+            background: #F8C8DC;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: #E8B4FF;
+        }
+
+        /* Mobile Overlay */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                width: 280px;
+                transform: translateX(-280px);
+                transition: transform 0.3s ease;
+                z-index: 1001;
+                position: fixed;
+                height: 100vh;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .mobile-overlay.show {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 80px 20px 20px 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+
+            /* テーブルを横スクロール可能に */
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 80px 10px 10px 10px;
+            }
+            
+            .btn {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 3000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success { border-left: 4px solid #28a745; }
+        .toast.error { border-left: 4px solid #dc3545; }
+        .toast.info { border-left: 4px solid #17a2b8; }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>🍞 管理ツール</h1>
+                <p>グルテンフリーマップ統合管理システム</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        ダッシュボード
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="stores">
+                        <i class="fas fa-store"></i>
+                        店舗管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="coordinates">
+                        <i class="fas fa-map-marked-alt"></i>
+                        座標管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="users">
+                        <i class="fas fa-users"></i>
+                        ユーザー管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="bulk-operations">
+                        <i class="fas fa-cogs"></i>
+                        一括操作
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="settings">
+                        <i class="fas fa-sliders-h"></i>
+                        設定
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> ダッシュボード</h2>
+                    <p>システム全体の状況を確認できます</p>
+                </div>
+                <div class="section-body">
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="number" id="totalStoresCount">0</div>
+                            <div class="label">総店舗数</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="number" id="storesWithCoordinates">0</div>
+                            <div class="label">座標設定済み</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="number" id="totalUsersCount">0</div>
+                            <div class="label">登録ユーザー数</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="number" id="totalReviewsCount">0</div>
+                            <div class="label">レビュー数</div>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div>
+                            <h3><i class="fas fa-chart-pie"></i> 店舗カテゴリ分布</h3>
+                            <div id="categoryChart">
+                                <!-- カテゴリ統計を表示 -->
+                            </div>
+                        </div>
+                        <div>
+                            <h3><i class="fas fa-map-marker-alt"></i> 最近の活動</h3>
+                            <div id="recentActivity">
+                                <!-- 最近の活動を表示 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Store Management Section -->
+            <section id="stores" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-store"></i> 店舗管理</h2>
+                    <p>店舗の追加・編集・削除を行います</p>
+                </div>
+                <div class="section-body">
+                    <div class="search-filters">
+                        <input type="text" id="storeSearch" class="search-box" placeholder="🔍 店舗名・住所・カテゴリで検索...">
+                        <select id="categoryFilter">
+                            <option value="">全カテゴリ</option>
+                            <option value="カフェ">カフェ</option>
+                            <option value="洋食">洋食</option>
+                            <option value="和食">和食</option>
+                            <option value="スイーツ">スイーツ</option>
+                            <option value="ベーカリー">ベーカリー</option>
+                            <option value="販売店">販売店</option>
+                        </select>
+                        <button class="btn" onclick="openAddStoreModal()">
+                            <i class="fas fa-plus"></i> 新規店舗追加
+                        </button>
+                    </div>
+
+                    <table class="data-table" id="storesTable">
+                        <thead>
+                            <tr>
+                                <th>店舗名</th>
+                                <th>カテゴリ</th>
+                                <th>住所</th>
+                                <th>座標状況</th>
+                                <th>画像</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="storesTableBody">
+                            <!-- 動的に生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Coordinates Management Section -->
+            <section id="coordinates" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marked-alt"></i> 座標管理</h2>
+                    <p>店舗の座標設定と一括取得を行います</p>
+                </div>
+                <div class="section-body">
+                    <div class="search-filters">
+                        <input type="text" id="coordinateSearch" class="search-box" placeholder="🔍 店舗名で検索...">
+                        <select id="coordinateStatusFilter">
+                            <option value="">全て</option>
+                            <option value="set">座標設定済み</option>
+                            <option value="missing">座標未設定</option>
+                        </select>
+                        <button class="btn" onclick="bulkGeocodeStores()">
+                            <i class="fas fa-map-marker-alt"></i> 全店舗座標取得
+                        </button>
+                    </div>
+
+                    <div class="progress-container" id="geocodeProgress" style="display: none;">
+                        <div class="progress-bar" id="geocodeProgressBar"></div>
+                    </div>
+
+                    <table class="data-table" id="coordinatesTable">
+                        <thead>
+                            <tr>
+                                <th>店舗名</th>
+                                <th>住所</th>
+                                <th>現在の座標</th>
+                                <th>状態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coordinatesTableBody">
+                            <!-- 動的に生成 -->
+                        </tbody>
+                    </table>
+
+                    <div class="log-area" id="geocodeLog" style="display: none;"></div>
+                </div>
+            </section>
+
+            <!-- User Management Section -->
+            <section id="users" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> ユーザー管理</h2>
+                    <p>登録ユーザーの管理と権限設定を行います</p>
+                </div>
+                <div class="section-body">
+                    <div class="search-filters">
+                        <input type="text" id="userSearch" class="search-box" placeholder="🔍 ユーザー名・メールで検索...">
+                        <select id="userStatusFilter">
+                            <option value="">全て</option>
+                            <option value="active">アクティブ</option>
+                            <option value="pending">承認待ち</option>
+                            <option value="suspended">停止中</option>
+                        </select>
+                    </div>
+
+                    <table class="data-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>ユーザー</th>
+                                <th>メール</th>
+                                <th>登録日</th>
+                                <th>状態</th>
+                                <th>権限</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- 動的に生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Bulk Operations Section -->
+            <section id="bulk-operations" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-cogs"></i> 一括操作</h2>
+                    <p>データの一括処理とメンテナンス作業を行います</p>
+                </div>
+                <div class="section-body">
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <h4><i class="fas fa-database"></i> データベース</h4>
+                            <button class="btn" onclick="backupDatabase()">
+                                <i class="fas fa-download"></i> バックアップ
+                            </button>
+                        </div>
+                        <div class="info-card">
+                            <h4><i class="fas fa-check-circle"></i> データ検証</h4>
+                            <button class="btn" onclick="validateAllData()">
+                                <i class="fas fa-search"></i> 全データ検証
+                            </button>
+                        </div>
+                        <div class="info-card">
+                            <h4><i class="fas fa-broom"></i> クリーンアップ</h4>
+                            <button class="btn danger" onclick="cleanupDuplicates()">
+                                <i class="fas fa-trash"></i> 重複削除
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="log-area" id="operationLog"></div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-sliders-h"></i> 設定</h2>
+                    <p>システム設定とアプリケーション設定を管理します</p>
+                </div>
+                <div class="section-body">
+                    <div class="form-grid">
+                        <div>
+                            <h4><i class="fas fa-globe"></i> 一般設定</h4>
+                            <div class="form-group">
+                                <label>アプリ名</label>
+                                <input type="text" id="appName" value="グルテンフリーマップ">
+                            </div>
+                            <div class="form-group">
+                                <label>デフォルト地図中心</label>
+                                <input type="text" id="defaultCenter" value="36.2048, 138.2529">
+                            </div>
+                        </div>
+                        <div>
+                            <h4><i class="fas fa-shield-alt"></i> セキュリティ設定</h4>
+                            <div class="form-group">
+                                <label>新規登録承認制</label>
+                                <select id="registrationApproval">
+                                    <option value="auto">自動承認</option>
+                                    <option value="manual" selected>手動承認</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Google OAuth 必須</label>
+                                <select id="oauthRequired">
+                                    <option value="true" selected>必須</option>
+                                    <option value="false">任意</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn success">
+                        <i class="fas fa-save"></i> 設定を保存
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Store Add/Edit Modal -->
+    <div id="storeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="storeModalTitle">新規店舗追加</h3>
+                <button class="modal-close" onclick="closeStoreModal()">&times;</button>
+            </div>
+            <form id="storeForm">
+                <input type="hidden" id="storeId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="storeName">店舗名 *</label>
+                        <input type="text" id="storeName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="storeCategory">カテゴリ *</label>
+                        <select id="storeCategory" required>
+                            <option value="">選択してください</option>
+                            <option value="カフェ">カフェ</option>
+                            <option value="洋食">洋食</option>
+                            <option value="和食">和食</option>
+                            <option value="スイーツ">スイーツ</option>
+                            <option value="ベーカリー">ベーカリー</option>
+                            <option value="販売店">販売店</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="storeAddress">住所 *</label>
+                    <input type="text" id="storeAddress" required>
+                    <button type="button" class="btn" onclick="geocodeAddress()" style="margin-top: 10px;">
+                        <i class="fas fa-map-marker-alt"></i> 座標を自動取得
+                    </button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="storeLatitude">緯度</label>
+                        <input type="number" id="storeLatitude" step="0.000001">
+                    </div>
+                    <div class="form-group">
+                        <label for="storeLongitude">経度</label>
+                        <input type="number" id="storeLongitude" step="0.000001">
+                    </div>
+                </div>
+
+                <div id="mapPreview" class="map-preview" style="display: none;"></div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="storeHours">営業時間</label>
+                        <input type="text" id="storeHours">
+                    </div>
+                    <div class="form-group">
+                        <label for="storeClosed">定休日</label>
+                        <input type="text" id="storeClosed">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="storeDescription">説明</label>
+                    <textarea id="storeDescription" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="storeWebsite">ウェブサイト</label>
+                        <input type="url" id="storeWebsite">
+                    </div>
+                    <div class="form-group">
+                        <label for="storeInstagram">Instagram</label>
+                        <input type="url" id="storeInstagram">
+                    </div>
+                </div>
+
+                <h4 style="margin: 20px 0 10px 0;"><i class="fas fa-images"></i> 店舗画像（最大3枚）</h4>
+                <div class="form-group">
+                    <label for="imageUrl1">画像1 URL</label>
+                    <input type="url" id="imageUrl1">
+                </div>
+                <div class="form-group">
+                    <label for="imageUrl2">画像2 URL</label>
+                    <input type="url" id="imageUrl2">
+                </div>
+                <div class="form-group">
+                    <label for="imageUrl3">画像3 URL</label>
+                    <input type="url" id="imageUrl3">
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i> 保存
+                    </button>
+                    <button type="button" class="btn secondary" onclick="closeStoreModal()">
+                        <i class="fas fa-times"></i> キャンセル
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- セキュリティユーティリティ -->
+    <script src="security-utils.js"></script>
+    <!-- エラーハンドリング -->
+    <script src="error-handler.js"></script>
+    <!-- 外部ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Global variables
+        let stores = [];
+        let users = [];
+        let reviews = [];
+        let currentEditingStore = null;
+        let previewMap = null;
+
+        // Navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // 外部依存関係のフォールバック処理
+            if (typeof SecurityUtils === 'undefined') {
+                console.warn('SecurityUtils not loaded, using fallback');
+                window.SecurityUtils = {
+                    validateInput: (input, maxLength = 1000) => {
+                        return typeof input === 'string' && input.length <= maxLength && 
+                               !/<script[\s\S]*?>[\s\S]*?<\/script>/gi.test(input);
+                    },
+                    escapeHtml: (text) => escapeHtml(text),
+                    sanitizeUrl: (url) => {
+                        if (!url || typeof url !== 'string') return '';
+                        try {
+                            const urlObj = new URL(url);
+                            return ['http:', 'https:'].includes(urlObj.protocol) ? url : '';
+                        } catch {
+                            return '';
+                        }
+                    }
+                };
+            }
+            
+            if (typeof errorHandler === 'undefined') {
+                console.warn('ErrorHandler not loaded, using fallback');
+                window.errorHandler = {
+                    handle: (error, context, options = {}) => {
+                        console.error(`${context}:`, error);
+                        const message = options.customMessage || 'エラーが発生しました';
+                        showToast(message, 'error');
+                        return 'fallback_error_' + Date.now();
+                    }
+                };
+            }
+            
+            // Navigation click handlers
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Update active nav item
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding content section
+                    const sectionId = this.dataset.section;
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(sectionId).classList.add('active');
+                    
+                    // Load section-specific data
+                    loadSectionData(sectionId);
+                });
+            });
+            
+            // Load dashboard data by default
+            loadSectionData('dashboard');
+            
+            // 検索・フィルター機能のイベントリスナーを追加
+            initializeSearchFilters();
+        });
+
+        // Load data for specific section
+        async function loadSectionData(section) {
+            switch(section) {
+                case 'dashboard':
+                    await loadDashboardData();
+                    break;
+                case 'stores':
+                    await loadStoresData();
+                    break;
+                case 'coordinates':
+                    await loadCoordinatesData();
+                    break;
+                case 'users':
+                    await loadUsersData();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboardData() {
+            try {
+                // Load stores data
+                const { data: storesData, error: storesError } = await supabase
+                    .from('stores')
+                    .select('*');
+                
+                if (storesError) throw storesError;
+                
+                stores = storesData || [];
+                users = []; // ユーザー管理は後で実装
+                reviews = []; // レビュー機能は後で実装
+
+                updateDashboardStats();
+                updateCategoryChart();
+                updateRecentActivity();
+                
+                showToast('ダッシュボードを更新しました', 'success');
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                showToast('ダッシュボードの読み込みに失敗しました: ' + error.message, 'error');
+            }
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('totalStoresCount').textContent = stores.length;
+            document.getElementById('storesWithCoordinates').textContent = 
+                stores.filter(s => s.latitude && s.longitude).length;
+            document.getElementById('totalUsersCount').textContent = users.length;
+            document.getElementById('totalReviewsCount').textContent = reviews.length;
+        }
+
+        function updateCategoryChart() {
+            const categoryStats = {};
+            stores.forEach(store => {
+                const category = store.category || '未分類';
+                categoryStats[category] = (categoryStats[category] || 0) + 1;
+            });
+
+            let chartHtml = '';
+            Object.entries(categoryStats).forEach(([category, count]) => {
+                const percentage = ((count / stores.length) * 100).toFixed(1);
+                chartHtml += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>${category}</span>
+                        <span><strong>${count}件 (${percentage}%)</strong></span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('categoryChart').innerHTML = chartHtml || '<p>データがありません</p>';
+        }
+
+        function updateRecentActivity() {
+            // 最新10件の活動を表示（実装を簡略化）
+            const recentActivity = [
+                '新店舗「Sample Store」が追加されました',
+                '座標データを一括更新しました',
+                '3件の新規ユーザーが登録しました'
+            ];
+
+            let activityHtml = '';
+            recentActivity.forEach(activity => {
+                activityHtml += `
+                    <div style="padding: 8px; border-left: 3px solid #E8B4FF; margin-bottom: 8px; background: #f8f9fa;">
+                        <small style="color: #6c757d;">${new Date().toLocaleDateString()}</small><br>
+                        ${activity}
+                    </div>
+                `;
+            });
+
+            document.getElementById('recentActivity').innerHTML = activityHtml || '<p>最近の活動はありません</p>';
+        }
+
+        // Store management functions
+        async function loadStoresData() {
+            try {
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+                
+                stores = data || [];
+                displayStoresTable();
+                
+                // 検索フィルターを再初期化（データ読み込み後）
+                initializeSearchFilters();
+                
+                showToast('店舗データを読み込みました', 'success');
+            } catch (error) {
+                console.error('Stores load error:', error);
+                showToast('店舗データの読み込みに失敗しました', 'error');
+            }
+        }
+
+        function displayStoresTable() {
+            const tbody = document.getElementById('storesTableBody');
+            if (stores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">店舗がありません</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = stores.map(store => {
+                const hasCoordinates = store.latitude && store.longitude;
+                const imageCount = [store.imageUrl, store.imageUrl2, store.imageUrl3].filter(Boolean).length;
+                
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(store.name)}</strong></td>
+                        <td><span class="status">${escapeHtml(store.category || '未分類')}</span></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(store.address || '')}</td>
+                        <td>
+                            <span class="status ${hasCoordinates ? 'active' : 'inactive'}">
+                                ${hasCoordinates ? '設定済み' : '未設定'}
+                            </span>
+                            ${hasCoordinates ? `<div class="coordinate-display">${store.latitude}, ${store.longitude}</div>` : ''}
+                        </td>
+                        <td>${imageCount}/3</td>
+                        <td>
+                            <button class="btn" onclick="editStore(${store.id})" style="font-size: 12px; padding: 6px 12px;">
+                                <i class="fas fa-edit"></i> 編集
+                            </button>
+                            <button class="btn danger" onclick="deleteStore(${store.id})" style="font-size: 12px; padding: 6px 12px;">
+                                <i class="fas fa-trash"></i> 削除
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Coordinate management functions
+        async function loadCoordinatesData() {
+            if (stores.length === 0) {
+                await loadStoresData();
+            }
+            displayCoordinatesTable();
+        }
+
+        function displayCoordinatesTable() {
+            const tbody = document.getElementById('coordinatesTableBody');
+            
+            tbody.innerHTML = stores.map(store => {
+                const hasCoordinates = store.latitude && store.longitude;
+                const hasAddress = store.address && store.address.trim() !== '';
+                
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(store.name)}</strong></td>
+                        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(store.address || '住所未設定')}</td>
+                        <td>
+                            ${hasCoordinates ? 
+                                `<div class="coordinate-display">${store.latitude}, ${store.longitude}</div>` : 
+                                '<span style="color: #6c757d;">未設定</span>'
+                            }
+                        </td>
+                        <td>
+                            <span class="status ${hasCoordinates ? 'active' : (hasAddress ? 'pending' : 'inactive')}">
+                                ${hasCoordinates ? '完了' : (hasAddress ? '取得可能' : '住所必要')}
+                            </span>
+                        </td>
+                        <td>
+                            ${hasAddress && !hasCoordinates ? `
+                                <button class="btn" onclick="geocodeStore(${store.id})" style="font-size: 12px; padding: 6px 12px;">
+                                    <i class="fas fa-map-marker-alt"></i> 取得
+                                </button>
+                            ` : ''}
+                            <button class="btn secondary" onclick="editStore(${store.id})" style="font-size: 12px; padding: 6px 12px;">
+                                <i class="fas fa-edit"></i> 編集
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // User management functions
+        async function loadUsersData() {
+            try {
+                // Note: In a real implementation, you would need proper admin access
+                // This is a simplified version
+                const mockUsers = [
+                    { id: 1, email: 'naco@example.com', created_at: '2024-01-01', status: 'active', role: 'admin' },
+                    { id: 2, email: 'user1@example.com', created_at: '2024-01-15', status: 'active', role: 'user' },
+                    { id: 3, email: 'user2@example.com', created_at: '2024-02-01', status: 'pending', role: 'user' }
+                ];
+                
+                users = mockUsers;
+                displayUsersTable();
+                
+                showToast('ユーザーデータを読み込みました', 'info');
+            } catch (error) {
+                console.error('Users load error:', error);
+                showToast('ユーザーデータの読み込みに失敗しました', 'error');
+            }
+        }
+
+        function displayUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center;">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&size=32&background=F8C8DC&color=2D2D2D" 
+                                 style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+                            ${escapeHtml(user.email)}
+                        </div>
+                    </td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                    <td><span class="status ${user.status}">${user.status === 'active' ? 'アクティブ' : user.status === 'pending' ? '承認待ち' : '停止中'}</span></td>
+                    <td>${user.role === 'admin' ? '管理者' : 'ユーザー'}</td>
+                    <td>
+                        ${user.status === 'pending' ? `
+                            <button class="btn success" onclick="approveUser(${user.id})" style="font-size: 12px; padding: 6px 12px;">
+                                <i class="fas fa-check"></i> 承認
+                            </button>
+                        ` : ''}
+                        <button class="btn secondary" onclick="editUser(${user.id})" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fas fa-edit"></i> 編集
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Modal functions
+        function openAddStoreModal() {
+            currentEditingStore = null;
+            document.getElementById('storeModalTitle').textContent = '新規店舗追加';
+            document.getElementById('storeForm').reset();
+            document.getElementById('storeId').value = '';
+            document.getElementById('storeModal').style.display = 'flex';
+        }
+
+        function editStore(storeId) {
+            const store = stores.find(s => s.id === storeId);
+            if (!store) return;
+            
+            currentEditingStore = store;
+            document.getElementById('storeModalTitle').textContent = '店舗編集';
+            
+            // Fill form with store data
+            document.getElementById('storeId').value = store.id;
+            document.getElementById('storeName').value = store.name || '';
+            document.getElementById('storeCategory').value = store.category || '';
+            document.getElementById('storeAddress').value = store.address || '';
+            document.getElementById('storeLatitude').value = store.latitude || '';
+            document.getElementById('storeLongitude').value = store.longitude || '';
+            document.getElementById('storeHours').value = store.hours || '';
+            document.getElementById('storeClosed').value = store.closed || '';
+            document.getElementById('storeDescription').value = store.description || '';
+            document.getElementById('storeWebsite').value = store.website || '';
+            document.getElementById('storeInstagram').value = store.instagram || '';
+            document.getElementById('imageUrl1').value = store.imageUrl || '';
+            document.getElementById('imageUrl2').value = store.imageUrl2 || '';
+            document.getElementById('imageUrl3').value = store.imageUrl3 || '';
+            
+            document.getElementById('storeModal').style.display = 'flex';
+        }
+
+        function closeStoreModal() {
+            document.getElementById('storeModal').style.display = 'none';
+            if (previewMap) {
+                previewMap.remove();
+                previewMap = null;
+            }
+            document.getElementById('mapPreview').style.display = 'none';
+        }
+
+        // Form submission
+        document.getElementById('storeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('storeName').value,
+                category: document.getElementById('storeCategory').value,
+                address: document.getElementById('storeAddress').value,
+                latitude: document.getElementById('storeLatitude').value ? parseFloat(document.getElementById('storeLatitude').value) : null,
+                longitude: document.getElementById('storeLongitude').value ? parseFloat(document.getElementById('storeLongitude').value) : null,
+                hours: document.getElementById('storeHours').value || null,
+                closed: document.getElementById('storeClosed').value || null,
+                description: document.getElementById('storeDescription').value || null,
+                website: document.getElementById('storeWebsite').value || null,
+                instagram: document.getElementById('storeInstagram').value || null,
+                image_url: document.getElementById('imageUrl1').value || null,
+                image_url_2: document.getElementById('imageUrl2').value || null,
+                image_url_3: document.getElementById('imageUrl3').value || null
+            };
+
+            try {
+                // 強化されたバリデーション
+                if (typeof SecurityUtils !== 'undefined') {
+                    // セキュリティチェック
+                    if (!SecurityUtils.validateInput(formData.name, 100)) {
+                        showToast('店舗名に不正な文字が含まれています', 'error');
+                        return;
+                    }
+                    if (!SecurityUtils.validateInput(formData.address, 200)) {
+                        showToast('住所に不正な文字が含まれています', 'error');
+                        return;
+                    }
+                    if (formData.description && !SecurityUtils.validateInput(formData.description, 500)) {
+                        showToast('説明に不正な文字が含まれています', 'error');
+                        return;
+                    }
+                }
+                
+                // 基本バリデーション
+                if (!formData.name.trim()) {
+                    showToast('店舗名は必須です', 'error');
+                    return;
+                }
+                if (!formData.category) {
+                    showToast('カテゴリーは必須です', 'error');
+                    return;
+                }
+                if (!formData.address.trim()) {
+                    showToast('住所は必須です', 'error');
+                    return;
+                }
+                
+                const storeId = document.getElementById('storeId').value;
+                console.log('Saving store data:', formData);
+                
+                if (storeId) {
+                    // Update existing store
+                    const { data, error } = await supabase
+                        .from('stores')
+                        .update(formData)
+                        .eq('id', storeId)
+                        .select();
+                        
+                    if (error) throw error;
+                    showToast('店舗を更新しました', 'success');
+                } else {
+                    // Add new store
+                    const { data, error } = await supabase
+                        .from('stores')
+                        .insert([formData])
+                        .select();
+                        
+                    if (error) throw error;
+                    showToast('新規店舗を追加しました', 'success');
+                }
+                
+                closeStoreModal();
+                await loadStoresData();
+                
+            } catch (error) {
+                // 統一エラーハンドリングを使用
+                if (typeof errorHandler !== 'undefined') {
+                    errorHandler.handle(error, 'Store Save', {
+                        userId: 'admin',
+                        customMessage: '店舗の保存に失敗しました'
+                    });
+                } else {
+                    console.error('Store save error:', error);
+                    showToast('保存に失敗しました: ' + error.message, 'error');
+                }
+            }
+        });
+
+        // Geocoding functions
+        async function geocodeAddress() {
+            const address = document.getElementById('storeAddress').value;
+            if (!address) {
+                showToast('住所を入力してください', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ' Japan')}&limit=1`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    
+                    document.getElementById('storeLatitude').value = lat;
+                    document.getElementById('storeLongitude').value = lng;
+                    
+                    showPreviewMap(lat, lng);
+                    showToast('座標を取得しました', 'success');
+                } else {
+                    showToast('座標を取得できませんでした', 'error');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                showToast('座標取得中にエラーが発生しました', 'error');
+            }
+        }
+
+        function showPreviewMap(lat, lng) {
+            const mapContainer = document.getElementById('mapPreview');
+            mapContainer.style.display = 'block';
+            
+            if (previewMap) {
+                previewMap.remove();
+            }
+            
+            previewMap = L.map('mapPreview').setView([lat, lng], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(previewMap);
+            
+            L.marker([lat, lng]).addTo(previewMap)
+                .bindPopup('店舗位置')
+                .openPopup();
+        }
+
+        async function geocodeStore(storeId) {
+            const store = stores.find(s => s.id === storeId);
+            if (!store || !store.address) return;
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(store.address + ' Japan')}&limit=1`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    
+                    const { error } = await supabase
+                        .from('stores')
+                        .update({ latitude: lat, longitude: lng })
+                        .eq('id', storeId);
+                        
+                    if (error) throw error;
+                    
+                    showToast(`${store.name}の座標を更新しました`, 'success');
+                    loadCoordinatesData();
+                } else {
+                    showToast('座標を取得できませんでした', 'error');
+                }
+            } catch (error) {
+                console.error('Geocode error:', error);
+                showToast('座標取得に失敗しました', 'error');
+            }
+        }
+
+        async function bulkGeocodeStores() {
+            const storesWithoutCoords = stores.filter(s => s.address && (!s.latitude || !s.longitude));
+            if (storesWithoutCoords.length === 0) {
+                showToast('座標が必要な店舗がありません', 'info');
+                return;
+            }
+            
+            const progressContainer = document.getElementById('geocodeProgress');
+            const progressBar = document.getElementById('geocodeProgressBar');
+            const logArea = document.getElementById('geocodeLog');
+            
+            progressContainer.style.display = 'block';
+            logArea.style.display = 'block';
+            logArea.textContent = '';
+            
+            for (let i = 0; i < storesWithoutCoords.length; i++) {
+                const store = storesWithoutCoords[i];
+                const progress = ((i + 1) / storesWithoutCoords.length) * 100;
+                progressBar.style.width = progress + '%';
+                
+                logArea.textContent += `[${new Date().toLocaleTimeString()}] ${store.name}の座標を取得中...\n`;
+                logArea.scrollTop = logArea.scrollHeight;
+                
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(store.address + ' Japan')}&limit=1`);
+                    const data = await response.json();
+                    
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        
+                        await supabase
+                            .from('stores')
+                            .update({ latitude: lat, longitude: lng })
+                            .eq('id', store.id);
+                            
+                        logArea.textContent += `✅ ${store.name}: [${lat}, ${lng}]\n`;
+                    } else {
+                        logArea.textContent += `❌ ${store.name}: 座標取得失敗\n`;
+                    }
+                } catch (error) {
+                    logArea.textContent += `❌ ${store.name}: エラー - ${error.message}\n`;
+                }
+                
+                logArea.scrollTop = logArea.scrollHeight;
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
+            }
+            
+            logArea.textContent += `\n🎉 一括座標取得完了！\n`;
+            showToast('一括座標取得が完了しました', 'success');
+            loadCoordinatesData();
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function showToast(message, type = 'info', duration = 3000) {
+            // セキュリティ: メッセージをサニタイズ
+            const safeMessage = typeof SecurityUtils !== 'undefined' ? 
+                SecurityUtils.escapeHtml(message) : escapeHtml(message);
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : type === 'warning' ? 'exclamation-triangle' : 'info'}-circle"></i> ${safeMessage}`;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, duration);
+            
+            // エラーハンドラーに通知可能にする
+            if (typeof window !== 'undefined') {
+                window.showToast = showToast;
+            }
+        }
+
+        async function deleteStore(storeId) {
+            if (!confirm('この店舗を削除しますか？この操作は取り消せません。')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('stores')
+                    .delete()
+                    .eq('id', storeId);
+                    
+                if (error) throw error;
+                
+                showToast('店舗を削除しました', 'success');
+                loadStoresData();
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('削除に失敗しました', 'error');
+            }
+        }
+
+        // Placeholder functions for bulk operations
+        function backupDatabase() {
+            showToast('バックアップ機能は開発中です', 'info');
+        }
+
+        function validateAllData() {
+            showToast('データ検証機能は開発中です', 'info');
+        }
+
+        function cleanupDuplicates() {
+            if (confirm('重複データをクリーンアップしますか？')) {
+                showToast('クリーンアップ機能は開発中です', 'info');
+            }
+        }
+
+        function approveUser(userId) {
+            if (confirm('このユーザーを承認しますか？')) {
+                showToast('ユーザー承認機能は開発中です', 'info');
+            }
+        }
+
+        function editUser(userId) {
+            showToast('ユーザー編集機能は開発中です', 'info');
+        }
+
+        // 検索・フィルタリング機能の完全実装
+        function filterAndDisplayStores(query = '', categoryFilter = '') {
+            console.log('filterAndDisplayStores called with:', { query, categoryFilter, storesCount: stores ? stores.length : 'No stores' });
+            
+            if (!Array.isArray(stores)) {
+                console.warn('Stores data is not available');
+                return;
+            }
+            
+            const filtered = stores.filter(store => {
+                if (!store || typeof store !== 'object') return false;
+                
+                const matchesQuery = !query || 
+                    (store.name && store.name.toLowerCase().includes(query.toLowerCase())) ||
+                    (store.address && store.address.toLowerCase().includes(query.toLowerCase())) ||
+                    (store.category && store.category.toLowerCase().includes(query.toLowerCase()));
+                
+                const matchesCategory = !categoryFilter || (store.category === categoryFilter);
+                
+                return matchesQuery && matchesCategory;
+            });
+            
+            // 現在のアクティブセクションを判定（安全に）
+            const activeNavLink = document.querySelector('.nav-link.active');
+            let currentSection = null;
+            if (activeNavLink) {
+                currentSection = activeNavLink.getAttribute('data-section');
+                console.log('Current active section:', currentSection);
+            } else {
+                // フォールバック：表示されているセクションから判定
+                const visibleSection = document.querySelector('.content-section.active');
+                if (visibleSection) {
+                    currentSection = visibleSection.id;
+                    console.log('Fallback: current section from visible element:', currentSection);
+                }
+            }
+            
+            // 検索結果を適切なテーブルに表示
+            if (currentSection === 'stores') {
+                displayStoresTable(filtered);
+            } else if (currentSection === 'coordinates') {
+                displayCoordinatesTable(filtered);
+            } else {
+                // セクションが不明な場合、デフォルトで店舗テーブルを表示
+                console.log('Unknown section, defaulting to stores table');
+                displayStoresTable(filtered);
+            }
+            
+            // 検索結果表示
+            const resultCount = document.getElementById('searchResultCount');
+            if (resultCount) {
+                resultCount.textContent = `${filtered.length}件見つかりました`;
+            }
+        }
+        
+        function displayCoordinatesTable(storesToShow = stores) {
+            const tbody = document.getElementById('coordinatesTableBody');
+            if (!tbody) return;
+            
+            if (!Array.isArray(storesToShow) || storesToShow.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">該当する店舗がありません</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = storesToShow.map(store => {
+                if (!store || typeof store !== 'object') return '';
+                
+                const hasCoordinates = store.latitude && store.longitude;
+                const statusClass = hasCoordinates ? 'status-ok' : 'status-missing';
+                const statusText = hasCoordinates ? '設定済み' : '未設定';
+                
+                return `
+                    <tr>
+                        <td><span class="status-indicator ${statusClass}"></span>${statusText}</td>
+                        <td><strong>${escapeHtml(store.name || '')}</strong></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(store.address || '未設定')}</td>
+                        <td class="coordinate-display">
+                            ${hasCoordinates && store.latitude && store.longitude ? `${store.latitude.toFixed(4)}, ${store.longitude.toFixed(4)}` : '未設定'}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm" onclick="editStoreCoordinates(${store.id || ''})" style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">編集</button>
+                            ${!hasCoordinates ? `<button class="btn btn-sm" onclick="geocodeStoreCoordinates(${store.id || ''})" style="font-size: 12px; padding: 4px 8px;">自動取得</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 店舗テーブル表示を修正（フィルタリング対応）
+        function displayStoresTable(storesToShow = stores) {
+            const tbody = document.getElementById('storesTableBody');
+            if (!tbody) return;
+            
+            if (!Array.isArray(storesToShow) || storesToShow.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">該当する店舗がありません</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = storesToShow.map(store => {
+                if (!store || typeof store !== 'object') return '';
+                
+                const hasCoordinates = store.latitude && store.longitude;
+                const imageCount = [store.image_url, store.image_url_2, store.image_url_3].filter(Boolean).length;
+                
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(store.name || '')}</strong></td>
+                        <td><span class="status">${escapeHtml(store.category || '未分類')}</span></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(store.address || '')}</td>
+                        <td>
+                            <span class="status-indicator ${hasCoordinates ? 'status-ok' : 'status-missing'}"></span>
+                            ${hasCoordinates ? '設定済み' : '未設定'}
+                        </td>
+                        <td>${imageCount}/3</td>
+                        <td>
+                            <button class="btn btn-sm" onclick="editStore(${store.id || ''})" style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">編集</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteStore(${store.id || ''})" style="font-size: 12px; padding: 4px 8px;">削除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 検索イベントハンドラー関数
+        function handleSearchInput(e) {
+            console.log('Search input changed:', e.target.value);
+            console.log('Current stores data:', stores ? stores.length : 'No stores');
+            const categoryFilter = document.getElementById('categoryFilter')?.value || '';
+            filterAndDisplayStores(e.target.value, categoryFilter);
+        }
+
+        function handleCategoryChange(e) {
+            console.log('Category filter changed:', e.target.value);
+            const query = document.getElementById('storeSearch')?.value || '';
+            filterAndDisplayStores(query, e.target.value);
+        }
+
+        // 検索・フィルター機能の初期化
+        function initializeSearchFilters() {
+            console.log('Initializing search filters...');
+            
+            // 店舗検索
+            const storeSearch = document.getElementById('storeSearch');
+            if (storeSearch) {
+                console.log('Store search element found, adding event listener');
+                
+                // 既存のイベントリスナーを削除（重複回避）
+                storeSearch.removeEventListener('input', handleSearchInput);
+                storeSearch.addEventListener('input', handleSearchInput);
+            } else {
+                console.warn('Store search element not found');
+            }
+            
+            // カテゴリフィルター
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter) {
+                // 既存のイベントリスナーを削除（重複回避）
+                categoryFilter.removeEventListener('change', handleCategoryChange);
+                categoryFilter.addEventListener('change', handleCategoryChange);
+            }
+            
+            // 座標管理検索
+            const coordinateSearch = document.getElementById('coordinateSearch');
+            if (coordinateSearch) {
+                coordinateSearch.addEventListener('input', function(e) {
+                    const statusFilter = document.getElementById('coordinateStatusFilter')?.value || '';
+                    // 座標管理用のフィルター関数（後で実装）
+                    console.log('座標検索:', e.target.value, statusFilter);
+                });
+            }
+            
+            // ユーザー管理検索
+            const userSearch = document.getElementById('userSearch');
+            if (userSearch) {
+                userSearch.addEventListener('input', function(e) {
+                    const statusFilter = document.getElementById('userStatusFilter')?.value || '';
+                    // ユーザー管理用のフィルター関数（後で実装）
+                    console.log('ユーザー検索:', e.target.value, statusFilter);
+                });
+            }
+        }
+
+        // Modal click outside to close
+        document.getElementById('storeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStoreModal();
+            }
+        });
+    </script>
+</body>
+</html>
