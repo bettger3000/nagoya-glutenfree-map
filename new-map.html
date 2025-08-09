@@ -2991,6 +2991,29 @@
                     showNotification(`${actionText}リストから削除しました`, 'success');
                     
                 } else {
+                    // 追加処理前に、反対のリストから削除（排他的選択）
+                    const oppositeListType = listType === 'want_to_go' ? 'visited' : 'want_to_go';
+                    const isInOppositeList = isInUserList(storeId, oppositeListType);
+                    
+                    if (isInOppositeList) {
+                        // 反対のリストから削除
+                        const { error: deleteError } = await supabase
+                            .from('user_store_lists')
+                            .delete()
+                            .eq('user_id', currentUser.id)
+                            .eq('store_id', storeId)
+                            .eq('list_type', oppositeListType);
+                            
+                        if (deleteError) throw deleteError;
+                        
+                        // ローカルデータから削除
+                        userStoreLists = userStoreLists.filter(item => 
+                            !(item.user_id === currentUser.id && 
+                              item.store_id === storeId && 
+                              item.list_type === oppositeListType)
+                        );
+                    }
+                    
                     // 追加処理
                     const newItem = {
                         user_id: currentUser.id,
@@ -3012,7 +3035,13 @@
                     }
                     
                     const actionText = listType === 'want_to_go' ? '行きたい' : '行った';
-                    showNotification(`${actionText}リストに追加しました`, 'success');
+                    const oppositeActionText = oppositeListType === 'want_to_go' ? '行きたい' : '行った';
+                    
+                    if (isInOppositeList) {
+                        showNotification(`${oppositeActionText}リストから${actionText}リストに変更しました`, 'success');
+                    } else {
+                        showNotification(`${actionText}リストに追加しました`, 'success');
+                    }
                 }
                 
                 // UIを更新（店舗リストを再描画）
