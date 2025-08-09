@@ -1976,9 +1976,9 @@
             console.log('🚀 nacoコミュニティマップ初期化開始');
             
             try {
-                // Initialize Supabase
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('✅ Supabase初期化完了');
+                // Supabase is already initialized in auth check
+                supabase = window.supabase;
+                console.log('✅ Supabase初期化確認');
 
                 // Check authentication
                 const { data: { session } } = await supabase.auth.getSession();
