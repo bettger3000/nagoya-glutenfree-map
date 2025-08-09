@@ -1940,11 +1940,22 @@
         (async function() {
             console.log('🛡️ 認証チェック開始...');
             
-            // Wait for supabase client to be loaded from ES module
-            while (!window.supabase) {
-                console.log('⏳ Supabaseクライアント読み込み待ち...');
+            // Wait for supabase client to be loaded from ES module with timeout
+            let waitCount = 0;
+            const maxWaitTime = 50; // 5秒まで待機
+            while (!window.supabase && waitCount < maxWaitTime) {
+                console.log(`⏳ Supabaseクライアント読み込み待ち... (${waitCount + 1}/${maxWaitTime})`);
                 await new Promise(resolve => setTimeout(resolve, 100));
+                waitCount++;
             }
+            
+            if (!window.supabase) {
+                console.error('❌ Supabaseクライアント読み込みタイムアウト');
+                redirectToLogin();
+                return;
+            }
+            
+            console.log('✅ Supabaseクライアント読み込み完了');
             
             const supabaseClient = window.supabase;
             

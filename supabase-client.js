@@ -25,5 +25,9 @@ export function getSupabaseClient() {
     return globalSupabaseClient;
 }
 
+// グローバル変数として設定（他のスクリプトからアクセス可能にする）
+const supabaseClient = getSupabaseClient();
+window.supabase = supabaseClient;
+
 // デフォルトエクスポートも提供
-export default getSupabaseClient();
+export default supabaseClient;
