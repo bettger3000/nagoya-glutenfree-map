@@ -2048,6 +2048,33 @@
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(map);
+                
+                // 初期ズームレベルを設定
+                currentZoom = map.getZoom();
+                
+                // ズーム変更時にアイコンサイズを動的に更新
+                map.on('zoomend', function() {
+                    const newZoom = map.getZoom();
+                    if (newZoom !== currentZoom) {
+                        console.log(`🔍 ズーム変更: ${currentZoom} → ${newZoom}`);
+                        currentZoom = newZoom;
+                        updateAllMarkerSizes();
+                    }
+                });
+                
+                // すべてのマーカーのサイズを更新する関数
+                function updateAllMarkerSizes() {
+                    console.log(`🔄 すべてのマーカーのサイズを更新中... (ズーム: ${currentZoom})`);
+                    
+                    // メインの店舗マーカーを更新
+                    markers.forEach(marker => {
+                        const store = marker.options.storeData;
+                        if (store) {
+                            const newIcon = createCustomIcon(store.category, store, currentZoom);
+                            marker.setIcon(newIcon);
+                        }
+                    });
+                }
 
                 // Add click event for pin mode
                 map.on('click', function(e) {
@@ -2359,11 +2386,48 @@
             };
         }
 
-        // 洗練されたカスタムマーカーアイコンを作成（表示モード対応）
-        function createCustomIcon(category, store = null) {
+        // 現在のズームレベルを追跡
+        let currentZoom = 14;
+        
+        // ズームレベルに基づいてアイコンサイズを計算
+        function getIconSizeForZoom(zoom) {
+            // ズームレベル 10-18 に対して適切なサイズを設定
+            const minZoom = 10;
+            const maxZoom = 18;
+            const minSize = 18; // 最小サイズ
+            const maxSize = 36; // 最大サイズ
+            
+            // ズームレベルを範囲内に制限
+            const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+            
+            // リニアスケーリング
+            const size = minSize + ((clampedZoom - minZoom) / (maxZoom - minZoom)) * (maxSize - minSize);
+            return Math.round(size);
+        }
+        
+        // ズームレベルに基づいてシャドウとボーダーの強度を計算
+        function getVisibilityEnhancement(zoom) {
+            // ズームが高いほど（拡大時）シャドウとボーダーを強くする
+            const shadowIntensity = Math.min(1, zoom / 15); // 0-1の範囲
+            const borderWidth = Math.max(2, Math.min(4, zoom / 4)); // 2-4pxの範囲
+            
+            return {
+                shadowIntensity,
+                borderWidth
+            };
+        }
+
+        // 洗練されたカスタムマーカーアイコンを作成（表示モード対応 + 動的サイズ調整）
+        function createCustomIcon(category, store = null, zoom = null) {
+            // 現在のズームレベルを使用（引数で指定されていない場合）
+            const iconZoom = zoom !== null ? zoom : currentZoom;
+            const iconSize = getIconSizeForZoom(iconZoom);
+            const iconHeight = Math.round(iconSize * 1.35); // ティアドロップ形状のため高さを調整
+            const enhancement = getVisibilityEnhancement(iconZoom);
+            
             const style = getCategoryMarkerStyle(category);
             let markerColor = style.color;
-            let borderColor = 'rgba(255,255,255,0.3)';
+            let borderColor = 'rgba(255,255,255,0.8)'; // より明確な境界線
             let shadowColor = style.shadowColor;
             let badgeHtml = '';
             
@@ -2432,51 +2496,63 @@
                 }
             }
             
+            // アイコンのフォントサイズを動的に調整
+            const iconFontSize = Math.round(iconSize * 0.5);
+            const pointSize = Math.round(iconSize * 0.28);
+            const badgeSize = Math.round(iconSize * 0.55);
+            const badgeOffset = Math.round(-iconSize * 0.2);
+            
             const iconHtml = `
                 <div class="sophisticated-marker">
                     <div class="marker-teardrop" style="
-                        width: 28px;
-                        height: 38px;
+                        width: ${iconSize}px;
+                        height: ${iconHeight}px;
                         background: ${markerColor};
                         border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
                         position: relative;
                         box-shadow: 
-                            0 4px 12px ${shadowColor},
-                            0 2px 4px rgba(0,0,0,0.1);
-                        border: 2px solid ${borderColor};
+                            0 ${Math.round(6 * enhancement.shadowIntensity)}px ${Math.round(16 * enhancement.shadowIntensity)}px ${shadowColor.replace('0.4', (0.4 * enhancement.shadowIntensity).toFixed(1))},
+                            0 ${Math.round(3 * enhancement.shadowIntensity)}px ${Math.round(8 * enhancement.shadowIntensity)}px rgba(0,0,0,${(0.15 * enhancement.shadowIntensity).toFixed(2)}),
+                            inset 0 1px 0 rgba(255,255,255,0.3);
+                        border: ${enhancement.borderWidth}px solid ${borderColor};
                         display: flex;
                         justify-content: center;
                         align-items: center;
                         transform-origin: center bottom;
+                        transition: all 0.2s ease-out;
                     ">
                         <div class="marker-point" style="
                             position: absolute;
-                            bottom: -1px;
+                            bottom: -${Math.round(enhancement.borderWidth/2)}px;
                             left: 50%;
                             transform: translateX(-50%) rotate(45deg);
-                            width: 8px;
-                            height: 8px;
+                            width: ${pointSize}px;
+                            height: ${pointSize}px;
                             background: ${typeof markerColor === 'string' && markerColor.includes('gradient') ? style.color : markerColor};
                             border-radius: 0 0 0 50%;
+                            border: ${Math.max(1, Math.round(enhancement.borderWidth/2))}px solid ${borderColor};
                         "></div>
                         <i class="${style.icon}" style="
                             color: white;
-                            font-size: 14px;
-                            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                            font-size: ${iconFontSize}px;
+                            text-shadow: 
+                                0 1px 2px rgba(0,0,0,${(0.5 * enhancement.shadowIntensity).toFixed(2)}),
+                                0 2px 4px rgba(0,0,0,${(0.3 * enhancement.shadowIntensity).toFixed(2)});
                             z-index: 10;
                             margin-top: -2px;
+                            filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
                         "></i>
                     </div>
-                    ${badgeHtml}
+                    ${badgeHtml.replace(/16px/g, `${badgeSize}px`).replace(/-6px/g, `${badgeOffset}px`)}
                 </div>
             `;
             
             return L.divIcon({
                 html: iconHtml,
                 className: 'sophisticated-marker-wrapper',
-                iconSize: [28, 44],
-                iconAnchor: [14, 44],
-                popupAnchor: [0, -44]
+                iconSize: [iconSize, iconHeight],
+                iconAnchor: [Math.round(iconSize/2), iconHeight],
+                popupAnchor: [0, -iconHeight]
             });
         }
 
@@ -2514,10 +2590,13 @@
                     if (store.lat && store.lng) {
                         console.log(`📍 マーカー作成: ${store.name} at [${store.lat}, ${store.lng}]`);
                         
-                        const customIcon = createCustomIcon(store.category, store);
+                        const customIcon = createCustomIcon(store.category, store, currentZoom);
                         const style = getCategoryMarkerStyle(store.category);
                         
-                        const marker = L.marker([store.lat, store.lng], { icon: customIcon })
+                        const marker = L.marker([store.lat, store.lng], { 
+                            icon: customIcon,
+                            storeData: store // マーカーに店舗データを保存
+                        })
                             .bindPopup(`
                                 <div class="custom-popup" style="
                                     min-width: 220px;
