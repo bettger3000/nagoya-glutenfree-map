@@ -2011,10 +2011,13 @@
                 // Setup event listeners
                 setupEventListeners();
                 
-                // 自動位置情報取得を無効化（ユーザーが明示的にボタンを押した時のみ）
-                // setTimeout(() => {
-                //     autoDetectLocation();
-                // }, 500);
+                // ログイン後に自動的に現在地を取得して距離順にソート
+                if (currentUser) {
+                    console.log('🔍 ログインユーザーの現在地を自動取得します...');
+                    setTimeout(async () => {
+                        await autoDetectLocation();
+                    }, 500);
+                }
 
                 // Hide loading overlay
                 document.getElementById('loadingOverlay').classList.add('hidden');
@@ -3636,6 +3639,12 @@
             try {
                 console.log('📍 自動現在地取得を開始（静かに実行）...');
                 
+                // 初回ログイン時のみ、位置情報許可を促す
+                const hasLocationPermission = localStorage.getItem('locationPermissionGranted');
+                if (!hasLocationPermission) {
+                    showNotification('📍 現在地を取得して最寄りの店舗を表示します', 'info');
+                }
+                
                 // Try to get current position with a shorter timeout for initial load
                 const location = await locationService.getCurrentPosition({
                     timeout: 8000, // 8秒でタイムアウト
@@ -3644,6 +3653,9 @@
                 
                 if (location) {
                     console.log('✅ 自動現在地取得成功:', location);
+                    
+                    // 位置情報許可を記録
+                    localStorage.setItem('locationPermissionGranted', 'true');
                     
                     // Create and add current location marker
                     if (window.currentLocationMarker) {
