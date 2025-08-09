@@ -1932,18 +1932,21 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <!-- Supabase UMD version removed to avoid conflicts with ES module -->
+    <script type="module" src="supabase-client.js"></script>
 
     <script>
         // 認証チェックを最初に実行
         (async function() {
             console.log('🛡️ 認証チェック開始...');
             
-            const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
+            // Wait for supabase client to be loaded from ES module
+            while (!window.supabase) {
+                console.log('⏳ Supabaseクライアント読み込み待ち...');
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
             
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            window.supabase = supabaseClient;
+            const supabaseClient = window.supabase;
             
             // セッション確認
             const { data: { session }, error } = await supabaseClient.auth.getSession();
