@@ -1299,13 +1299,32 @@
             }
             
             .sidebar-header::after {
-                content: '▼';
-                font-size: 0.8rem;
+                content: '▲'; /* 上向き矢印 - 開いている状態 */
+                font-size: 1rem;
                 transition: transform 0.3s;
+                color: #666;
             }
             
             .sidebar.collapsed .sidebar-header::after {
-                transform: rotate(-90deg);
+                content: '▼'; /* 下向き矢印 - 折りたたまれた状態 */
+                transform: none;
+            }
+            
+            .sidebar.collapsed .sidebar-header {
+                background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-lavender) 50%);
+                cursor: pointer;
+                position: relative;
+            }
+            
+            .sidebar.collapsed .sidebar-header::before {
+                content: 'タップして店舗一覧を表示';
+                position: absolute;
+                right: 30px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 0.7rem;
+                color: rgba(255, 255, 255, 0.8);
+                pointer-events: none;
             }
             
             .sidebar-stats {
@@ -1947,8 +1966,8 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="search-title">
-                    <i class="fas fa-search"></i>
-                    <span class="mobile-title">お店</span>
+                    <i class="fas fa-list"></i>
+                    <span class="mobile-title">店舗一覧</span>
                     <span class="desktop-title">お店を探す</span>
                 </div>
                 <input type="text" class="search-box" id="searchBox" placeholder="店名・住所・駅名で検索... (例: 渋谷駅、大阪城)">
@@ -2315,16 +2334,29 @@
                 // モバイルでは初期状態で折りたたむ
                 sidebar.classList.add('collapsed');
                 
-                sidebarHeader.addEventListener('click', () => {
+                // サイドバーヘッダーのクリックイベント
+                sidebarHeader.addEventListener('click', (e) => {
+                    e.preventDefault();
                     sidebar.classList.toggle('collapsed');
+                    
+                    // アニメーションのフィードバック
+                    if (sidebar.classList.contains('collapsed')) {
+                        console.log('📋 店舗一覧を非表示');
+                    } else {
+                        console.log('📜 店舗一覧を表示');
+                    }
                     
                     // マップのリサイズをトリガー
                     if (window.map) {
                         setTimeout(() => {
                             map.invalidateSize();
-                        }, 300);
+                        }, 350);
                     }
                 });
+                
+                // タップ可能なことを示すスタイル
+                sidebarHeader.style.cursor = 'pointer';
+                sidebarHeader.style.userSelect = 'none';
             }
         }
         
