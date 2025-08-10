@@ -2308,10 +2308,11 @@
             
             // リダイレクトカウントをリセット
             sessionStorage.removeItem('pageRedirectCount');
-            }
             
-            // アプリケーション初期化を後で実行
-            // initApp() will be called after function declaration
+        })(); // IIFE終了
+        
+        // アプリケーション初期化を後で実行
+        // initApp() will be called after function declaration
             
             function updateUserDisplay(user) {
                 // ログインセクションを非表示
