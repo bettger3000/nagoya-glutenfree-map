@@ -4789,10 +4789,24 @@
         // 実際にinitAppを実行
         initApp().catch(error => {
             console.error('❌ initApp実行エラー:', error);
-            // ローディングを強制的に隠す
+            console.error('❌ エラー詳細:', error.message, error.stack);
+            
+            // エラーメッセージを表示
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) {
-                loadingOverlay.classList.add('hidden');
+                loadingOverlay.innerHTML = `
+                    <div style="text-align: center; color: white;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🚫</div>
+                        <div style="margin-bottom: 1rem;">初期化エラー</div>
+                        <div style="font-size: 0.8rem; margin-bottom: 1rem; max-width: 300px;">
+                            ${error.message || 'Unknown error'}
+                        </div>
+                        <button onclick="location.reload()" style="
+                            background: white; color: #333; border: none; 
+                            padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;
+                        ">リロード</button>
+                    </div>
+                `;
             }
         });
     </script>
