@@ -1959,7 +1959,14 @@
             
             const supabaseClient = window.supabase;
             
+            // ヘルパー関数を先に定義
+            function redirectToLogin() {
+                console.log('🔄 ログインページにリダイレクト中...');
+                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
+            }
+            
             // セッション確認
+            console.log('🔍 セッション確認開始...');
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             
             if (error) {
@@ -1973,6 +1980,8 @@
                 redirectToLogin();
                 return;
             }
+            
+            console.log('✅ セッション確認完了:', session.user.email);
             
             // ユーザーが許可されているかチェック
             const { data: allowedUser, error: checkError } = await supabaseClient
@@ -2003,10 +2012,6 @@
             
             // アプリケーション初期化
             initApp();
-            
-            function redirectToLogin() {
-                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-            }
             
             function updateUserDisplay(user) {
                 // ログインセクションを非表示
