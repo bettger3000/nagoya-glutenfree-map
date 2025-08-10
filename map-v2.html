@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <title>グルンてフリーマップ - 名古屋</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-green: #98D8C8;
+            --light-green: #B8E8D8;
+            --dark-green: #78C8B8;
+            --primary-pink: #FFB6C1;
+            --accent-peach: #FFDAB9;
+            --white: #ffffff;
+            --bg-cream: #faf8f5;
+            --text-dark: #333333;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif;
+            background: var(--bg-cream);
+            overflow-x: hidden;
+        }
+
+        /* ヘッダー */
+        header {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-green) 100%);
+            color: var(--text-dark);
+            padding: 1rem;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: relative;
+            z-index: 1001;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            display: none;
+        }
+
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .admin-toggle-btn {
+            background: var(--white);
+            color: var(--text-dark);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .admin-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .admin-toggle-btn.active {
+            background: var(--dark-green);
+            color: var(--white);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-dark);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* 統計表示 */
+        .stats {
+            background: var(--white);
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            box-shadow: 0 2px 5px var(--shadow);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-dark);
+            margin-top: 0.2rem;
+        }
+
+        /* 検索・フィルター */
+        .search-section {
+            background: var(--white);
+            padding: 1rem;
+            box-shadow: 0 2px 5px var(--shadow);
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--light-green);
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary-green);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--light-green);
+            color: var(--text-dark);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        /* 地図 */
+        #map {
+            height: 70vh;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* 管理者セクション */
+        .admin-section {
+            background: var(--accent-peach);
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .admin-section h3 {
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .admin-section button {
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .admin-section button:hover {
+            background: var(--dark-green);
+        }
+
+        /* レビューモーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: var(--text-dark);
+        }
+
+        .review-form {
+            margin-top: 1rem;
+        }
+
+        .review-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .review-form input,
+        .review-form textarea,
+        .review-form select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .review-form button {
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* ローディング */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-green);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats {
+                gap: 1rem;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+
+            #map {
+                height: 60vh;
+            }
+
+            .hamburger-btn {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <button class="hamburger-btn" id="hamburgerBtn">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                <h1><i class="fas fa-map-marked-alt"></i>グルンてフリーマップ</h1>
+                <span style="font-size: 0.8rem; color: var(--accent-peach);">presents by naco</span>
+            </div>
+            <div class="header-right">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="user-avatar" id="userAvatar">👤</div>
+                    <span id="userName"></span>
+                    <button onclick="handleLogout()" class="admin-toggle-btn">ログアウト</button>
+                </div>
+                <button onclick="handleLogin()" class="admin-toggle-btn" id="loginBtn">📧 ログイン</button>
+                <button onclick="toggleAdminMode()" class="admin-toggle-btn" id="adminToggleBtn" style="display: none;">
+                    <i class="fas fa-cog"></i> 管理
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 統計表示 -->
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-number" id="totalStores">-</div>
+            <div class="stat-label">総店舗数</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="visibleStores">-</div>
+            <div class="stat-label">表示中</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="totalReviews">-</div>
+            <div class="stat-label">レビュー数</div>
+        </div>
+    </div>
+
+    <!-- 検索・フィルター -->
+    <div class="search-section">
+        <input type="text" id="searchInput" placeholder="店名・住所・カテゴリで検索...">
+        <div class="filter-buttons" id="filterButtons"></div>
+    </div>
+
+    <!-- 地図 -->
+    <div id="map"></div>
+
+    <!-- 管理者モード -->
+    <div id="adminSection" class="admin-section" style="display: none;">
+        <h3><i class="fas fa-cog"></i> 管理者モード</h3>
+        <button id="coordinateFixBtn"><i class="fas fa-map-pin"></i> 座標を修正</button>
+        <button onclick="showStoreForm()"><i class="fas fa-plus"></i> 店舗追加</button>
+        <button onclick="exportData()"><i class="fas fa-download"></i> データエクスポート</button>
+    </div>
+
+    <!-- レビューモーダル -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReviewModal()">&times;</span>
+            <h2 id="reviewModalTitle">レビューを投稿</h2>
+            <form class="review-form" id="reviewForm">
+                <label for="reviewRating">評価:</label>
+                <select id="reviewRating">
+                    <option value="5">⭐⭐⭐⭐⭐ 素晴らしい</option>
+                    <option value="4">⭐⭐⭐⭐ 良い</option>
+                    <option value="3">⭐⭐⭐ 普通</option>
+                    <option value="2">⭐⭐ いまいち</option>
+                    <option value="1">⭐ 悪い</option>
+                </select>
+
+                <label for="reviewComment">コメント:</label>
+                <textarea id="reviewComment" rows="4" placeholder="グルテンフリーの対応状況や感想を教えてください"></textarea>
+
+                <label>
+                    <input type="checkbox" id="reviewVisited"> 実際に訪問しました
+                </label>
+
+                <button type="submit">レビューを投稿</button>
+            </form>
+            
+            <div id="existingReviews"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="supabase-client.js"></script>
+    
+    <script>
+        // グローバル変数
+        let map, markers = [], storesData = [], reviewsData = [];
+        let currentUser = null, adminMode = false;
+        let selectedStoreId = null;
+
+        // カテゴリ別スタイル
+        const categoryStyles = {
+            '和食': { color: '#ff6b6b', icon: 'fa-utensils' },
+            '洋食': { color: '#4ecdc4', icon: 'fa-pizza-slice' },
+            'カフェ': { color: '#f7b731', icon: 'fa-coffee' },
+            'パン屋': { color: '#5f27cd', icon: 'fa-bread-slice' },
+            '販売店': { color: '#00d2d3', icon: 'fa-gift' },
+            'スイーツ': { color: '#ff9ff3', icon: 'fa-ice-cream' },
+            'その他': { color: '#95a5a6', icon: 'fa-store' }
+        };
+
+        // アプリケーション初期化
+        async function initApp() {
+            console.log('🚀 グルンてフリーマップv2 初期化開始');
+            showLoading();
+
+            try {
+                // 地図初期化
+                initMap();
+
+                // 認証状態チェック
+                await checkAuthStatus();
+
+                // 店舗データ読み込み
+                await loadStores();
+
+                // レビューデータ読み込み
+                await loadReviews();
+
+                // 統計更新
+                updateStats();
+
+                // フィルターボタン生成
+                generateFilterButtons();
+
+                // 検索機能初期化
+                initializeSearch();
+
+                console.log('✅ 初期化完了');
+            } catch (error) {
+                console.error('❌ 初期化エラー:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 地図初期化
+        function initMap() {
+            map = L.map('map').setView([35.1815, 136.9066], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            console.log('✅ 地図初期化完了');
+        }
+
+        // 認証状態チェック
+        async function checkAuthStatus() {
+            const { data: { session } } = await window.supabase.auth.getSession();
+            if (session) {
+                await handleAuthSuccess(session.user);
+            }
+
+            // 認証状態監視
+            window.supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN') {
+                    await handleAuthSuccess(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    handleAuthSignOut();
+                }
+            });
+        }
+
+        // 認証成功処理
+        async function handleAuthSuccess(user) {
+            currentUser = user;
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('adminToggleBtn').style.display = 'block';
+            document.getElementById('userName').textContent = user.email;
+            document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+            console.log('✅ 認証成功:', user.email);
+        }
+
+        // 認証解除処理
+        function handleAuthSignOut() {
+            currentUser = null;
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('adminToggleBtn').style.display = 'none';
+            adminMode = false;
+            document.getElementById('adminSection').style.display = 'none';
+        }
+
+        // ログイン
+        async function handleLogin() {
+            await window.supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href
+                }
+            });
+        }
+
+        // ログアウト
+        async function handleLogout() {
+            await window.supabase.auth.signOut();
+        }
+
+        // 管理者モード切り替え
+        function toggleAdminMode() {
+            adminMode = !adminMode;
+            const adminSection = document.getElementById('adminSection');
+            const toggleBtn = document.getElementById('adminToggleBtn');
+            
+            if (adminMode) {
+                adminSection.style.display = 'block';
+                toggleBtn.classList.add('active');
+            } else {
+                adminSection.style.display = 'none';
+                toggleBtn.classList.remove('active');
+            }
+        }
+
+        // 店舗データ読み込み
+        async function loadStores() {
+            try {
+                const { data: stores, error } = await window.supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                storesData = stores;
+                displayStores(stores);
+                console.log(`✅ ${stores.length}件の店舗を読み込み`);
+            } catch (error) {
+                console.error('❌ 店舗データ取得エラー:', error);
+            }
+        }
+
+        // レビューデータ読み込み
+        async function loadReviews() {
+            try {
+                const { data: reviews, error } = await window.supabase
+                    .from('store_reviews')
+                    .select('*');
+
+                if (error) throw error;
+
+                reviewsData = reviews;
+                console.log(`✅ ${reviews.length}件のレビューを読み込み`);
+            } catch (error) {
+                console.error('❌ レビューデータ取得エラー:', error);
+            }
+        }
+
+        // 店舗表示
+        function displayStores(stores) {
+            // 既存マーカーをクリア
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            stores.forEach(store => {
+                if (store.latitude && store.longitude) {
+                    const style = categoryStyles[store.category] || categoryStyles['その他'];
+                    
+                    const customIcon = L.divIcon({
+                        html: `<div style="background-color: ${style.color}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                            <i class="fas ${style.icon}"></i>
+                        </div>`,
+                        className: 'custom-div-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+
+                    const marker = L.marker([store.latitude, store.longitude], {
+                        icon: customIcon
+                    }).addTo(map);
+
+                    const storeReviews = reviewsData.filter(r => r.store_id === store.id);
+                    const avgRating = storeReviews.length > 0 ? 
+                        (storeReviews.reduce((sum, r) => sum + r.rating, 0) / storeReviews.length).toFixed(1) : 
+                        'なし';
+
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: ${style.color};">
+                                <i class="fas ${style.icon}"></i> ${store.name}
+                            </h3>
+                            <p style="margin: 0.25rem 0; color: #666;">
+                                <i class="fas fa-map-marker-alt"></i> ${store.address}
+                            </p>
+                            <p style="margin: 0.25rem 0;">
+                                <span style="background: ${style.color}; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
+                                    ${store.category}
+                                </span>
+                            </p>
+                            <p style="margin: 0.5rem 0;">
+                                <i class="fas fa-star" style="color: gold;"></i> 
+                                平均評価: ${avgRating} (${storeReviews.length}件)
+                            </p>
+                            <button onclick="openReviewModal(${store.id}, '${store.name}')" 
+                                    style="background: ${style.color}; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 0.5rem;">
+                                <i class="fas fa-comment"></i> レビューを見る・投稿
+                            </button>
+                        </div>
+                    `);
+
+                    markers.push(marker);
+                }
+            });
+        }
+
+        // フィルターボタン生成
+        function generateFilterButtons() {
+            const filterButtons = document.getElementById('filterButtons');
+            const categories = [...new Set(storesData.map(store => store.category))];
+            
+            filterButtons.innerHTML = `
+                <button class="filter-btn active" onclick="filterStores('all')">
+                    <i class="fas fa-list"></i> すべて
+                </button>
+            `;
+
+            categories.forEach(category => {
+                const style = categoryStyles[category] || categoryStyles['その他'];
+                filterButtons.innerHTML += `
+                    <button class="filter-btn" onclick="filterStores('${category}')" style="background-color: ${style.color}; color: white;">
+                        <i class="fas ${style.icon}"></i> ${category}
+                    </button>
+                `;
+            });
+        }
+
+        // フィルタリング
+        function filterStores(category) {
+            // ボタンのアクティブ状態更新
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            let filteredStores;
+            if (category === 'all') {
+                filteredStores = storesData;
+            } else {
+                filteredStores = storesData.filter(store => store.category === category);
+            }
+
+            displayStores(filteredStores);
+            updateStats(filteredStores);
+        }
+
+        // 検索機能初期化
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query === '') {
+                    displayStores(storesData);
+                    updateStats();
+                    return;
+                }
+
+                const filteredStores = storesData.filter(store => 
+                    store.name.toLowerCase().includes(query) ||
+                    store.address.toLowerCase().includes(query) ||
+                    store.category.toLowerCase().includes(query) ||
+                    (store.description && store.description.toLowerCase().includes(query))
+                );
+
+                displayStores(filteredStores);
+                updateStats(filteredStores);
+            });
+        }
+
+        // 統計更新
+        function updateStats(stores = storesData) {
+            document.getElementById('totalStores').textContent = storesData.length;
+            document.getElementById('visibleStores').textContent = stores.length;
+            document.getElementById('totalReviews').textContent = reviewsData.length;
+        }
+
+        // レビューモーダル開く
+        function openReviewModal(storeId, storeName) {
+            selectedStoreId = storeId;
+            document.getElementById('reviewModalTitle').textContent = `${storeName} のレビュー`;
+            document.getElementById('reviewModal').style.display = 'block';
+            
+            // 既存レビュー表示
+            displayExistingReviews(storeId);
+        }
+
+        // レビューモーダル閉じる
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+            selectedStoreId = null;
+        }
+
+        // 既存レビュー表示
+        function displayExistingReviews(storeId) {
+            const storeReviews = reviewsData.filter(r => r.store_id === storeId);
+            const reviewsContainer = document.getElementById('existingReviews');
+            
+            if (storeReviews.length === 0) {
+                reviewsContainer.innerHTML = '<p>まだレビューがありません。最初のレビューを投稿してください！</p>';
+                return;
+            }
+
+            reviewsContainer.innerHTML = '<h3>既存のレビュー</h3>' + 
+                storeReviews.map(review => `
+                    <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0; border-radius: 5px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <div>
+                                ${'⭐'.repeat(review.rating)}
+                                ${review.visited ? '<span style="background: green; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">訪問済み</span>' : ''}
+                            </div>
+                            <small>${new Date(review.created_at).toLocaleDateString()}</small>
+                        </div>
+                        <p>${review.comment}</p>
+                    </div>
+                `).join('');
+        }
+
+        // レビュー投稿フォーム送信
+        document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('レビューを投稿するにはログインが必要です');
+                return;
+            }
+
+            const rating = parseInt(document.getElementById('reviewRating').value);
+            const comment = document.getElementById('reviewComment').value;
+            const visited = document.getElementById('reviewVisited').checked;
+
+            try {
+                const { data, error } = await window.supabase
+                    .from('store_reviews')
+                    .insert([{
+                        store_id: selectedStoreId,
+                        user_id: currentUser.id,
+                        rating,
+                        comment,
+                        visited
+                    }]);
+
+                if (error) throw error;
+
+                alert('レビューを投稿しました！');
+                closeReviewModal();
+                
+                // レビューデータを再読み込み
+                await loadReviews();
+                displayStores(storesData);
+                updateStats();
+                
+                // フォームリセット
+                document.getElementById('reviewForm').reset();
+            } catch (error) {
+                console.error('❌ レビュー投稿エラー:', error);
+                alert('レビューの投稿に失敗しました');
+            }
+        });
+
+        // ユーティリティ関数
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('reviewModal');
+            if (event.target == modal) {
+                closeReviewModal();
+            }
+        }
+
+        // DOMContentLoaded時に初期化
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
