@@ -70,12 +70,13 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-mint) 100%);
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-mint) 60%, var(--accent-peach) 100%);
             color: var(--text-dark);
             padding: 1.2rem;
             box-shadow: 0 4px 20px var(--shadow-soft);
             position: relative;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         .header-content {
@@ -87,32 +88,35 @@
         }
 
         .logo {
-            font-family: 'Comfortaa', 'Noto Sans JP', cursive;
-            font-size: 1.8rem;
-            font-weight: 700;
+            font-family: 'Comfortaa', 'Noto Sans JP', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            color: #4A4A4A;
-            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
-            letter-spacing: 0.5px;
+            gap: 0.6rem;
+            color: #3D3D3D;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.3px;
+            line-height: 1.2;
         }
         
         .logo-text {
             color: #2D2D2D;
-            font-weight: 700;
+            font-weight: 600;
             position: relative;
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            text-shadow: 0.5px 0.5px 2px rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
         }
         
         .logo-text::after {
             content: '✨';
             position: absolute;
-            top: -8px;
-            right: -15px;
-            font-size: 1rem;
-            color: var(--primary-pink);
-            animation: sparkle 2s ease-in-out infinite;
+            top: -6px;
+            right: -12px;
+            font-size: 0.9rem;
+            color: var(--accent-lavender);
+            animation: sparkle 3s ease-in-out infinite;
+            opacity: 0.8;
         }
         
         /* グラデーションアニメーション */
@@ -138,16 +142,17 @@
         }
 
         .naco-character {
-            width: 58px;
-            height: 58px;
+            width: 52px;
+            height: 52px;
             background-image: url('naco-character.png.png');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            margin-right: 0.8rem;
+            margin-right: 0.6rem;
             border-radius: 50%;
-            box-shadow: 0 3px 12px rgba(255, 182, 193, 0.4);
-            animation: gentle-float 3s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.5);
+            animation: gentle-float 4s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.6);
         }
 
         /* nacoキャラクターにホバー時の反応を追加 */
@@ -1245,8 +1250,9 @@
             }
             
             .logo {
-                font-size: 1rem;
-                gap: 0.3rem;
+                font-size: 1.1rem;
+                gap: 0.4rem;
+                font-weight: 500;
             }
             
             .logo-text {
@@ -1266,18 +1272,20 @@
             /* メインコンテナの調整 - マップ中心レイアウト */
             .main-container {
                 flex-direction: column; /* 通常順序：マップが上、リストが下 */
-                height: calc(100vh - 50px);
+                height: 100vh;
                 padding: 0;
                 gap: 0;
-                margin-top: 50px; /* 固定ヘッダー分の余白 */
+                margin-top: 0; /* ヘッダーはfixed positionのため不要 */
+                padding-top: 50px; /* ヘッダー分の内側余白 */
+                box-sizing: border-box;
             }
             
             /* サイドバーのモバイル最適化 - コンパクトデザイン */
             .sidebar {
                 width: 100%;
-                height: 30vh; /* コンパクトな店舗一覧 */
-                min-height: 30vh;
-                max-height: 30vh;
+                height: calc(30vh - 15px); /* 30% - padding調整 */
+                min-height: calc(30vh - 15px);
+                max-height: calc(30vh - 15px);
                 order: 2; /* マップの下に配置 */
                 position: relative;
                 transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -1471,8 +1479,8 @@
             /* マップコンテナの調整 - メイン表示 */
             .map-container {
                 flex: 1;
-                height: 70vh; /* 70%をマップに配分 */
-                min-height: 400px;
+                height: calc(70vh - 35px); /* 70% - padding調整 */
+                min-height: 350px;
                 order: 1; /* マップを上に配置 */
                 position: relative;
                 z-index: 1;
