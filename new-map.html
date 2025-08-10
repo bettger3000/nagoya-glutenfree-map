@@ -23,13 +23,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Comfortaa:wght@300;400;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
     
-    <!-- セキュリティユーティリティ -->
+    <!-- External Utilities -->
     <script src="security-utils.js"></script>
-    <!-- エラーハンドリング -->
     <script src="error-handler.js"></script>
-    <!-- パフォーマンス管理 -->
     <script src="performance-manager.js"></script>
-    <!-- 位置情報サービス -->
     <script src="location-service.js"></script>
     
     <style>
@@ -4705,96 +4702,7 @@
             }
         });
         
-        // 削除: 重複した初期化コード
-//         // document.addEventListener('DOMContentLoaded', async () => {
-//             console.log('🚀 nacoコミュニティマップ初期化開始...');
-//             
-//             // 強制ローディング解除（15秒後）
-//             setTimeout(() => {
-//                 console.warn('⏰ 強制ローディング解除');
-//                 const loadingOverlay = document.getElementById('loadingOverlay');
-//                 if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
-//                     loadingOverlay.classList.add('hidden');
-//                     console.log('🔧 緊急ローディング解除実行');
-//                 }
-//             }, 15000);
-//             
-//             try {
-//                 // Supabaseクライアントが利用可能になるまで待機
-//                 let attempts = 0;
-//                 while (!window.supabase && attempts < 50) {
-//                     await new Promise(resolve => setTimeout(resolve, 100));
-//                     attempts++;
-//                 }
-//                 
-//                 if (!window.supabase) {
-//                     throw new Error('Supabaseクライアントが見つかりません');
-//                 }
-//                 
-//                 // 基本初期化
-//                 supabase = window.supabase;
-//                 
-//                 // マップ初期化
-//                 if (typeof initMap === 'function') {
-//                     await initMap();
-//                 }
-//                 
-//                 // 店舗データ読み込み（タイムアウト付き）
-//                 try {
-//                     if (typeof loadStores === 'function') {
-//                         await Promise.race([
-//                             loadStores(),
-//                             new Promise((_, reject) => 
-//                                 setTimeout(() => reject(new Error('店舗データ読み込みタイムアウト')), 10000)
-//                             )
-//                         ]);
-//                     }
-//                 } catch (storeError) {
-//                     console.warn('⚠️ 店舗データ読み込みに失敗:', storeError);
-//                     // 店舗データなしでも続行
-//                 }
-//                 
-//                 // モバイルサイドバー初期化
-//                 if (typeof initMobileSidebar === 'function') {
-//                     initMobileSidebar();
-//                 }
-//                 
-//                 // ローディング非表示
-//                 const loadingOverlay = document.getElementById('loadingOverlay');
-//                 if (loadingOverlay) {
-//                     loadingOverlay.classList.add('hidden');
-//                 }
-//                 
-//                 console.log('✅ nacoコミュニティマップ初期化完了');
-//                 
-//             } catch (error) {
-//                 console.error('❌ 初期化エラー:', error);
-//                 
-//                 // エラー時でもローディングを非表示
-//                 const loadingOverlay = document.getElementById('loadingOverlay');
-//                 if (loadingOverlay) {
-//                     loadingOverlay.classList.add('hidden');
-                }
-                
-                // エラー表示
-                document.body.innerHTML += `
-                    <div style="
-                        position: fixed; top: 50%; left: 50%; 
-                        transform: translate(-50%, -50%); 
-                        background: white; padding: 2rem; 
-                        border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                        text-align: center; z-index: 10000;
-                    ">
-                        <h3>アプリ初期化エラー</h3>
-                        <p>ページをリロードしてください</p>
-                        <button onclick="location.reload()" style="
-                            background: #FFB6C1; border: none; padding: 0.5rem 1rem; 
-                            border-radius: 5px; cursor: pointer; margin-top: 1rem;
-                        ">リロード</button>
-                    </div>
-                `;
-            }
-        });
+        // Cleaned up - removed old commented initialization code
         
         // 実際にinitAppを実行
         initApp().catch(error => {
