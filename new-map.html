@@ -1263,7 +1263,7 @@
                 display: none; /* コミュニティバッジを非表示 */
             }
             
-            /* メインコンテナの調整 */
+            /* メインコンテナの調整 - マップ中心レイアウト */
             .main-container {
                 flex-direction: column-reverse; /* マップを上に */
                 height: 100vh;
@@ -1272,17 +1272,23 @@
                 margin-top: 50px; /* 固定ヘッダー分の余白 */
             }
             
-            /* サイドバーのモバイル最適化 */
+            /* サイドバーのモバイル最適化 - コンパクトデザイン */
             .sidebar {
                 width: 100%;
-                height: 55vh; /* 店舗一覧がより見やすくなるよう高さを増加 */
-                min-height: auto;
-                max-height: 55vh;
+                height: 30vh; /* マップ优先のため高さを減らしてコンパクトに */
+                min-height: 30vh;
+                max-height: 30vh;
                 order: 2;
                 position: relative;
-                transition: height 0.3s ease;
+                transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
                 display: flex;
                 flex-direction: column;
+                border-top: 3px solid rgba(255, 182, 193, 0.3);
+                border-radius: 20px 20px 0 0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+                z-index: 1000;
             }
             
             /* サイドバーを展開/折りたたみ可能に */
@@ -1292,13 +1298,49 @@
                 max-height: 60px;
             }
             
+            /* スライドアップで全画面表示 - 滑らかなアニメーション付き */
+            .sidebar.expanded {
+                height: 80vh !important;
+                max-height: 80vh !important;
+                min-height: 80vh !important;
+                position: fixed;
+                top: 50px;
+                left: 0;
+                right: 0;
+                z-index: 2000;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+                transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                transform: translateY(0);
+            }
+            
+            .sidebar.expanded .store-list {
+                max-height: 60vh !important;
+                min-height: 300px;
+            }
+            
             .sidebar-header {
-                padding: 0.5rem;
-                font-size: 0.9rem;
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-mint) 100%);
+                border-radius: 12px 12px 0 0;
+                transition: all 0.3s ease;
                 cursor: pointer;
+                user-select: none;
+            }
+            
+            .sidebar-header:hover {
+                background: linear-gradient(135deg, #ff9fb3 0%, #7ec7b7 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+            }
+            
+            .sidebar-header:active {
+                transform: translateY(0);
+                background: linear-gradient(135deg, #ff8fa8 0%, #6eb5a4 100%);
             }
             
             .sidebar-header::after {
@@ -1320,14 +1362,20 @@
             }
             
             .sidebar.collapsed .sidebar-header::before {
-                content: 'タップして店舗一覧を表示';
+                content: '近くの店舗を表示 👆';
                 position: absolute;
-                right: 30px;
+                right: 35px;
                 top: 50%;
                 transform: translateY(-50%);
-                font-size: 0.7rem;
-                color: rgba(255, 255, 255, 0.8);
+                font-size: 0.8rem;
+                color: rgba(255, 255, 255, 0.9);
                 pointer-events: none;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 0.7; }
+                50% { opacity: 1; }
             }
             
             .sidebar-stats {
@@ -1373,28 +1421,31 @@
                 padding: 0.6rem 0.8rem;
             }
             
-            /* 店舗リストの最適化 */
+            /* 店舗リストの最適化 - コンパクト表示 */
             .store-list {
-                max-height: 35vh; /* より多くの高さを確保 */
-                min-height: 200px; /* 最小高さを設定 */
-                padding: 0.5rem 1rem 1rem;
+                max-height: 18vh; /* コンパクトに調整 */
+                min-height: 120px; /* 最小高さを維持 */
+                padding: 0.3rem 1rem 0.5rem;
                 overflow-y: auto;
-                border-top: 1px solid rgba(255, 182, 193, 0.2);
+                flex: 1;
             }
             
             .store-item {
-                margin-bottom: 0.8rem;
-                padding: 1rem;
+                margin-bottom: 0.5rem;
+                padding: 0.8rem;
                 border-radius: 12px;
-                background: rgba(255, 255, 255, 0.9);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
                 cursor: pointer;
                 transition: all 0.3s ease;
+                border-left: 3px solid transparent;
             }
             
             .store-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+                border-left: 3px solid var(--primary-pink);
+                background: rgba(255, 255, 255, 0.95);
             }
             
             .store-item {
@@ -1417,13 +1468,14 @@
                 line-height: 1.4;
             }
             
-            /* マップコンテナの調整 - 優先表示 */
+            /* マップコンテナの調整 - メイン表示 */
             .map-container {
                 flex: 1;
-                height: calc(60vh - 50px); /* ヘッダー分を引く */
-                min-height: 350px;
+                height: calc(70vh - 50px); /* 70%をマップに配分 */
+                min-height: 400px;
                 order: 1;
                 position: relative;
+                z-index: 1;
             }
             
             .sidebar:not(.collapsed) + .map-container {
@@ -1490,9 +1542,9 @@
             }
             
             .sidebar {
-                height: 45vh; /* 小さなスマホでも店舗一覧が見やすいよう調整 */
-                max-height: 45vh;
-                min-height: 45vh;
+                height: 28vh; /* 小さなスマホでもマップを重視 */
+                max-height: 28vh;
+                min-height: 28vh;
             }
             
             .sidebar.collapsed {
@@ -1500,8 +1552,8 @@
             }
             
             .map-container {
-                height: calc(65vh - 45px);
-                min-height: 300px;
+                height: calc(72vh - 45px); /* より多くの領域をマップに */
+                min-height: 350px;
             }
             
             .filter-grid {
@@ -2393,28 +2445,86 @@
         function initMobileSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const sidebarHeader = document.querySelector('.sidebar-header');
+            const storeList = document.querySelector('.store-list');
             
             if (window.innerWidth <= 768 && sidebarHeader) {
-                // モバイルでは初期状態で展開（店舗一覧が見えるように）
-                // sidebar.classList.add('collapsed'); // コメントアウトして初期展開
+                // モバイルでは初期状態で通常表示（30vh）
+                let currentState = 'normal'; // normal, collapsed, expanded
                 
                 // サイドバーヘッダーのクリックイベント
                 sidebarHeader.addEventListener('click', (e) => {
                     e.preventDefault();
-                    sidebar.classList.toggle('collapsed');
                     
-                    // アニメーションのフィードバック
-                    if (sidebar.classList.contains('collapsed')) {
-                        console.log('📋 店舗一覧を非表示');
+                    // 状態サイクル: normal → collapsed → expanded → normal
+                    if (currentState === 'normal') {
+                        sidebar.classList.add('collapsed');
+                        sidebar.classList.remove('expanded');
+                        currentState = 'collapsed';
+                        console.log('📋 店舗一覧を折りたたみ');
+                    } else if (currentState === 'collapsed') {
+                        sidebar.classList.remove('collapsed');
+                        sidebar.classList.add('expanded');
+                        currentState = 'expanded';
+                        console.log('📜 店舗一覧を全画面表示');
                     } else {
-                        console.log('📜 店舗一覧を表示');
+                        sidebar.classList.remove('expanded');
+                        sidebar.classList.remove('collapsed');
+                        currentState = 'normal';
+                        console.log('📋 店舗一覧を通常表示');
                     }
                     
                     // マップのリサイズをトリガー
                     if (window.map) {
                         setTimeout(() => {
                             map.invalidateSize();
-                        }, 350);
+                        }, 400);
+                    }
+                });
+                
+                // スワイプ操作の検出
+                let startY = 0;
+                let startTime = 0;
+                
+                sidebarHeader.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    startTime = Date.now();
+                });
+                
+                sidebarHeader.addEventListener('touchend', (e) => {
+                    const endY = e.changedTouches[0].clientY;
+                    const endTime = Date.now();
+                    const deltaY = startY - endY;
+                    const deltaTime = endTime - startTime;
+                    const velocity = Math.abs(deltaY) / deltaTime;
+                    
+                    // より敏感なスワイプ検出（距離または速度）
+                    if ((deltaY > 30 || velocity > 0.3) && deltaTime < 400 && currentState === 'normal') {
+                        sidebar.classList.add('expanded');
+                        currentState = 'expanded';
+                        console.log('👆 スワイプアップで全画面表示');
+                        
+                        // 振動フィードバック（対応デバイスのみ）
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                        
+                        if (window.map) {
+                            setTimeout(() => map.invalidateSize(), 400);
+                        }
+                    }
+                    // 下向きスワイプで閉じる
+                    else if ((deltaY < -30 || velocity > 0.3) && deltaTime < 400 && currentState === 'expanded') {
+                        sidebar.classList.remove('expanded');
+                        currentState = 'normal';
+                        console.log('👇 スワイプダウンで通常表示');
+                        
+                        if (navigator.vibrate) {
+                            navigator.vibrate(30);
+                        }
+                        
+                        if (window.map) {
+                            setTimeout(() => map.invalidateSize(), 400);
+                        }
                     }
                 });
                 
