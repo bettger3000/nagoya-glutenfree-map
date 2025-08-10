@@ -2560,14 +2560,25 @@
                     console.log('ℹ️ 未認証ユーザー');
                 }
 
-                // Initialize map with slight delay to ensure DOM is ready
-                setTimeout(() => {
+                // Initialize map with proper error handling
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                try {
                     initMap();
-                    initMobileSidebar(); // モバイルサイドバーの初期化
-                }, 100);
-
+                    console.log('✅ マップ初期化完了');
+                } catch (mapError) {
+                    console.error('❌ マップ初期化エラー:', mapError);
+                }
+                
+                try {
+                    initMobileSidebar();
+                    console.log('✅ モバイルサイドバー初期化完了');
+                } catch (sidebarError) {
+                    console.error('❌ サイドバー初期化エラー:', sidebarError);
+                }
+                
                 // Wait a bit more before loading data
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 // Load data with error handling
                 await Promise.allSettled([
@@ -4714,6 +4725,16 @@
             if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
                 loadingOverlay.classList.add('hidden');
                 console.log('🔧 緊急ローディング解除実行');
+                
+                // 緊急時マップ初期化
+                if (!window.map) {
+                    console.log('🚨 緊急マップ初期化実行');
+                    try {
+                        initMap();
+                    } catch (error) {
+                        console.error('❌ 緊急マップ初期化失敗:', error);
+                    }
+                }
             }
         }, 10000);
         
