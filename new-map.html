@@ -252,26 +252,36 @@
         }
 
 
-        /* Main Container */
+        /* Main Container - Force Mobile Layout */
         .main-container {
             display: flex;
-            height: calc(100vh - 80px);
-            max-width: 1200px;
-            margin: 0 auto;
-            gap: 1rem;
-            padding: 1rem;
+            flex-direction: column; /* 強制的に縦レイアウト */
+            height: 100vh;
+            padding: 0;
+            gap: 0;
+            margin: 0;
+            padding-top: 50px; /* ヘッダー分の余白 */
+            box-sizing: border-box;
         }
 
-        /* Sidebar */
+        /* Sidebar - Mobile First (Override Desktop) */
         .sidebar {
-            width: 350px;
-            background: var(--white);
-            border-radius: 20px;
-            box-shadow: 0 8px 30px var(--shadow-soft);
-            overflow: hidden;
+            width: 100% !important; /* モバイル優先 */
+            height: calc(30vh - 15px) !important;
+            min-height: calc(30vh - 15px) !important;
+            max-height: calc(30vh - 15px) !important;
+            order: 2; /* マップの下に配置 */
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 100px); /* より多くの高さを確保 */
+            border-top: 3px solid rgba(255, 182, 193, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            overflow: hidden;
         }
 
         .search-header, .sidebar-header {
@@ -672,14 +682,18 @@
             font-style: italic;
         }
 
-        /* Map Container */
+        /* Map Container - Mobile First */
         .map-container {
             flex: 1;
-            background: var(--white);
-            border-radius: 20px;
-            box-shadow: 0 8px 30px var(--shadow-soft);
-            overflow: hidden;
+            height: calc(70vh - 35px) !important; /* 70%をマップに強制配分 */
+            min-height: 350px;
+            order: 1 !important; /* マップを上に強制配置 */
             position: relative;
+            z-index: 1;
+            background: var(--white);
+            border-radius: 0; /* モバイルでは角丸なし */
+            box-shadow: none;
+            overflow: hidden;
         }
 
         #map {
