@@ -4707,8 +4707,22 @@
         
         // Cleaned up - removed old commented initialization code
         
-        // 実際にinitAppを実行
-        initApp().catch(error => {
+        // Supabaseクライアントが利用可能になるまで待機してからinitAppを実行
+        async function waitForSupabaseAndInit() {
+            let attempts = 0;
+            while (!window.supabase && attempts < 100) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                attempts++;
+            }
+            
+            if (!window.supabase) {
+                throw new Error('Supabaseクライアントの初期化がタイムアウトしました');
+            }
+            
+            return initApp();
+        }
+        
+        waitForSupabaseAndInit().catch(error => {
             console.error('❌ initApp実行エラー:', error);
             console.error('❌ エラー詳細:', error.message, error.stack);
             
