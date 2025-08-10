@@ -86,11 +86,22 @@
                     
                     console.log('✅ 許可ユーザー確認 - new-map.htmlにリダイレクト');
                     if (statusEl) statusEl.textContent = 'アクセス許可確認済み。マップページに移動します...';
+                    // リダイレクトカウンターをリセット
+                    sessionStorage.removeItem('pageRedirectCount');
                     // 即座にリダイレクト（遅延なし）
                     window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/new-map.html');
                 } else {
                     console.log('ℹ️ セッションなし - login.htmlにリダイレクト');
                     if (statusEl) statusEl.textContent = 'ログインが必要です。ログインページに移動します...';
+                    // リダイレクトループ防止
+                    const redirectCount = parseInt(sessionStorage.getItem('loginRedirectCount') || '0');
+                    if (redirectCount > 3) {
+                        console.error('❌ ログインリダイレクトループ検出');
+                        sessionStorage.removeItem('loginRedirectCount');
+                        if (statusEl) statusEl.textContent = '認証エラーが発生しました。ブラウザを再読み込みしてください。';
+                        return;
+                    }
+                    sessionStorage.setItem('loginRedirectCount', String(redirectCount + 1));
                     // 即座にリダイレクト（遅延なし）
                     window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/login.html');
                 }

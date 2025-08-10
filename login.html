@@ -308,6 +308,8 @@
                     const { data: { session } } = await window.supabase.auth.getSession();
                     if (session && session.user) {
                         console.log('✅ 既にログイン済み - リダイレクト');
+                        // ログインカウンターをリセット
+                        sessionStorage.removeItem('loginRedirectCount');
                         window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/');
                     }
                 }

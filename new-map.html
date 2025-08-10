@@ -2213,7 +2213,16 @@
             
             if (!window.supabase) {
                 console.error('❌ Supabaseクライアント読み込みタイムアウト');
-                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/';
+                // 認証が必要なページなので直接アクセスを防ぐ
+                const redirectCount = parseInt(sessionStorage.getItem('pageRedirectCount') || '0');
+                if (redirectCount > 2) {
+                    console.error('❌ 最大リダイレクト回数を超過 - 強制ログインページ');
+                    sessionStorage.removeItem('pageRedirectCount');
+                    window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/login.html');
+                } else {
+                    sessionStorage.setItem('pageRedirectCount', String(redirectCount + 1));
+                    window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/');
+                }
                 return;
             }
             
@@ -2222,9 +2231,36 @@
             // セッション情報を取得してユーザー表示を更新
             const { data: { session } } = await window.supabase.auth.getSession();
             if (session && session.user) {
+                // ユーザーが許可されているかダブルチェック
+                const { data: allowedUser, error } = await window.supabase
+                    .from('allowed_users')
+                    .select('email')
+                    .eq('email', session.user.email)
+                    .single();
+                
+                if (error && error.code !== 'PGRST116') {
+                    console.error('❌ 許可ユーザーチェックエラー:', error);
+                    window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/');
+                    return;
+                }
+                
+                if (!allowedUser) {
+                    console.log('❌ 未許可ユーザーのアクセス検出 - ログアウト');
+                    await window.supabase.auth.signOut();
+                    alert('このアカウントはアクセス権限がありません。');
+                    window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/login.html');
+                    return;
+                }
+                
                 window.currentUser = session.user;
                 updateUserDisplay(session.user);
                 console.log('✅ ユーザー情報設定完了:', session.user.email);
+                // リダイレクトカウントをリセット（正常な認証完了）
+                sessionStorage.removeItem('pageRedirectCount');
+            } else {
+                console.log('❌ new-map.html: セッションなし - リダイレクト');
+                window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/');
+                return;
             }
             
             // アプリケーション初期化
