@@ -292,26 +292,29 @@
     <!-- Supabase JavaScript SDK -->
     <script type="module" src="auth.js"></script>
     
-    <!-- リダイレクトループ防止 -->
+    <!-- シンプルなセッションチェック -->
     <script>
-        // セッションストレージをチェックして無限ループを防ぐ
-        const loginAttempts = parseInt(sessionStorage.getItem('loginAttempts') || '0');
-        if (loginAttempts > 3) {
-            console.error('❌ ログイン試行回数が上限を超えました');
-            sessionStorage.removeItem('loginAttempts');
-            // セッションをクリアしてやり直す
-            if (window.supabase) {
-                window.supabase.auth.signOut();
+        // 既にログイン済みの場合は直接リダイレクト
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Supabaseクライアントが利用可能になるまで待機
+                let attempts = 0;
+                while (!window.supabase && attempts < 30) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (window.supabase) {
+                    const { data: { session } } = await window.supabase.auth.getSession();
+                    if (session && session.user) {
+                        console.log('✅ 既にログイン済み - リダイレクト');
+                        window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/');
+                    }
+                }
+            } catch (error) {
+                console.log('🔍 セッションチェックエラー（無視）:', error);
             }
-        } else {
-            sessionStorage.setItem('loginAttempts', String(loginAttempts + 1));
-            // ログイン成功時にカウンタをリセット
-            window.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    sessionStorage.removeItem('loginAttempts');
-                }, 5000);
-            });
-        }
+        });
     </script>
 </body>
 </html>

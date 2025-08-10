@@ -2151,24 +2151,13 @@
     <script type="module" src="supabase-client.js"></script>
 
     <script>
-        // 認証チェックを最初に実行
+        // アプリケーション初期化（認証チェックはindex.htmlで完了済み）
         (async function() {
-            console.log('🛡️ 認証チェック開始...');
+            console.log('🚀 nacoコミュニティマップ直接開始（認証済み）');
             
-            // OAuthコールバックのハッシュフラグメントをチェック
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
-            
-            if (accessToken) {
-                console.log('🔄 OAuthコールバック処理中...');
-                // ハッシュフラグメントをクリア
-                window.history.replaceState(null, '', window.location.pathname);
-            }
-            
-            // Wait for supabase client to be loaded from ES module with timeout
+            // Wait for supabase client to be loaded from ES module
             let waitCount = 0;
-            const maxWaitTime = 50; // 5秒まで待機
+            const maxWaitTime = 50;
             while (!window.supabase && waitCount < maxWaitTime) {
                 console.log(`⏳ Supabaseクライアント読み込み待ち... (${waitCount + 1}/${maxWaitTime})`);
                 await new Promise(resolve => setTimeout(resolve, 100));
@@ -2177,85 +2166,19 @@
             
             if (!window.supabase) {
                 console.error('❌ Supabaseクライアント読み込みタイムアウト');
-                redirectToLogin();
+                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/';
                 return;
             }
             
             console.log('✅ Supabaseクライアント読み込み完了');
             
-            const supabaseClient = window.supabase;
-            
-            // ヘルパー関数を先に定義
-            function redirectToLogin() {
-                console.log('🔄 ログインページにリダイレクト中...');
-                // リダイレクトループを防ぐため、セッションストレージにフラグを設定
-                const redirectCount = parseInt(sessionStorage.getItem('redirectCount') || '0');
-                if (redirectCount > 2) {
-                    console.error('❌ リダイレクトループ検出 - 停止');
-                    sessionStorage.removeItem('redirectCount');
-                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-                    return;
-                }
-                sessionStorage.setItem('redirectCount', String(redirectCount + 1));
-                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
+            // セッション情報を取得してユーザー表示を更新
+            const { data: { session } } = await window.supabase.auth.getSession();
+            if (session && session.user) {
+                window.currentUser = session.user;
+                updateUserDisplay(session.user);
+                console.log('✅ ユーザー情報設定完了:', session.user.email);
             }
-            
-            // セッション確認
-            console.log('🔍 セッション確認開始...');
-            let session = null;
-            try {
-                const { data: { session: sessionData }, error } = await supabaseClient.auth.getSession();
-                console.log('🔍 セッション取得レスポンス:', { session: !!sessionData, error });
-                
-                if (error) {
-                    console.error('❌ セッション確認エラー:', error);
-                    redirectToLogin();
-                    return;
-                }
-                
-                if (!sessionData || !sessionData.user) {
-                    console.log('❌ セッションなし - ログインが必要');
-                    redirectToLogin();
-                    return;
-                }
-                
-                session = sessionData;
-                console.log('✅ セッション確認完了:', session.user.email);
-                // リダイレクトカウントをリセット
-                sessionStorage.removeItem('redirectCount');
-            } catch (sessionError) {
-                console.error('❌ セッション確認で例外発生:', sessionError);
-                redirectToLogin();
-                return;
-            }
-            
-            // ユーザーが許可されているかチェック
-            console.log('🔍 ユーザー許可チェック開始...');
-            const { data: allowedUser, error: checkError } = await supabaseClient
-                .from('allowed_users')
-                .select('email')
-                .eq('email', session.user.email)
-                .single();
-            
-            if (checkError && checkError.code !== 'PGRST116') {
-                console.error('❌ 許可チェックエラー:', checkError);
-                redirectToLogin();
-                return;
-            }
-            
-            if (!allowedUser) {
-                console.log('❌ 未許可ユーザー - アクセス拒否');
-                await supabaseClient.auth.signOut();
-                alert(`アクセスが許可されていないアカウントです。\n${session.user.email}\n\nアクセス申請についてはbettger3000@yahoo.co.jpまでお問い合わせください。`);
-                redirectToLogin();
-                return;
-            }
-            
-            console.log('✅ 認証OK - アプリを開始');
-            window.currentUser = session.user;
-            
-            // ユーザー情報を表示
-            updateUserDisplay(session.user);
             
             // アプリケーション初期化
             initApp();
