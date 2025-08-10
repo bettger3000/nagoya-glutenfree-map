@@ -2155,6 +2155,17 @@
         (async function() {
             console.log('🛡️ 認証チェック開始...');
             
+            // OAuthコールバックのハッシュフラグメントをチェック
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (accessToken) {
+                console.log('🔄 OAuthコールバック処理中...');
+                // ハッシュフラグメントをクリア
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+            
             // Wait for supabase client to be loaded from ES module with timeout
             let waitCount = 0;
             const maxWaitTime = 50; // 5秒まで待機
@@ -2177,6 +2188,15 @@
             // ヘルパー関数を先に定義
             function redirectToLogin() {
                 console.log('🔄 ログインページにリダイレクト中...');
+                // リダイレクトループを防ぐため、セッションストレージにフラグを設定
+                const redirectCount = parseInt(sessionStorage.getItem('redirectCount') || '0');
+                if (redirectCount > 2) {
+                    console.error('❌ リダイレクトループ検出 - 停止');
+                    sessionStorage.removeItem('redirectCount');
+                    window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
+                    return;
+                }
+                sessionStorage.setItem('redirectCount', String(redirectCount + 1));
                 window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
             }
             
@@ -2201,6 +2221,8 @@
                 
                 session = sessionData;
                 console.log('✅ セッション確認完了:', session.user.email);
+                // リダイレクトカウントをリセット
+                sessionStorage.removeItem('redirectCount');
             } catch (sessionError) {
                 console.error('❌ セッション確認で例外発生:', sessionError);
                 redirectToLogin();

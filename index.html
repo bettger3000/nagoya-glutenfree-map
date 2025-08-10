@@ -23,6 +23,17 @@
         // 認証チェックとリダイレクト処理
         console.log('🔄 index.htmlからリダイレクト処理開始...');
         
+        // OAuthコールバックのハッシュフラグメントをチェック
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        if (accessToken) {
+            console.log('🔄 OAuthコールバック処理中...');
+            // ハッシュフラグメントをクリア
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+        
         // Supabaseクライアントを一時的に作成してセッションチェック
         import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({ createClient }) => {
             const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';

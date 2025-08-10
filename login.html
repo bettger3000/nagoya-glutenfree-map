@@ -291,5 +291,27 @@
 
     <!-- Supabase JavaScript SDK -->
     <script type="module" src="auth.js"></script>
+    
+    <!-- リダイレクトループ防止 -->
+    <script>
+        // セッションストレージをチェックして無限ループを防ぐ
+        const loginAttempts = parseInt(sessionStorage.getItem('loginAttempts') || '0');
+        if (loginAttempts > 3) {
+            console.error('❌ ログイン試行回数が上限を超えました');
+            sessionStorage.removeItem('loginAttempts');
+            // セッションをクリアしてやり直す
+            if (window.supabase) {
+                window.supabase.auth.signOut();
+            }
+        } else {
+            sessionStorage.setItem('loginAttempts', String(loginAttempts + 1));
+            // ログイン成功時にカウンタをリセット
+            window.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    sessionStorage.removeItem('loginAttempts');
+                }, 5000);
+            });
+        }
+    </script>
 </body>
 </html>
