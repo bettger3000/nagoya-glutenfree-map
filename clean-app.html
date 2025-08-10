@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>グルテンフリーマップ</title>
+    <title>グルンてフリーマップ</title>
     <link rel="icon" href="favicon.png" type="image/png">
     
     <!-- Leaflet -->
@@ -200,7 +200,7 @@
     <header class="header">
         <div class="logo">
             <div style="width: 40px; height: 40px; background: url('naco-character.svg') center/cover; border-radius: 50%;"></div>
-            グルテンフリーマップ
+            グルンてフリーマップ
             <span style="font-size: 0.8rem; color: var(--accent-peach);">presents by naco</span>
         </div>
         
@@ -244,19 +244,24 @@
         
         // 初期化
         async function init() {
-            // マップ初期化
-            initMap();
-            
-            // 認証状態チェック
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                await handleUser(session.user);
-            } else {
-                showLoginButton();
+            try {
+                // マップ初期化
+                initMap();
+                
+                // 認証状態チェック
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    await handleUser(session.user);
+                } else {
+                    showLoginButton();
+                }
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                showLoginButton(); // エラー時もログインボタンを表示
+            } finally {
+                // 必ずローディングを非表示
+                document.getElementById('loadingOverlay').classList.add('hidden');
             }
-            
-            // ローディング非表示
-            document.getElementById('loadingOverlay').classList.add('hidden');
         }
         
         // マップ初期化
@@ -348,6 +353,16 @@
         
         // 初期化実行
         init();
+        
+        // 緊急フォールバック（5秒後）
+        setTimeout(() => {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
+                console.warn('緊急ローディング解除');
+                loadingOverlay.classList.add('hidden');
+                showLoginButton();
+            }
+        }, 5000);
     </script>
 </body>
 </html>
