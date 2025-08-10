@@ -1967,23 +1967,33 @@
             
             // セッション確認
             console.log('🔍 セッション確認開始...');
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
-            
-            if (error) {
-                console.error('❌ セッション確認エラー:', error);
+            let session = null;
+            try {
+                const { data: { session: sessionData }, error } = await supabaseClient.auth.getSession();
+                console.log('🔍 セッション取得レスポンス:', { session: !!sessionData, error });
+                
+                if (error) {
+                    console.error('❌ セッション確認エラー:', error);
+                    redirectToLogin();
+                    return;
+                }
+                
+                if (!sessionData || !sessionData.user) {
+                    console.log('❌ セッションなし - ログインが必要');
+                    redirectToLogin();
+                    return;
+                }
+                
+                session = sessionData;
+                console.log('✅ セッション確認完了:', session.user.email);
+            } catch (sessionError) {
+                console.error('❌ セッション確認で例外発生:', sessionError);
                 redirectToLogin();
                 return;
             }
-            
-            if (!session || !session.user) {
-                console.log('❌ セッションなし - ログインが必要');
-                redirectToLogin();
-                return;
-            }
-            
-            console.log('✅ セッション確認完了:', session.user.email);
             
             // ユーザーが許可されているかチェック
+            console.log('🔍 ユーザー許可チェック開始...');
             const { data: allowedUser, error: checkError } = await supabaseClient
                 .from('allowed_users')
                 .select('email')
