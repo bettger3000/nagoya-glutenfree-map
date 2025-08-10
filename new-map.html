@@ -2544,6 +2544,9 @@
             try {
                 // Supabase is already initialized in auth check
                 supabase = window.supabase;
+                if (!supabase) {
+                    throw new Error('Supabaseクライアントが利用できません');
+                }
                 console.log('✅ Supabase初期化確認');
 
                 // Check authentication
