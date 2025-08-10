@@ -4703,6 +4703,77 @@
                 performanceManager.cleanup();
             }
         });
+        
+        // 緊急修正: ページ初期化
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 nacoコミュニティマップ初期化開始...');
+            
+            try {
+                // Supabaseクライアントが利用可能になるまで待機
+                let attempts = 0;
+                while (!window.supabase && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.supabase) {
+                    throw new Error('Supabaseクライアントが見つかりません');
+                }
+                
+                // 基本初期化
+                supabase = window.supabase;
+                
+                // マップ初期化
+                if (typeof initMap === 'function') {
+                    await initMap();
+                }
+                
+                // 店舗データ読み込み
+                if (typeof loadStores === 'function') {
+                    await loadStores();
+                }
+                
+                // モバイルサイドバー初期化
+                if (typeof initMobileSidebar === 'function') {
+                    initMobileSidebar();
+                }
+                
+                // ローディング非表示
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                }
+                
+                console.log('✅ nacoコミュニティマップ初期化完了');
+                
+            } catch (error) {
+                console.error('❌ 初期化エラー:', error);
+                
+                // エラー時でもローディングを非表示
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                }
+                
+                // エラー表示
+                document.body.innerHTML += `
+                    <div style="
+                        position: fixed; top: 50%; left: 50%; 
+                        transform: translate(-50%, -50%); 
+                        background: white; padding: 2rem; 
+                        border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                        text-align: center; z-index: 10000;
+                    ">
+                        <h3>アプリ初期化エラー</h3>
+                        <p>ページをリロードしてください</p>
+                        <button onclick="location.reload()" style="
+                            background: #FFB6C1; border: none; padding: 0.5rem 1rem; 
+                            border-radius: 5px; cursor: pointer; margin-top: 1rem;
+                        ">リロード</button>
+                    </div>
+                `;
+            }
+        });
     </script>
 </body>
 </html>
