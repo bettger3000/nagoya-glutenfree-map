@@ -2061,7 +2061,17 @@
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Sidebar -->
+        <!-- Map First (70% Top) -->
+        <div class="map-container">
+            <div id="map"></div>
+            <button class="location-btn" id="locationBtn" onclick="getCurrentLocation()" title="現在地を表示">
+                <i class="fas fa-location-arrow"></i>
+            </button>
+            <button class="pin-mode-btn" id="pinModeBtn" onclick="togglePinMode()" title="ピンを立てる">
+                <i class="fas fa-map-marker-alt"></i>
+            </button>
+        </div>
+        <!-- Sidebar Second (30% Bottom) -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="search-title">
@@ -2199,17 +2209,6 @@
             <div class="store-list" id="storeList">
                 <!-- Stores will be populated here -->
             </div>
-        </div>
-
-        <!-- Map -->
-        <div class="map-container">
-            <div id="map"></div>
-            <button class="location-btn" id="locationBtn" onclick="getCurrentLocation()" title="現在地を表示">
-                <i class="fas fa-location-arrow"></i>
-            </button>
-            <button class="pin-mode-btn" id="pinModeBtn" onclick="togglePinMode()" title="ピンを立てる">
-                <i class="fas fa-map-marker-alt"></i>
-            </button>
         </div>
     </div>
 
