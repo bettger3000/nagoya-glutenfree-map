@@ -2310,19 +2310,8 @@
             sessionStorage.removeItem('pageRedirectCount');
             }
             
-            // アプリケーション初期化（関数が定義された後に実行）
-            setTimeout(() => {
-                if (typeof initApp === 'function') {
-                    initApp();
-                } else {
-                    console.error('❌ initApp関数が見つかりません');
-                    // 強制的にローディングオーバーレイを非表示
-                    const loadingOverlay = document.getElementById('loadingOverlay');
-                    if (loadingOverlay) {
-                        loadingOverlay.classList.add('hidden');
-                    }
-                }
-            }, 100);
+            // アプリケーション初期化を後で実行
+            // initApp() will be called after function declaration
             
             function updateUserDisplay(user) {
                 // ログインセクションを非表示
@@ -4793,6 +4782,16 @@
                         ">リロード</button>
                     </div>
                 `;
+            }
+        });
+        
+        // 実際にinitAppを実行
+        initApp().catch(error => {
+            console.error('❌ initApp実行エラー:', error);
+            // ローディングを強制的に隠す
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
             }
         });
     </script>
