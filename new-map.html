@@ -4708,6 +4708,16 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 nacoコミュニティマップ初期化開始...');
             
+            // 強制ローディング解除（15秒後）
+            setTimeout(() => {
+                console.warn('⏰ 強制ローディング解除');
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
+                    loadingOverlay.classList.add('hidden');
+                    console.log('🔧 緊急ローディング解除実行');
+                }
+            }, 15000);
+            
             try {
                 // Supabaseクライアントが利用可能になるまで待機
                 let attempts = 0;
@@ -4728,9 +4738,19 @@
                     await initMap();
                 }
                 
-                // 店舗データ読み込み
-                if (typeof loadStores === 'function') {
-                    await loadStores();
+                // 店舗データ読み込み（タイムアウト付き）
+                try {
+                    if (typeof loadStores === 'function') {
+                        await Promise.race([
+                            loadStores(),
+                            new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('店舗データ読み込みタイムアウト')), 10000)
+                            )
+                        ]);
+                    }
+                } catch (storeError) {
+                    console.warn('⚠️ 店舗データ読み込みに失敗:', storeError);
+                    // 店舗データなしでも続行
                 }
                 
                 // モバイルサイドバー初期化
