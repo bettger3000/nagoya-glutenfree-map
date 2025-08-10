@@ -126,7 +126,7 @@
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: 'https://bettger3000.github.io/nagoya-glutenfree-map/new-map.html'
+                        redirectTo: 'https://bettger3000.github.io/nagoya-glutenfree-map/'
                     }
                 });
                 
@@ -153,7 +153,7 @@
                 if (allowedUser) {
                     showStatus('認証成功！マップページに移動します...');
                     setTimeout(() => {
-                        window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/new-map.html');
+                        window.location.replace('./new-map.html');
                     }, 1000);
                 } else {
                     showStatus('アクセス権限がありません。管理者にお問い合わせください。', 'error');

@@ -3,169 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="セリアック病・グルテン過敏症の方向けの名古屋市内グルテンフリー対応店舗マップ。">
-    <title>名古屋グルテンフリーマップ - ログイン</title>
-    
-    <!-- Favicon -->
+    <title>グルテンフリーマップ</title>
     <link rel="icon" href="favicon.png" type="image/png">
-    
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL6YY713PG"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-CL6YY713PG');
-    </script>
 </head>
 <body>
     <script>
-        // 認証チェックとリダイレクト処理
-        console.log('🔄 index.htmlからリダイレクト処理開始...');
-        
-        // OAuthコールバックのハッシュフラグメントをチェック
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        
-        if (accessToken) {
-            console.log('🔄 OAuthコールバック処理中...');
-            // ハッシュフラグメントをクリア
-            window.history.replaceState(null, '', window.location.pathname);
+        // シンプルリダイレクト: OAuth callback処理または直接ログインページへ
+        if (window.location.hash.includes('access_token')) {
+            // OAuth callback - new-map.htmlへ
+            window.location.replace('./new-map.html' + window.location.hash);
+        } else {
+            // 通常アクセス - simple-authへ
+            window.location.replace('./simple-auth.html');
         }
-        
-        // Supabaseクライアントを一時的に作成してセッションチェック
-        import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({ createClient }) => {
-            const SUPABASE_URL = 'https://lywfaolwvkewuouvkzlk.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60';
-            
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            window.supabase = supabase; // グローバルに公開
-            
-            supabase.auth.getSession().then(async ({ data: { session }, error }) => {
-                const statusEl = document.getElementById('statusMessage');
-                
-                if (error) {
-                    console.error('❌ セッション確認エラー:', error);
-                    if (statusEl) statusEl.textContent = 'エラーが発生しました。ログインページに移動します...';
-                    setTimeout(() => {
-                        window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-                    }, 2000);
-                    return;
-                }
-                
-                if (session && session.user) {
-                    console.log('✅ セッション有効 - 許可ユーザーかチェック中...');
-                    if (statusEl) statusEl.textContent = 'ログイン済みユーザーを確認中...';
-                    
-                    // ユーザーが許可されているかチェック
-                    const { data: allowedUser, error: checkError } = await supabase
-                        .from('allowed_users')
-                        .select('email')
-                        .eq('email', session.user.email)
-                        .single();
-                    
-                    if (checkError && checkError.code !== 'PGRST116') {
-                        console.error('❌ 許可チェックエラー:', checkError);
-                        if (statusEl) statusEl.textContent = 'アクセス権限の確認でエラーが発生しました。';
-                        setTimeout(() => {
-                            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-                        }, 2000);
-                        return;
-                    }
-                    
-                    if (!allowedUser) {
-                        console.log('❌ 未許可ユーザー - ログアウト後ログインページへ');
-                        if (statusEl) statusEl.textContent = 'アクセス権限がありません。ログインページに移動します...';
-                        await supabase.auth.signOut();
-                        setTimeout(() => {
-                            window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-                        }, 2000);
-                        return;
-                    }
-                    
-                    console.log('✅ 許可ユーザー確認 - new-map.htmlにリダイレクト');
-                    if (statusEl) statusEl.textContent = 'アクセス許可確認済み。マップページに移動します...';
-                    // リダイレクトカウンターをリセット
-                    sessionStorage.removeItem('pageRedirectCount');
-                    // 即座にリダイレクト（遅延なし）
-                    window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/new-map.html');
-                } else {
-                    console.log('ℹ️ セッションなし - login.htmlにリダイレクト');
-                    if (statusEl) statusEl.textContent = 'ログインが必要です。ログインページに移動します...';
-                    // リダイレクトループ防止
-                    const redirectCount = parseInt(sessionStorage.getItem('loginRedirectCount') || '0');
-                    if (redirectCount > 3) {
-                        console.error('❌ ログインリダイレクトループ検出');
-                        sessionStorage.removeItem('loginRedirectCount');
-                        if (statusEl) statusEl.textContent = '認証エラーが発生しました。ブラウザを再読み込みしてください。';
-                        return;
-                    }
-                    sessionStorage.setItem('loginRedirectCount', String(redirectCount + 1));
-                    // 即座にリダイレクト（遅延なし）
-                    window.location.replace('https://bettger3000.github.io/nagoya-glutenfree-map/login.html');
-                }
-            });
-        }).catch(error => {
-            console.error('❌ Supabaseクライアント作成エラー:', error);
-            const statusEl = document.getElementById('statusMessage');
-            if (statusEl) statusEl.textContent = 'システムエラーが発生しました。ログインページに移動します...';
-            setTimeout(() => {
-                window.location.href = 'https://bettger3000.github.io/nagoya-glutenfree-map/login.html';
-            }, 2000);
-        });
-        
-        // デバッグ用 - コンソールからチェック可能
-        window.debugAuth = {
-            checkSession: async () => {
-                const { data, error } = await supabase.auth.getSession();
-                console.log('Session:', data, 'Error:', error);
-                return data;
-            },
-            checkAllowedUsers: async () => {
-                const { data, error } = await supabase.from('allowed_users').select('*');
-                console.log('Allowed users:', data, 'Error:', error);
-                return data;
-            },
-            logout: async () => {
-                await supabase.auth.signOut();
-                console.log('Logged out');
-            }
-        };
-        console.log('🔧 Debug tools available: window.debugAuth');
     </script>
-    
-    <div style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #ffb6c1 0%, #98d8c8 100%);
-        color: white;
-        text-align: center;
-    ">
-        <div>
-            <div style="font-size: 48px; margin-bottom: 20px;">🍰</div>
-            <h1>名古屋グルテンフリーマップ</h1>
-            <p style="margin: 20px 0;" id="statusMessage">認証情報を確認しています...</p>
-            <div style="
-                width: 40px;
-                height: 40px;
-                border: 4px solid rgba(255,255,255,0.3);
-                border-top-color: white;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin: 20px auto;
-            "></div>
-        </div>
-    </div>
-    
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
 </body>
 </html>
