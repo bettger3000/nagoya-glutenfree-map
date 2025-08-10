@@ -244,8 +244,6 @@
         
         // 初期化
         async function init() {
-            console.log('🚀 アプリ初期化開始');
-            
             // マップ初期化
             initMap();
             
@@ -259,7 +257,6 @@
             
             // ローディング非表示
             document.getElementById('loadingOverlay').classList.add('hidden');
-            console.log('✅ 初期化完了');
         }
         
         // マップ初期化
@@ -270,8 +267,7 @@
             }).addTo(map);
             
             // サンプルマーカー
-            L.marker([35.1815, 136.9066]).addTo(map).bindPopup('名古屋駅');
-            console.log('✅ マップ初期化完了');
+            L.marker([35.1815, 136.9066]).addTo(map).bindPopup('名古屋駅 🚉');
         }
         
         // ユーザー処理
@@ -288,7 +284,8 @@
                 showUserInfo(user);
                 loadStores();
             } else {
-                alert('アクセス権限がありません');
+                // コミュニティメンバー向けフレンドリーメッセージ
+                alert('リストに登録されていません。nacoさんに連絡してください 😊');
                 await supabase.auth.signOut();
             }
         }
@@ -310,7 +307,6 @@
             const { data: stores } = await supabase.from('stores').select('*');
             if (stores) {
                 displayStores(stores);
-                console.log(`✅ ${stores.length}件の店舗を読み込み`);
             }
         }
         
