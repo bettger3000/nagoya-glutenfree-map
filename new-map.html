@@ -2623,12 +2623,21 @@
             console.log('📍 map要素確認完了:', mapElement);
             
             try {
+                // Leafletライブラリが読み込まれているかチェック
+                if (typeof L === 'undefined') {
+                    throw new Error('Leafletライブラリが読み込まれていません');
+                }
+                
                 // Center on Nagoya Station as default
+                console.log('🗺️ Leafletマップ作成中...');
                 map = L.map('map').setView([35.1815, 136.9066], 12);
+                window.map = map; // グローバルに保存
                 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(map);
+                
+                console.log('✅ マップタイル読み込み完了');
                 
                 // 初期ズームレベルを設定
                 currentZoom = map.getZoom();
@@ -2680,6 +2689,29 @@
                 console.log('✅ 名古屋駅中心でマップ初期化完了');
             } catch (error) {
                 console.error('❌ マップ初期化エラー:', error);
+                console.error('❌ エラー詳細:', error.message, error.stack);
+                
+                // エラー表示
+                const mapElement = document.getElementById('map');
+                if (mapElement) {
+                    mapElement.innerHTML = `
+                        <div style="
+                            display: flex; align-items: center; justify-content: center;
+                            height: 100%; background: #f0f0f0; color: #666;
+                            font-family: Arial, sans-serif; text-align: center;
+                        ">
+                            <div>
+                                <div style="font-size: 2rem; margin-bottom: 1rem;">🗺️</div>
+                                <div>マップ初期化エラー</div>
+                                <div style="font-size: 0.8rem; margin-top: 0.5rem;">${error.message}</div>
+                                <button onclick="location.reload()" style="
+                                    margin-top: 1rem; padding: 0.5rem 1rem; 
+                                    background: #FFB6C1; border: none; border-radius: 5px; cursor: pointer;
+                                ">リロード</button>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         }
 
