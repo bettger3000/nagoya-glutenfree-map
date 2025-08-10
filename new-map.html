@@ -2313,22 +2313,23 @@
         
         // アプリケーション初期化を後で実行
         // initApp() will be called after function declaration
+        
+        // ユーザー表示更新関数
+        function updateUserDisplay(user) {
+            // ログインセクションを非表示
+            document.getElementById('loginSection').style.display = 'none';
             
-            function updateUserDisplay(user) {
-                // ログインセクションを非表示
-                document.getElementById('loginSection').style.display = 'none';
-                
-                // ユーザーセクションを表示
-                document.getElementById('userSection').style.display = 'flex';
-                
-                // ユーザー名の最初の文字をアバターに表示
-                const avatar = document.getElementById('userAvatar');
-                if (avatar && user.email) {
-                    avatar.textContent = user.email.charAt(0).toUpperCase();
-                }
-                
-                console.log('✅ ユーザー表示を更新しました:', user.email);
+            // ユーザーセクションを表示
+            document.getElementById('userSection').style.display = 'flex';
+            
+            // ユーザー名の最初の文字をアバターに表示
+            const avatar = document.getElementById('userAvatar');
+            if (avatar && user.email) {
+                avatar.textContent = user.email.charAt(0).toUpperCase();
             }
+            
+            console.log('✅ ユーザー表示を更新しました:', user.email);
+        }
 
         // Global variables
         let map;
