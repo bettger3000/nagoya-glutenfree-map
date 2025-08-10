@@ -4707,6 +4707,16 @@
         
         // Cleaned up - removed old commented initialization code
         
+        // 強制ローディング解除（10秒後）
+        setTimeout(() => {
+            console.warn('⏰ 強制ローディング解除（10秒経過）');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
+                loadingOverlay.classList.add('hidden');
+                console.log('🔧 緊急ローディング解除実行');
+            }
+        }, 10000);
+        
         // Supabaseクライアントが利用可能になるまで待機してからinitAppを実行
         async function waitForSupabaseAndInit() {
             let attempts = 0;
