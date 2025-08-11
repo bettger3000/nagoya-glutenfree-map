@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>グルテンフリーマップ</title>
+    <title>グルテンフリーマップ - nacoコミュニティ</title>
     <link rel="icon" href="favicon.png" type="image/png">
     
     <!-- Leaflet -->
@@ -12,8 +12,32 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Comfortaa:wght@300;400;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            /* 30-50代女性向けの洗練されたカラーパレット */
+            --primary-pink: #FFB6C1;      /* 上品なピンク */
+            --secondary-mint: #98D8C8;    /* 癒しのミントグリーン */
+            --accent-lavender: #DDA0DD;   /* エレガントなラベンダー */
+            --accent-peach: #FFDAB9;      /* 温かみのあるピーチ */
+            --accent-sky: #B0E0E6;        /* 穏やかなスカイブルー */
+            --accent-gold: #F0E68C;       /* 上質なゴールド */
+            
+            /* ベースカラー */
+            --white: #ffffff;
+            --cream: #FFF8F5;             /* リュクスなクリーム */
+            --light-gray: #F0F8FF;        /* 清潔感のあるライトグレー */
+            --text-dark: #4A4A4A;         /* 読みやすいソフトグレー */
+            --text-light: #8A8A8A;
+            
+            /* シャドウ */
+            --shadow-soft: rgba(255, 182, 193, 0.3);
+            --shadow-medium: rgba(255, 182, 193, 0.4);
+            --shadow-strong: rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -21,21 +45,22 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fa;
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #FFF 50%, var(--accent-sky) 100%);
+            color: var(--text-dark);
             height: 100vh;
             overflow: hidden;
         }
 
         /* ヘッダー */
         .header {
-            background: linear-gradient(135deg, #FFB6C1 0%, #98D8C8 100%);
-            color: #2D3748;
-            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-mint) 100%);
+            color: var(--text-dark);
+            padding: 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px var(--shadow-soft);
             position: relative;
             z-index: 1000;
         }
@@ -49,9 +74,9 @@
         .hamburger-btn {
             background: rgba(255,255,255,0.9);
             border: none;
-            border-radius: 8px;
-            width: 44px;
-            height: 44px;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -59,37 +84,124 @@
             justify-content: center;
             gap: 4px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--shadow-soft);
         }
 
         .hamburger-btn:hover {
-            background: white;
-            transform: scale(1.05);
+            background: var(--white);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
         }
 
         .hamburger-line {
-            width: 20px;
-            height: 2px;
-            background: #2D3748;
-            border-radius: 1px;
-            transition: 0.3s;
+            width: 22px;
+            height: 2.5px;
+            background: var(--text-dark);
+            border-radius: 2px;
+            transition: all 0.3s ease;
         }
 
         .logo {
-            font-size: 1.3rem;
-            font-weight: 600;
+            font-family: 'Comfortaa', 'Noto Sans JP', cursive;
+            font-size: 1.8rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.8rem;
+            color: var(--text-dark);
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.5px;
+        }
+        
+        .logo-text {
+            color: #2D2D2D;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+        
+        .logo-text::after {
+            content: '✨';
+            position: absolute;
+            top: -8px;
+            right: -15px;
+            font-size: 1rem;
+            color: var(--primary-pink);
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        
+        .naco-character {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--white) 100%);
+            padding: 3px;
+            box-shadow: 0 4px 15px var(--shadow-soft);
+            animation: gentle-float 3s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+        
+        .naco-character:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow-medium);
+        }
+        
+        @keyframes sparkle {
+            0%, 100% {
+                opacity: 0.7;
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2) rotate(180deg);
+            }
+        }
+        
+        /* エレガントなアニメーション */
+        @keyframes gentle-float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse-soft {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 182, 193, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(255, 182, 193, 0);
+            }
         }
 
         .user-info {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            background: rgba(255,255,255,0.9);
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
+            background: rgba(255,255,255,0.95);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
             font-size: 0.9rem;
+            box-shadow: 0 3px 12px var(--shadow-soft);
+            transition: all 0.3s ease;
+        }
+        
+        .user-info:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
         }
 
         .user-avatar {
@@ -113,26 +225,48 @@
 
         /* 検索バー */
         .search-section {
-            background: white;
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px var(--shadow-soft);
+            animation: fade-in-up 0.6s ease-out;
+        }
+        
+        .community-welcome {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .community-welcome p {
+            font-family: 'Kalam', 'Noto Sans JP', cursive;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, var(--accent-peach) 0%, var(--accent-lavender) 100%);
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            margin: 0;
+            box-shadow: 0 3px 12px var(--shadow-soft);
+            animation: gentle-float 4s ease-in-out infinite;
+            font-weight: 400;
         }
 
         .search-input {
             width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            border: 2px solid #E2E8F0;
-            border-radius: 25px;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid var(--accent-sky);
+            border-radius: 30px;
             font-size: 1rem;
+            font-family: 'Noto Sans JP', sans-serif;
             outline: none;
-            transition: border-color 0.3s;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23718096" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') 0.75rem center no-repeat;
-            background-size: 20px;
+            transition: all 0.4s ease;
+            background: var(--white) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23FFB6C1" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') 1rem center no-repeat;
+            background-size: 22px;
+            box-shadow: 0 4px 15px var(--shadow-soft);
         }
 
         .search-input:focus {
-            border-color: #FFB6C1;
-            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.2), 0 8px 25px var(--shadow-medium);
+            transform: translateY(-2px);
         }
 
         /* マップ */
@@ -153,28 +287,40 @@
         }
 
         .filter-btn {
-            background: #F7FAFC;
-            color: #4A5568;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            background: var(--cream);
+            color: var(--text-dark);
+            border: 2px solid transparent;
+            padding: 0.75rem 1.2rem;
+            border-radius: 25px;
             cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 500;
             white-space: nowrap;
-            transition: all 0.3s;
+            transition: all 0.4s ease;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .filter-btn:hover {
-            background: #EDF2F7;
-            transform: translateY(-1px);
+            background: var(--light-gray);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px var(--shadow-soft);
+            border-color: var(--accent-sky);
         }
 
         .filter-btn.active {
-            background: linear-gradient(135deg, #FFB6C1 0%, #98D8C8 100%);
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-mint) 100%);
             color: white;
+            border-color: transparent;
+            box-shadow: 0 6px 20px var(--shadow-medium);
+            animation: pulse-soft 2s infinite;
+        }
+        
+        .filter-btn.active:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px var(--shadow-medium);
         }
 
         /* ハンバーガーメニュー */
@@ -201,9 +347,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
             display: none;
             z-index: 1500;
+            transition: all 0.3s ease;
         }
 
         .menu-overlay.show {
@@ -211,8 +359,10 @@
         }
 
         .menu-header {
-            padding: 0 1.5rem 1.5rem;
-            border-bottom: 1px solid #E2E8F0;
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-mint) 100%);
+            padding: 2rem 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 20px 0;
         }
 
         .menu-user {
@@ -222,52 +372,71 @@
         }
 
         .menu-user-avatar {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--accent-lavender) 0%, var(--accent-peach) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 600;
+            box-shadow: 0 6px 20px var(--shadow-medium);
+            transition: all 0.3s ease;
         }
 
         .menu-user-info h3 {
-            font-size: 1.1rem;
-            color: #2D3748;
+            font-size: 1.2rem;
+            color: var(--white);
+            font-weight: 600;
             margin-bottom: 0.25rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .menu-user-info p {
-            color: #718096;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 0.9rem;
+            font-weight: 400;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .menu-items {
-            padding: 1rem 0;
+            padding: 1.5rem 0;
+            background: var(--white);
         }
 
         .menu-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 1.5rem;
-            color: #4A5568;
+            gap: 1.2rem;
+            padding: 1rem 2rem;
+            color: var(--text-dark);
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            font-weight: 500;
         }
 
         .menu-item:hover {
-            background: #F7FAFC;
-            color: #2D3748;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--light-gray) 100%);
+            color: var(--text-dark);
+            border-left-color: var(--primary-pink);
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px var(--shadow-soft);
         }
 
         .menu-item i {
-            width: 20px;
+            width: 24px;
             text-align: center;
-            color: #718096;
+            color: var(--primary-pink);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-item:hover i {
+            color: var(--secondary-mint);
+            transform: scale(1.1);
         }
 
         /* プロフィール編集モーダル */
@@ -563,7 +732,7 @@
                 <div class="menu-user-avatar" id="menuUserAvatar">👤</div>
                 <div class="menu-user-info">
                     <h3 id="menuUserName">ユーザー名</h3>
-                    <p>nacoコミュニティメンバー</p>
+                    <p>✨ nacoコミュニティメンバー ✨</p>
                 </div>
             </div>
         </div>
@@ -691,7 +860,8 @@
                 <span class="hamburger-line"></span>
             </button>
             <div class="logo">
-                🌾 グルテンフリーマップ
+                <img src="naco-character.svg" alt="naco" class="naco-character" />
+                <span class="logo-text">グルテンフリーマップ</span>
             </div>
         </div>
         <div class="user-info" id="userInfo">
@@ -704,6 +874,9 @@
     <div class="main-container">
         <!-- 検索 -->
         <div class="search-section">
+            <div class="community-welcome">
+                <p>🌾 nacoコミュニティへようこそ！みんなでおいしいグルテンフリー情報をシェアしましょう ✨</p>
+            </div>
             <input type="text" id="searchInput" class="search-input" placeholder="店名・住所・カテゴリで検索...">
         </div>
 
