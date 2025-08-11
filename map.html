@@ -745,10 +745,16 @@
         // アプリ初期化
         async function initApp() {
             try {
-                await checkAuth();
+                const isLoggedIn = await checkAuth();
+                if (!isLoggedIn) {
+                    // 未ログインでもマップは表示
+                    console.log('未ログイン状態でマップ表示');
+                }
                 initMap();
                 await loadStores();
-                await loadUserInteractions();
+                if (isLoggedIn) {
+                    await loadUserInteractions();
+                }
                 setupEventListeners();
                 hideLoading();
             } catch (error) {
@@ -759,20 +765,22 @@
 
         // 認証チェック
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (!session) {
-                console.log('セッションなし - ログイン画面へ');
-                return;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session && session.user) {
+                    console.log('ログイン済み:', session.user.email);
+                    currentUser = session.user;
+                    updateUserUI();
+                    return true;
+                } else {
+                    console.log('未ログイン');
+                    return false;
+                }
+            } catch (error) {
+                console.error('認証エラー:', error);
+                return false;
             }
-
-            // 許可リストチェックをスキップ（テーブルが存在しない場合のため）
-            console.log('認証済み:', session.user.email);
-            currentUser = session.user;
-            
-            // プロフィール読み込み（エラーを無視）
-            await loadUserProfile();
-            updateUserUI();
         }
 
         // ユーザープロフィール読み込み
