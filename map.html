@@ -744,21 +744,49 @@
 
         // アプリ初期化
         async function initApp() {
+            console.log('アプリ初期化開始');
+            
             try {
-                const isLoggedIn = await checkAuth();
-                if (!isLoggedIn) {
-                    // 未ログインでもマップは表示
-                    console.log('未ログイン状態でマップ表示');
+                // 認証チェック（エラーがあっても継続）
+                let isLoggedIn = false;
+                try {
+                    isLoggedIn = await checkAuth();
+                    console.log('認証チェック完了:', isLoggedIn);
+                } catch (authError) {
+                    console.warn('認証エラー（継続）:', authError);
                 }
+                
+                // マップ初期化
+                console.log('マップ初期化開始');
                 initMap();
-                await loadStores();
-                if (isLoggedIn) {
-                    await loadUserInteractions();
+                console.log('マップ初期化完了');
+                
+                // 店舗読み込み（エラーがあっても継続）
+                try {
+                    await loadStores();
+                    console.log('店舗読み込み完了');
+                } catch (storeError) {
+                    console.warn('店舗読み込みエラー（継続）:', storeError);
                 }
+                
+                // ユーザー情報読み込み（ログイン時のみ）
+                if (isLoggedIn) {
+                    try {
+                        await loadUserInteractions();
+                        console.log('ユーザー情報読み込み完了');
+                    } catch (userError) {
+                        console.warn('ユーザー情報エラー（継続）:', userError);
+                    }
+                }
+                
+                // イベント設定
                 setupEventListeners();
-                hideLoading();
+                console.log('初期化完了');
+                
             } catch (error) {
-                console.error('初期化エラー:', error);
+                console.error('致命的エラー:', error);
+            } finally {
+                // 必ずローディングを非表示
                 hideLoading();
             }
         }
