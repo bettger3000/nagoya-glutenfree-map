@@ -27,6 +27,7 @@
             overflow: hidden;
         }
 
+        /* ヘッダー */
         .header {
             background: linear-gradient(135deg, #FFB6C1 0%, #98D8C8 100%);
             color: #2D3748;
@@ -35,6 +36,8 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1000;
         }
 
         .header-left {
@@ -56,6 +59,11 @@
             justify-content: center;
             gap: 4px;
             transition: all 0.3s ease;
+        }
+
+        .hamburger-btn:hover {
+            background: white;
+            transform: scale(1.05);
         }
 
         .hamburger-line {
@@ -96,6 +104,14 @@
             font-weight: 600;
         }
 
+        /* メインコンテンツ */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+        }
+
+        /* 検索バー */
         .search-section {
             background: white;
             padding: 1rem;
@@ -109,19 +125,23 @@
             border-radius: 25px;
             font-size: 1rem;
             outline: none;
+            transition: border-color 0.3s;
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23718096" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') 0.75rem center no-repeat;
             background-size: 20px;
         }
 
         .search-input:focus {
             border-color: #FFB6C1;
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
         }
 
+        /* マップ */
         #map {
-            height: calc(100vh - 200px);
+            flex: 1;
             z-index: 1;
         }
 
+        /* フィルター */
         .filter-section {
             background: white;
             padding: 1rem;
@@ -129,6 +149,7 @@
             display: flex;
             gap: 0.5rem;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .filter-btn {
@@ -148,6 +169,7 @@
 
         .filter-btn:hover {
             background: #EDF2F7;
+            transform: translateY(-1px);
         }
 
         .filter-btn.active {
@@ -235,11 +257,6 @@
             color: #4A5568;
             text-decoration: none;
             transition: all 0.2s;
-            cursor: pointer;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
         }
 
         .menu-item:hover {
@@ -253,59 +270,289 @@
             color: #718096;
         }
 
-        .logout-btn {
-            border-top: 1px solid #E2E8F0;
-            margin-top: 1rem;
-            padding-top: 1rem;
+        /* プロフィール編集モーダル */
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
         }
 
+        .profile-modal.show {
+            display: flex;
+        }
+
+        .profile-form {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2D3748;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #FFB6C1;
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FFB6C1 0%, #98D8C8 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 182, 193, 0.3);
+        }
+
+        .btn-secondary {
+            background: #F7FAFC;
+            color: #4A5568;
+            border: 2px solid #E2E8F0;
+        }
+
+        .btn-secondary:hover {
+            background: #EDF2F7;
+        }
+
+        /* 統計モーダル */
+        .stats-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+        }
+
+        .stats-modal.show {
+            display: flex;
+        }
+
+        .stats-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #FFB6C1 0%, #98D8C8 100%);
+            color: white;
+            padding: 1.5rem 1rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .category-stats {
+            margin-bottom: 2rem;
+        }
+
+        .category-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .category-name {
+            min-width: 80px;
+            font-size: 0.9rem;
+            color: #4A5568;
+        }
+
+        .category-progress {
+            flex: 1;
+            height: 8px;
+            background: #E2E8F0;
+            border-radius: 4px;
+            margin: 0 0.75rem;
+            overflow: hidden;
+        }
+
+        .category-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .category-count {
+            font-size: 0.9rem;
+            color: #718096;
+            min-width: 30px;
+        }
+
+        /* ローディング */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
+            background: linear-gradient(135deg, #FFE5EC 0%, #E8F5E5 100%);
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 3000;
+            z-index: 9999;
         }
 
-        .loading-overlay.show {
-            display: flex;
-        }
-
-        .loading-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            text-align: center;
+        .loading-overlay.hidden {
+            display: none;
         }
 
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #FFB6C1;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E2E8F0;
+            border-top-color: #FFB6C1;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            margin-bottom: 1rem;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .loading-text {
+            color: #4A5568;
+            font-size: 1rem;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .logo {
+                font-size: 1.1rem;
+            }
+            
+            .user-info {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- ローディングオーバーレイ -->
-    <div id="loadingOverlay" class="loading-overlay show">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p>認証を確認中...</p>
-        </div>
+    <!-- ローディング -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">マップを準備中...</div>
     </div>
 
     <!-- ハンバーガーメニュー -->
@@ -322,28 +569,120 @@
         </div>
         
         <div class="menu-items">
-            <button class="menu-item" id="favoritesBtn">
+            <a href="#" class="menu-item" id="profileEditBtn">
+                <i class="fas fa-user"></i>
+                <span>プロフィール編集</span>
+            </a>
+            <a href="#" class="menu-item" id="favoritesBtn">
                 <i class="fas fa-heart"></i>
                 <span>お気に入りのお店</span>
-            </button>
-            <button class="menu-item" id="visitedBtn">
+            </a>
+            <a href="#" class="menu-item" id="visitedBtn">
                 <i class="fas fa-check-circle"></i>
                 <span>行ったお店</span>
-            </button>
-            <button class="menu-item" id="allStoresBtn">
-                <i class="fas fa-list"></i>
-                <span>すべての店舗</span>
-            </button>
-        </div>
-        
-        <div class="menu-items logout-btn">
-            <button class="menu-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ログアウト</span>
-            </button>
+            </a>
+            <a href="#" class="menu-item" id="statsBtn">
+                <i class="fas fa-chart-bar"></i>
+                <span>マイ統計</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span>使い方ガイド</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>設定</span>
+            </a>
         </div>
     </div>
 
+    <!-- プロフィール編集モーダル -->
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-form">
+            <div class="profile-header">
+                <h2 style="color: #2D3748; margin-bottom: 0.5rem;">プロフィール編集</h2>
+                <p style="color: #718096; font-size: 0.9rem;">あなたの情報を更新してください</p>
+            </div>
+            
+            <div class="profile-avatar-section">
+                <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
+                <small style="color: #718096;">アバターは自動で表示されます</small>
+            </div>
+            
+            <form id="profileForm">
+                <div class="form-group">
+                    <label class="form-label" for="displayName">表示名</label>
+                    <input type="text" id="displayName" class="form-input" placeholder="お名前またはニックネーム">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="bio">自己紹介</label>
+                    <textarea id="bio" class="form-input form-textarea" placeholder="グルテンフリーへの想いや、好きな食べ物などを教えてください"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="location">お住いの地域</label>
+                    <input type="text" id="location" class="form-input" placeholder="例：東京都, 大阪府">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="favoriteCategory">好きなカテゴリ</label>
+                    <select id="favoriteCategory" class="form-input">
+                        <option value="">選択してください</option>
+                        <option value="和食">和食</option>
+                        <option value="洋食">洋食</option>
+                        <option value="カフェ">カフェ</option>
+                        <option value="パン屋">パン屋</option>
+                        <option value="スイーツ">スイーツ</option>
+                        <option value="販売店">販売店</option>
+                    </select>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelProfileBtn">キャンセル</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 統計モーダル -->
+    <div id="statsModal" class="stats-modal">
+        <div class="stats-content">
+            <div class="stats-header">
+                <h2 style="color: #2D3748; margin-bottom: 0.5rem;">マイ統計</h2>
+                <p style="color: #718096; font-size: 0.9rem;">あなたの利用状況</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number" id="favoritesCount">0</div>
+                    <div class="stats-label">お気に入り</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="visitedCount">0</div>
+                    <div class="stats-label">訪問済み</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="totalStoresCount">0</div>
+                    <div class="stats-label">総店舗数</div>
+                </div>
+            </div>
+            
+            <div class="category-stats">
+                <h3 style="color: #2D3748; margin-bottom: 1rem; font-size: 1.1rem;">カテゴリ別訪問状況</h3>
+                <div id="categoryStatsContainer">
+                    <!-- カテゴリ統計がここに動的に生成される -->
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" id="closeStatsBtn">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ヘッダー -->
     <header class="header">
         <div class="header-left">
             <button class="hamburger-btn" id="hamburgerBtn">
@@ -361,16 +700,22 @@
         </div>
     </header>
 
-    <div class="search-section">
-        <input type="text" id="searchInput" class="search-input" placeholder="店名・住所で検索...">
-    </div>
+    <!-- メインコンテンツ -->
+    <div class="main-container">
+        <!-- 検索 -->
+        <div class="search-section">
+            <input type="text" id="searchInput" class="search-input" placeholder="店名・住所・カテゴリで検索...">
+        </div>
 
-    <div id="map"></div>
+        <!-- マップ -->
+        <div id="map"></div>
 
-    <div class="filter-section" id="filterSection">
-        <button class="filter-btn active" data-filter="all">
-            <i class="fas fa-list"></i> すべて
-        </button>
+        <!-- フィルター -->
+        <div class="filter-section" id="filterSection">
+            <button class="filter-btn active" data-filter="all">
+                <i class="fas fa-list"></i> すべて
+            </button>
+        </div>
     </div>
 
     <script type="module">
@@ -381,45 +726,304 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60'
         );
 
-        let map, currentUser;
+        // グローバル変数
+        let map, currentUser, userProfile;
         let stores = [], markers = [];
         let userFavorites = [], userVisited = [];
 
         // カテゴリスタイル
         const categoryStyles = {
+            '和食': { color: '#E53E3E', icon: 'fa-utensils' },
+            '洋食': { color: '#38A169', icon: 'fa-pizza-slice' },
             'カフェ': { color: '#D69E2E', icon: 'fa-coffee' },
             'パン屋': { color: '#805AD5', icon: 'fa-bread-slice' },
-            'レストラン': { color: '#38A169', icon: 'fa-utensils' }
+            'スイーツ': { color: '#ED64A6', icon: 'fa-ice-cream' },
+            '販売店': { color: '#3182CE', icon: 'fa-store' },
+            'その他': { color: '#718096', icon: 'fa-circle' }
         };
+
+        // アプリ初期化
+        async function initApp() {
+            try {
+                await checkAuth();
+                initMap();
+                await loadStores();
+                await loadUserInteractions();
+                setupEventListeners();
+                hideLoading();
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                hideLoading();
+            }
+        }
 
         // 認証チェック
         async function checkAuth() {
             const { data: { session } } = await supabase.auth.getSession();
             
             if (!session) {
-                console.log('未認証 - ログイン画面へ');
-                window.location.href = './index.html';
-                return false;
+                window.location.replace('./index.html');
+                return;
+            }
+
+            // 許可リストチェック
+            const { data: allowedUser } = await supabase
+                .from('allowed_users')
+                .select('email')
+                .eq('email', session.user.email)
+                .single();
+            
+            if (!allowedUser) {
+                alert('アクセス権限がありません');
+                await supabase.auth.signOut();
+                window.location.replace('./index.html');
+                return;
             }
 
             currentUser = session.user;
-            console.log('認証済み:', currentUser.email);
-            return true;
+            await loadUserProfile();
+            updateUserUI();
+        }
+
+        // ユーザープロフィール読み込み
+        async function loadUserProfile() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('プロフィール読み込みエラー:', error);
+                    return;
+                }
+
+                userProfile = data || {
+                    user_id: currentUser.id,
+                    email: currentUser.email,
+                    display_name: '',
+                    bio: '',
+                    location: '',
+                    favorite_category: ''
+                };
+            } catch (error) {
+                console.error('プロフィール読み込みエラー:', error);
+                userProfile = {
+                    user_id: currentUser.id,
+                    email: currentUser.email,
+                    display_name: '',
+                    bio: '',
+                    location: '',
+                    favorite_category: ''
+                };
+            }
         }
 
         // ユーザーUI更新
         function updateUserUI() {
-            const userName = currentUser.email.split('@')[0];
-            const userInitial = currentUser.email.charAt(0).toUpperCase();
+            const displayName = userProfile?.display_name || currentUser.email.split('@')[0];
+            const userInitial = displayName.charAt(0).toUpperCase();
             
-            document.getElementById('userName').textContent = userName;
+            document.getElementById('userName').textContent = displayName;
             document.getElementById('userAvatar').textContent = userInitial;
-            document.getElementById('menuUserName').textContent = userName;
+            document.getElementById('menuUserName').textContent = displayName;
             document.getElementById('menuUserAvatar').textContent = userInitial;
+            document.getElementById('profileAvatarLarge').textContent = userInitial;
+        }
+
+        // ユーザーのお気に入り・訪問履歴読み込み
+        async function loadUserInteractions() {
+            try {
+                // お気に入り読み込み
+                const { data: favoritesData } = await supabase
+                    .from('user_favorites')
+                    .select('store_id')
+                    .eq('user_id', currentUser.id);
+
+                userFavorites = favoritesData ? favoritesData.map(f => f.store_id) : [];
+
+                // 訪問履歴読み込み
+                const { data: visitedData } = await supabase
+                    .from('user_visited')
+                    .select('store_id')
+                    .eq('user_id', currentUser.id);
+
+                userVisited = visitedData ? visitedData.map(v => v.store_id) : [];
+            } catch (error) {
+                console.error('ユーザーデータ読み込みエラー:', error);
+            }
+        }
+
+        // お気に入り切り替え
+        async function toggleFavorite(storeId) {
+            try {
+                const isFavorite = userFavorites.includes(storeId);
+                
+                if (isFavorite) {
+                    // お気に入りから削除
+                    const { error } = await supabase
+                        .from('user_favorites')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('store_id', storeId);
+
+                    if (error) throw error;
+                    userFavorites = userFavorites.filter(id => id !== storeId);
+                } else {
+                    // お気に入りに追加
+                    const { error } = await supabase
+                        .from('user_favorites')
+                        .insert({
+                            user_id: currentUser.id,
+                            store_id: storeId,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (error) throw error;
+                    userFavorites.push(storeId);
+                }
+                
+                // マーカーを更新
+                displayStores(stores);
+            } catch (error) {
+                console.error('お気に入り更新エラー:', error);
+                alert('お気に入りの更新に失敗しました');
+            }
+        }
+
+        // 訪問履歴切り替え
+        async function toggleVisited(storeId) {
+            try {
+                const isVisited = userVisited.includes(storeId);
+                
+                if (isVisited) {
+                    // 訪問履歴から削除
+                    const { error } = await supabase
+                        .from('user_visited')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('store_id', storeId);
+
+                    if (error) throw error;
+                    userVisited = userVisited.filter(id => id !== storeId);
+                } else {
+                    // 訪問履歴に追加
+                    const { error } = await supabase
+                        .from('user_visited')
+                        .insert({
+                            user_id: currentUser.id,
+                            store_id: storeId,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (error) throw error;
+                    userVisited.push(storeId);
+                }
+                
+                // マーカーを更新
+                displayStores(stores);
+            } catch (error) {
+                console.error('訪問履歴更新エラー:', error);
+                alert('訪問履歴の更新に失敗しました');
+            }
+        }
+
+        // 関数をグローバルに公開（ポップアップのボタンから呼び出すため）
+        window.toggleFavorite = toggleFavorite;
+        window.toggleVisited = toggleVisited;
+
+        // お気に入り店舗のみ表示
+        function showFavoritesOnly() {
+            const favoriteStores = stores.filter(store => userFavorites.includes(store.id));
+            displayStores(favoriteStores);
+            
+            // フィルターボタンを更新
+            document.querySelectorAll('.filter-btn').forEach(btn => 
+                btn.classList.remove('active'));
+            
+            // 検索をクリア
+            document.getElementById('searchInput').value = '';
+        }
+
+        // 訪問済み店舗のみ表示
+        function showVisitedOnly() {
+            const visitedStores = stores.filter(store => userVisited.includes(store.id));
+            displayStores(visitedStores);
+            
+            // フィルターボタンを更新
+            document.querySelectorAll('.filter-btn').forEach(btn => 
+                btn.classList.remove('active'));
+            
+            // 検索をクリア
+            document.getElementById('searchInput').value = '';
+        }
+
+        // 統計表示
+        function showUserStats() {
+            // 基本統計
+            document.getElementById('favoritesCount').textContent = userFavorites.length;
+            document.getElementById('visitedCount').textContent = userVisited.length;
+            document.getElementById('totalStoresCount').textContent = stores.length;
+
+            // カテゴリ別統計
+            generateCategoryStats();
+            
+            document.getElementById('statsModal').classList.add('show');
+        }
+
+        // カテゴリ別統計生成
+        function generateCategoryStats() {
+            const categoryContainer = document.getElementById('categoryStatsContainer');
+            categoryContainer.innerHTML = '';
+
+            // 各カテゴリの訪問数を計算
+            const categoryVisitCounts = {};
+            const categoryTotalCounts = {};
+
+            // カテゴリ総数を計算
+            stores.forEach(store => {
+                const category = store.category;
+                categoryTotalCounts[category] = (categoryTotalCounts[category] || 0) + 1;
+                categoryVisitCounts[category] = 0;
+            });
+
+            // 訪問済み店舗をカウント
+            userVisited.forEach(storeId => {
+                const store = stores.find(s => s.id === storeId);
+                if (store) {
+                    categoryVisitCounts[store.category] = (categoryVisitCounts[store.category] || 0) + 1;
+                }
+            });
+
+            // カテゴリバー生成
+            Object.keys(categoryTotalCounts).forEach(category => {
+                const visitCount = categoryVisitCounts[category] || 0;
+                const totalCount = categoryTotalCounts[category];
+                const percentage = totalCount > 0 ? (visitCount / totalCount) * 100 : 0;
+                const style = categoryStyles[category] || categoryStyles['その他'];
+
+                const categoryBar = document.createElement('div');
+                categoryBar.className = 'category-bar';
+                categoryBar.innerHTML = `
+                    <div class="category-name">${category}</div>
+                    <div class="category-progress">
+                        <div class="category-progress-fill" style="width: ${percentage}%; background-color: ${style.color};"></div>
+                    </div>
+                    <div class="category-count">${visitCount}/${totalCount}</div>
+                `;
+                categoryContainer.appendChild(categoryBar);
+            });
+        }
+
+        // 統計モーダル非表示
+        function hideStatsModal() {
+            document.getElementById('statsModal').classList.remove('show');
         }
 
         // マップ初期化
         function initMap() {
+            // 日本中央に設定（全国対応）
             map = L.map('map').setView([36.2048, 138.2529], 6);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -427,84 +1031,129 @@
             }).addTo(map);
         }
 
-        // サンプル店舗データ
-        function loadSampleStores() {
-            stores = [
-                { id: 1, name: "グルテンフリーカフェ東京", latitude: 35.6762, longitude: 139.6503, address: "東京都渋谷区", category: "カフェ" },
-                { id: 2, name: "グルテンフリーベーカリー大阪", latitude: 34.6937, longitude: 135.5023, address: "大阪府大阪市", category: "パン屋" },
-                { id: 3, name: "グルテンフリーレストラン名古屋", latitude: 35.1815, longitude: 136.9066, address: "愛知県名古屋市", category: "レストラン" },
-                { id: 4, name: "グルテンフリーカフェ横浜", latitude: 35.4437, longitude: 139.6380, address: "神奈川県横浜市", category: "カフェ" },
-                { id: 5, name: "グルテンフリーベーカリー神戸", latitude: 34.6901, longitude: 135.1956, address: "兵庫県神戸市", category: "パン屋" }
-            ];
-            displayStores(stores);
+        // 店舗データ読み込み
+        async function loadStores() {
+            try {
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                stores = data || [];
+                displayStores(stores);
+                generateFilters();
+            } catch (error) {
+                console.error('店舗データ読み込みエラー:', error);
+            }
         }
 
         // 店舗表示
         function displayStores(storesToShow) {
+            // 既存マーカーを削除
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
 
             storesToShow.forEach(store => {
-                const style = categoryStyles[store.category] || { color: '#718096', icon: 'fa-circle' };
-                const isFavorite = userFavorites.includes(store.id);
-                const isVisited = userVisited.includes(store.id);
-                
-                const marker = L.marker([store.latitude, store.longitude])
-                    .addTo(map)
-                    .bindPopup(`
-                        <div style="min-width: 200px;">
-                            <h3 style="color: ${style.color}; margin-bottom: 0.5rem;">
-                                <i class="fas ${style.icon}"></i> ${store.name}
-                                ${isFavorite ? '<i class="fas fa-heart" style="color: #E53E3E; margin-left: 0.5rem;"></i>' : ''}
-                                ${isVisited ? '<i class="fas fa-check-circle" style="color: #38A169; margin-left: 0.25rem;"></i>' : ''}
-                            </h3>
-                            <p><i class="fas fa-map-marker-alt"></i> ${store.address}</p>
-                            <span style="background: ${style.color}; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
-                                ${store.category}
-                            </span>
-                            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
-                                <button onclick="toggleFavorite(${store.id})" style="background: ${isFavorite ? '#E53E3E' : '#F7FAFC'}; color: ${isFavorite ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
-                                    <i class="fas fa-heart"></i> ${isFavorite ? 'お気に入り解除' : 'お気に入り'}
-                                </button>
-                                <button onclick="toggleVisited(${store.id})" style="background: ${isVisited ? '#38A169' : '#F7FAFC'}; color: ${isVisited ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
-                                    <i class="fas fa-check"></i> ${isVisited ? '訪問済み' : '訪問マーク'}
-                                </button>
+                if (store.latitude && store.longitude) {
+                    const style = categoryStyles[store.category] || categoryStyles['その他'];
+                    
+                    const isFavorite = userFavorites.includes(store.id);
+                    const isVisited = userVisited.includes(store.id);
+                    
+                    const marker = L.marker([store.latitude, store.longitude])
+                        .addTo(map)
+                        .bindPopup(`
+                            <div style="min-width: 200px;">
+                                <h3 style="color: ${style.color}; margin-bottom: 0.5rem;">
+                                    <i class="fas ${style.icon}"></i> ${store.name}
+                                    ${isFavorite ? '<i class="fas fa-heart" style="color: #E53E3E; margin-left: 0.5rem;"></i>' : ''}
+                                    ${isVisited ? '<i class="fas fa-check-circle" style="color: #38A169; margin-left: 0.25rem;"></i>' : ''}
+                                </h3>
+                                <p><i class="fas fa-map-marker-alt"></i> ${store.address}</p>
+                                <span style="background: ${style.color}; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
+                                    ${store.category}
+                                </span>
+                                <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                                    <button onclick="toggleFavorite(${store.id})" style="background: ${isFavorite ? '#E53E3E' : '#F7FAFC'}; color: ${isFavorite ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                                        <i class="fas fa-heart"></i> ${isFavorite ? 'お気に入り解除' : 'お気に入り'}
+                                    </button>
+                                    <button onclick="toggleVisited(${store.id})" style="background: ${isVisited ? '#38A169' : '#F7FAFC'}; color: ${isVisited ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                                        <i class="fas fa-check"></i> ${isVisited ? '訪問済み' : '訪問マーク'}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    `);
+                        `);
 
-                markers.push(marker);
+                    markers.push(marker);
+                }
             });
 
+            // 日本全体にフィット
             if (markers.length > 0) {
                 const group = new L.featureGroup(markers);
                 map.fitBounds(group.getBounds().pad(0.1));
             }
         }
 
-        // お気に入り切り替え
-        window.toggleFavorite = function(storeId) {
-            if (userFavorites.includes(storeId)) {
-                userFavorites = userFavorites.filter(id => id !== storeId);
-                console.log('お気に入り解除:', storeId);
-            } else {
-                userFavorites.push(storeId);
-                console.log('お気に入り追加:', storeId);
-            }
-            displayStores(stores);
-        };
+        // フィルター生成
+        function generateFilters() {
+            const categories = [...new Set(stores.map(s => s.category))];
+            const filterSection = document.getElementById('filterSection');
+            
+            categories.forEach(category => {
+                const style = categoryStyles[category] || categoryStyles['その他'];
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.dataset.filter = category;
+                btn.innerHTML = `<i class="fas ${style.icon}"></i> ${category}`;
+                btn.style.background = style.color;
+                btn.style.color = 'white';
+                filterSection.appendChild(btn);
+            });
+        }
 
-        // 訪問済み切り替え
-        window.toggleVisited = function(storeId) {
-            if (userVisited.includes(storeId)) {
-                userVisited = userVisited.filter(id => id !== storeId);
-                console.log('訪問済み解除:', storeId);
-            } else {
-                userVisited.push(storeId);
-                console.log('訪問済み追加:', storeId);
+        // プロフィール保存
+        async function saveProfile(profileData) {
+            try {
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .upsert({
+                        user_id: currentUser.id,
+                        email: currentUser.email,
+                        display_name: profileData.displayName,
+                        bio: profileData.bio,
+                        location: profileData.location,
+                        favorite_category: profileData.favoriteCategory,
+                        updated_at: new Date().toISOString()
+                    })
+                    .select();
+
+                if (error) throw error;
+
+                userProfile = data[0];
+                updateUserUI();
+                return true;
+            } catch (error) {
+                console.error('プロフィール保存エラー:', error);
+                return false;
             }
-            displayStores(stores);
-        };
+        }
+
+        // プロフィールフォーム表示
+        function showProfileForm() {
+            document.getElementById('displayName').value = userProfile?.display_name || '';
+            document.getElementById('bio').value = userProfile?.bio || '';
+            document.getElementById('location').value = userProfile?.location || '';
+            document.getElementById('favoriteCategory').value = userProfile?.favorite_category || '';
+            document.getElementById('profileModal').classList.add('show');
+        }
+
+        // プロフィールフォーム非表示
+        function hideProfileForm() {
+            document.getElementById('profileModal').classList.remove('show');
+        }
 
         // イベントリスナー設定
         function setupEventListeners() {
@@ -519,31 +1168,86 @@
                 document.getElementById('menuOverlay').classList.remove('show');
             });
 
-            // メニュー項目
-            document.getElementById('favoritesBtn').addEventListener('click', () => {
-                const favoriteStores = stores.filter(store => userFavorites.includes(store.id));
-                displayStores(favoriteStores);
+            // プロフィール編集
+            document.getElementById('profileEditBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                hideProfileForm();
                 document.getElementById('hamburgerMenu').classList.remove('open');
                 document.getElementById('menuOverlay').classList.remove('show');
+                setTimeout(() => showProfileForm(), 300);
             });
 
-            document.getElementById('visitedBtn').addEventListener('click', () => {
-                const visitedStores = stores.filter(store => userVisited.includes(store.id));
-                displayStores(visitedStores);
+            // お気に入り表示
+            document.getElementById('favoritesBtn').addEventListener('click', (e) => {
+                e.preventDefault();
                 document.getElementById('hamburgerMenu').classList.remove('open');
                 document.getElementById('menuOverlay').classList.remove('show');
+                showFavoritesOnly();
             });
 
-            document.getElementById('allStoresBtn').addEventListener('click', () => {
-                displayStores(stores);
+            // 訪問済み店舗表示
+            document.getElementById('visitedBtn').addEventListener('click', (e) => {
+                e.preventDefault();
                 document.getElementById('hamburgerMenu').classList.remove('open');
                 document.getElementById('menuOverlay').classList.remove('show');
+                showVisitedOnly();
             });
 
-            // ログアウト
-            document.getElementById('logoutBtn').addEventListener('click', async () => {
-                await supabase.auth.signOut();
-                window.location.href = './index.html';
+            // 統計表示
+            document.getElementById('statsBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('hamburgerMenu').classList.remove('open');
+                document.getElementById('menuOverlay').classList.remove('show');
+                showUserStats();
+            });
+
+            // 統計モーダル
+            document.getElementById('closeStatsBtn').addEventListener('click', () => {
+                hideStatsModal();
+            });
+
+            document.getElementById('statsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('statsModal')) {
+                    hideStatsModal();
+                }
+            });
+
+            // プロフィールフォーム
+            document.getElementById('cancelProfileBtn').addEventListener('click', () => {
+                hideProfileForm();
+            });
+
+            document.getElementById('profileModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('profileModal')) {
+                    hideProfileForm();
+                }
+            });
+
+            document.getElementById('profileForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = '保存中...';
+
+                const profileData = {
+                    displayName: document.getElementById('displayName').value,
+                    bio: document.getElementById('bio').value,
+                    location: document.getElementById('location').value,
+                    favoriteCategory: document.getElementById('favoriteCategory').value
+                };
+
+                const success = await saveProfile(profileData);
+                
+                if (success) {
+                    hideProfileForm();
+                    // 成功メッセージを表示（オプション）
+                } else {
+                    alert('プロフィールの保存に失敗しました。もう一度お試しください。');
+                }
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = '保存';
             });
 
             // 検索
@@ -556,27 +1260,31 @@
                 );
                 displayStores(filtered);
             });
+
+            // フィルター
+            document.getElementById('filterSection').addEventListener('click', (e) => {
+                if (e.target.classList.contains('filter-btn')) {
+                    // アクティブボタン更新
+                    document.querySelectorAll('.filter-btn').forEach(btn => 
+                        btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    // フィルタリング
+                    const filter = e.target.dataset.filter;
+                    const filtered = filter === 'all' ? 
+                        stores : 
+                        stores.filter(store => store.category === filter);
+                    displayStores(filtered);
+                }
+            });
         }
 
-        // アプリ初期化
-        async function initApp() {
-            try {
-                const isAuthenticated = await checkAuth();
-                if (!isAuthenticated) return;
-
-                updateUserUI();
-                initMap();
-                loadSampleStores();
-                setupEventListeners();
-                
-                document.getElementById('loadingOverlay').classList.remove('show');
-                console.log('✅ アプリ初期化完了');
-            } catch (error) {
-                console.error('初期化エラー:', error);
-                window.location.href = './index.html';
-            }
+        // ローディング非表示
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
         }
 
+        // アプリ開始
         initApp();
     </script>
 </body>
