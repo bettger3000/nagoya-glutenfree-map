@@ -238,8 +238,45 @@
             }
         });
 
+        // OAuth コールバック処理
+        async function handleOAuthCallback() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token')) {
+                console.log('OAuth コールバックを検出');
+                showMessage('認証処理中...', 'info');
+                loading.classList.add('show');
+                
+                try {
+                    // Supabaseにハッシュから認証情報を処理させる
+                    const { data, error } = await supabase.auth.getSession();
+                    if (error) throw error;
+                    
+                    if (data.session) {
+                        console.log('OAuth認証成功:', data.session.user.email);
+                        showMessage('ログイン成功！マップに移動します...', 'info');
+                        
+                        // URLをクリーンにしてからリダイレクト
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        setTimeout(() => {
+                            window.location.href = './map.html';
+                        }, 1500);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('OAuth処理エラー:', error);
+                    showMessage('認証に失敗しました', 'error');
+                }
+                
+                loading.classList.remove('show');
+            }
+        }
+
         // 初期認証チェック
         async function checkInitialAuth() {
+            // まずOAuthコールバックをチェック
+            await handleOAuthCallback();
+            
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session) {
