@@ -37,12 +37,63 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-line {
+            width: 20px;
+            height: 2px;
+            background: #2D3748;
+            border-radius: 1px;
+            transition: 0.3s;
+        }
+
         .logo {
             font-size: 1.3rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
         }
 
         .search-section {
@@ -67,39 +118,247 @@
         }
 
         #map {
-            height: calc(100vh - 140px);
+            height: calc(100vh - 200px);
             z-index: 1;
         }
 
-        .back-btn {
-            background: rgba(255,255,255,0.9);
+        .filter-section {
+            background: white;
+            padding: 1rem;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .filter-btn {
+            background: #F7FAFC;
+            color: #4A5568;
             border: none;
             padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
+            gap: 0.4rem;
+        }
+
+        .filter-btn:hover {
+            background: #EDF2F7;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #FFB6C1 0%, #98D8C8 100%);
+            color: white;
+        }
+
+        /* ハンバーガーメニュー */
+        .hamburger-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 2000;
+            padding: 2rem 0;
+        }
+
+        .hamburger-menu.open {
+            left: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1500;
+        }
+
+        .menu-overlay.show {
+            display: block;
+        }
+
+        .menu-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .menu-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .menu-user-info h3 {
+            font-size: 1.1rem;
+            color: #2D3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .menu-user-info p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .menu-items {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.5rem;
+            color: #4A5568;
             text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .menu-item:hover {
+            background: #F7FAFC;
             color: #2D3748;
         }
 
-        .back-btn:hover {
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+            color: #718096;
+        }
+
+        .logout-btn {
+            border-top: 1px solid #E2E8F0;
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
             background: white;
-            transform: translateY(-1px);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FFB6C1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="logo">
-            🌾 グルテンフリーマップ
+    <!-- ローディングオーバーレイ -->
+    <div id="loadingOverlay" class="loading-overlay show">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>認証を確認中...</p>
         </div>
-        <a href="index.html" class="back-btn">
-            <i class="fas fa-home"></i>
-            <span>ホーム</span>
-        </a>
+    </div>
+
+    <!-- ハンバーガーメニュー -->
+    <div id="menuOverlay" class="menu-overlay"></div>
+    <div id="hamburgerMenu" class="hamburger-menu">
+        <div class="menu-header">
+            <div class="menu-user">
+                <div class="menu-user-avatar" id="menuUserAvatar">👤</div>
+                <div class="menu-user-info">
+                    <h3 id="menuUserName">ユーザー名</h3>
+                    <p>nacoコミュニティメンバー</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="menu-items">
+            <button class="menu-item" id="favoritesBtn">
+                <i class="fas fa-heart"></i>
+                <span>お気に入りのお店</span>
+            </button>
+            <button class="menu-item" id="visitedBtn">
+                <i class="fas fa-check-circle"></i>
+                <span>行ったお店</span>
+            </button>
+            <button class="menu-item" id="allStoresBtn">
+                <i class="fas fa-list"></i>
+                <span>すべての店舗</span>
+            </button>
+        </div>
+        
+        <div class="menu-items logout-btn">
+            <button class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ログアウト</span>
+            </button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="hamburger-btn" id="hamburgerBtn">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            <div class="logo">
+                🌾 グルテンフリーマップ
+            </div>
+        </div>
+        <div class="user-info" id="userInfo">
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <span id="userName">読み込み中...</span>
+        </div>
     </header>
 
     <div class="search-section">
@@ -108,38 +367,23 @@
 
     <div id="map"></div>
 
-    <script>
-        // マップ初期化
-        const map = L.map('map').setView([36.2048, 138.2529], 6);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+    <div class="filter-section" id="filterSection">
+        <button class="filter-btn active" data-filter="all">
+            <i class="fas fa-list"></i> すべて
+        </button>
+    </div>
 
-        // サンプル店舗データ
-        const sampleStores = [
-            {
-                name: "グルテンフリーカフェ東京",
-                lat: 35.6762,
-                lng: 139.6503,
-                address: "東京都渋谷区",
-                category: "カフェ"
-            },
-            {
-                name: "グルテンフリーベーカリー大阪",
-                lat: 34.6937,
-                lng: 135.5023,
-                address: "大阪府大阪市",
-                category: "パン屋"
-            },
-            {
-                name: "グルテンフリーレストラン名古屋",
-                lat: 35.1815,
-                lng: 136.9066,
-                address: "愛知県名古屋市",
-                category: "レストラン"
-            }
-        ];
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        
+        const supabase = createClient(
+            'https://lywfaolwvkewuouvkzlk.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60'
+        );
+
+        let map, currentUser;
+        let stores = [], markers = [];
+        let userFavorites = [], userVisited = [];
 
         // カテゴリスタイル
         const categoryStyles = {
@@ -148,26 +392,192 @@
             'レストラン': { color: '#38A169', icon: 'fa-utensils' }
         };
 
-        // マーカー表示
-        sampleStores.forEach(store => {
-            const style = categoryStyles[store.category] || { color: '#718096', icon: 'fa-circle' };
+        // 認証チェック
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
             
-            L.marker([store.lat, store.lng])
-                .addTo(map)
-                .bindPopup(`
-                    <div style="min-width: 200px;">
-                        <h3 style="color: ${style.color}; margin-bottom: 0.5rem;">
-                            <i class="fas ${style.icon}"></i> ${store.name}
-                        </h3>
-                        <p><i class="fas fa-map-marker-alt"></i> ${store.address}</p>
-                        <span style="background: ${style.color}; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
-                            ${store.category}
-                        </span>
-                    </div>
-                `);
-        });
+            if (!session) {
+                console.log('未認証 - ログイン画面へ');
+                window.location.href = './index.html';
+                return false;
+            }
 
-        console.log('✅ シンプルマップ表示完了');
+            currentUser = session.user;
+            console.log('認証済み:', currentUser.email);
+            return true;
+        }
+
+        // ユーザーUI更新
+        function updateUserUI() {
+            const userName = currentUser.email.split('@')[0];
+            const userInitial = currentUser.email.charAt(0).toUpperCase();
+            
+            document.getElementById('userName').textContent = userName;
+            document.getElementById('userAvatar').textContent = userInitial;
+            document.getElementById('menuUserName').textContent = userName;
+            document.getElementById('menuUserAvatar').textContent = userInitial;
+        }
+
+        // マップ初期化
+        function initMap() {
+            map = L.map('map').setView([36.2048, 138.2529], 6);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        // サンプル店舗データ
+        function loadSampleStores() {
+            stores = [
+                { id: 1, name: "グルテンフリーカフェ東京", latitude: 35.6762, longitude: 139.6503, address: "東京都渋谷区", category: "カフェ" },
+                { id: 2, name: "グルテンフリーベーカリー大阪", latitude: 34.6937, longitude: 135.5023, address: "大阪府大阪市", category: "パン屋" },
+                { id: 3, name: "グルテンフリーレストラン名古屋", latitude: 35.1815, longitude: 136.9066, address: "愛知県名古屋市", category: "レストラン" },
+                { id: 4, name: "グルテンフリーカフェ横浜", latitude: 35.4437, longitude: 139.6380, address: "神奈川県横浜市", category: "カフェ" },
+                { id: 5, name: "グルテンフリーベーカリー神戸", latitude: 34.6901, longitude: 135.1956, address: "兵庫県神戸市", category: "パン屋" }
+            ];
+            displayStores(stores);
+        }
+
+        // 店舗表示
+        function displayStores(storesToShow) {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            storesToShow.forEach(store => {
+                const style = categoryStyles[store.category] || { color: '#718096', icon: 'fa-circle' };
+                const isFavorite = userFavorites.includes(store.id);
+                const isVisited = userVisited.includes(store.id);
+                
+                const marker = L.marker([store.latitude, store.longitude])
+                    .addTo(map)
+                    .bindPopup(`
+                        <div style="min-width: 200px;">
+                            <h3 style="color: ${style.color}; margin-bottom: 0.5rem;">
+                                <i class="fas ${style.icon}"></i> ${store.name}
+                                ${isFavorite ? '<i class="fas fa-heart" style="color: #E53E3E; margin-left: 0.5rem;"></i>' : ''}
+                                ${isVisited ? '<i class="fas fa-check-circle" style="color: #38A169; margin-left: 0.25rem;"></i>' : ''}
+                            </h3>
+                            <p><i class="fas fa-map-marker-alt"></i> ${store.address}</p>
+                            <span style="background: ${style.color}; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
+                                ${store.category}
+                            </span>
+                            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                                <button onclick="toggleFavorite(${store.id})" style="background: ${isFavorite ? '#E53E3E' : '#F7FAFC'}; color: ${isFavorite ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                                    <i class="fas fa-heart"></i> ${isFavorite ? 'お気に入り解除' : 'お気に入り'}
+                                </button>
+                                <button onclick="toggleVisited(${store.id})" style="background: ${isVisited ? '#38A169' : '#F7FAFC'}; color: ${isVisited ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                                    <i class="fas fa-check"></i> ${isVisited ? '訪問済み' : '訪問マーク'}
+                                </button>
+                            </div>
+                        </div>
+                    `);
+
+                markers.push(marker);
+            });
+
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // お気に入り切り替え
+        window.toggleFavorite = function(storeId) {
+            if (userFavorites.includes(storeId)) {
+                userFavorites = userFavorites.filter(id => id !== storeId);
+                console.log('お気に入り解除:', storeId);
+            } else {
+                userFavorites.push(storeId);
+                console.log('お気に入り追加:', storeId);
+            }
+            displayStores(stores);
+        };
+
+        // 訪問済み切り替え
+        window.toggleVisited = function(storeId) {
+            if (userVisited.includes(storeId)) {
+                userVisited = userVisited.filter(id => id !== storeId);
+                console.log('訪問済み解除:', storeId);
+            } else {
+                userVisited.push(storeId);
+                console.log('訪問済み追加:', storeId);
+            }
+            displayStores(stores);
+        };
+
+        // イベントリスナー設定
+        function setupEventListeners() {
+            // ハンバーガーメニュー
+            document.getElementById('hamburgerBtn').addEventListener('click', () => {
+                document.getElementById('hamburgerMenu').classList.add('open');
+                document.getElementById('menuOverlay').classList.add('show');
+            });
+
+            document.getElementById('menuOverlay').addEventListener('click', () => {
+                document.getElementById('hamburgerMenu').classList.remove('open');
+                document.getElementById('menuOverlay').classList.remove('show');
+            });
+
+            // メニュー項目
+            document.getElementById('favoritesBtn').addEventListener('click', () => {
+                const favoriteStores = stores.filter(store => userFavorites.includes(store.id));
+                displayStores(favoriteStores);
+                document.getElementById('hamburgerMenu').classList.remove('open');
+                document.getElementById('menuOverlay').classList.remove('show');
+            });
+
+            document.getElementById('visitedBtn').addEventListener('click', () => {
+                const visitedStores = stores.filter(store => userVisited.includes(store.id));
+                displayStores(visitedStores);
+                document.getElementById('hamburgerMenu').classList.remove('open');
+                document.getElementById('menuOverlay').classList.remove('show');
+            });
+
+            document.getElementById('allStoresBtn').addEventListener('click', () => {
+                displayStores(stores);
+                document.getElementById('hamburgerMenu').classList.remove('open');
+                document.getElementById('menuOverlay').classList.remove('show');
+            });
+
+            // ログアウト
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.href = './index.html';
+            });
+
+            // 検索
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = stores.filter(store => 
+                    store.name.toLowerCase().includes(query) ||
+                    store.address.toLowerCase().includes(query) ||
+                    store.category.toLowerCase().includes(query)
+                );
+                displayStores(filtered);
+            });
+        }
+
+        // アプリ初期化
+        async function initApp() {
+            try {
+                const isAuthenticated = await checkAuth();
+                if (!isAuthenticated) return;
+
+                updateUserUI();
+                initMap();
+                loadSampleStores();
+                setupEventListeners();
+                
+                document.getElementById('loadingOverlay').classList.remove('show');
+                console.log('✅ アプリ初期化完了');
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                window.location.href = './index.html';
+            }
+        }
+
+        initApp();
     </script>
 </body>
 </html>
