@@ -763,7 +763,7 @@
             }
         }
 
-        // 認証チェック
+        // 認証チェック - リダイレクトなし
         async function checkAuth() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
@@ -774,7 +774,8 @@
                     updateUserUI();
                     return true;
                 } else {
-                    console.log('未ログイン');
+                    console.log('未ログイン状態でもマップ使用可能');
+                    // 絶対にリダイレクトしない
                     return false;
                 }
             } catch (error) {

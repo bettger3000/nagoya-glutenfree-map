@@ -169,13 +169,12 @@
             }
         });
 
-        // 既にログイン済みかチェック
+        // 既にログイン済みかチェック - リダイレクトなし
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
-                showMessage('ログイン済みです。マップに移動します...', 'info');
-                setTimeout(() => {
-                    window.location.href = './map.html';
-                }, 1000);
+                showMessage('ログイン済みです。', 'info');
+                loginBtn.innerHTML = `<span>マップを開く</span>`;
+                loginBtn.onclick = () => window.location.href = './map.html';
             }
         });
     </script>
