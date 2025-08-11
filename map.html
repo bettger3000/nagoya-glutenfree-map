@@ -745,12 +745,42 @@
         // アプリ初期化
         async function initApp() {
             try {
-                await checkAuth();
+                console.log('アプリ初期化開始');
+                
+                // 認証チェックを簡略化
+                currentUser = {
+                    id: 'test-user-123',
+                    email: 'test@example.com'
+                };
+                
+                // プロフィールを設定
+                userProfile = {
+                    user_id: currentUser.id,
+                    email: currentUser.email,
+                    display_name: 'テストユーザー',
+                    bio: '',
+                    location: '',
+                    favorite_category: ''
+                };
+                
+                console.log('ユーザー設定完了');
+                
+                // UI更新
+                updateUserUI();
+                
+                console.log('マップ初期化開始');
                 initMap();
+                
+                console.log('店舗データ読み込み開始');
                 await loadStores();
-                await loadUserInteractions();
+                
+                console.log('イベントリスナー設定開始');
                 setupEventListeners();
+                
+                console.log('ローディング非表示');
                 hideLoading();
+                
+                console.log('初期化完了');
             } catch (error) {
                 console.error('初期化エラー:', error);
                 hideLoading();
@@ -1042,44 +1072,22 @@
 
         // 店舗データ読み込み
         async function loadStores() {
-            try {
-                // まずデータベースから試行
-                const { data, error } = await supabase
-                    .from('stores')
-                    .select('*')
-                    .order('name');
-
-                if (error) {
-                    console.warn('データベース読み込み失敗、サンプルデータを使用:', error);
-                    // サンプルデータを使用
-                    stores = [
-                        { id: 1, name: "グルテンフリーカフェ東京", latitude: 35.6762, longitude: 139.6503, address: "東京都渋谷区", category: "カフェ" },
-                        { id: 2, name: "グルテンフリーベーカリー大阪", latitude: 34.6937, longitude: 135.5023, address: "大阪府大阪市", category: "パン屋" },
-                        { id: 3, name: "和食レストラン名古屋", latitude: 35.1815, longitude: 136.9066, address: "愛知県名古屋市", category: "和食" },
-                        { id: 4, name: "洋食ビストロ横浜", latitude: 35.4437, longitude: 139.6380, address: "神奈川県横浜市", category: "洋食" },
-                        { id: 5, name: "スイーツショップ神戸", latitude: 34.6901, longitude: 135.1956, address: "兵庫県神戸市", category: "スイーツ" },
-                        { id: 6, name: "グルテンフリー販売店福岡", latitude: 33.5904, longitude: 130.4017, address: "福岡県福岡市", category: "販売店" }
-                    ];
-                } else {
-                    stores = data || [];
-                }
-
-                displayStores(stores);
-                generateFilters();
-            } catch (error) {
-                console.error('店舗データ読み込みエラー:', error);
-                // エラー時もサンプルデータで続行
-                stores = [
-                    { id: 1, name: "グルテンフリーカフェ東京", latitude: 35.6762, longitude: 139.6503, address: "東京都渋谷区", category: "カフェ" },
-                    { id: 2, name: "グルテンフリーベーカリー大阪", latitude: 34.6937, longitude: 135.5023, address: "大阪府大阪市", category: "パン屋" },
-                    { id: 3, name: "和食レストラン名古屋", latitude: 35.1815, longitude: 136.9066, address: "愛知県名古屋市", category: "和食" },
-                    { id: 4, name: "洋食ビストロ横浜", latitude: 35.4437, longitude: 139.6380, address: "神奈川県横浜市", category: "洋食" },
-                    { id: 5, name: "スイーツショップ神戸", latitude: 34.6901, longitude: 135.1956, address: "兵庫県神戸市", category: "スイーツ" },
-                    { id: 6, name: "グルテンフリー販売店福岡", latitude: 33.5904, longitude: 130.4017, address: "福岡県福岡市", category: "販売店" }
-                ];
-                displayStores(stores);
-                generateFilters();
-            }
+            console.log('店舗データを直接設定');
+            // データベースアクセスをスキップして、直接サンプルデータを使用
+            stores = [
+                { id: 1, name: "グルテンフリーカフェ東京", latitude: 35.6762, longitude: 139.6503, address: "東京都渋谷区", category: "カフェ" },
+                { id: 2, name: "グルテンフリーベーカリー大阪", latitude: 34.6937, longitude: 135.5023, address: "大阪府大阪市", category: "パン屋" },
+                { id: 3, name: "和食レストラン名古屋", latitude: 35.1815, longitude: 136.9066, address: "愛知県名古屋市", category: "和食" },
+                { id: 4, name: "洋食ビストロ横浜", latitude: 35.4437, longitude: 139.6380, address: "神奈川県横浜市", category: "洋食" },
+                { id: 5, name: "スイーツショップ神戸", latitude: 34.6901, longitude: 135.1956, address: "兵庫県神戸市", category: "スイーツ" },
+                { id: 6, name: "グルテンフリー販売店福岡", latitude: 33.5904, longitude: 130.4017, address: "福岡県福岡市", category: "販売店" }
+            ];
+            
+            console.log('店舗表示開始');
+            displayStores(stores);
+            
+            console.log('フィルター生成開始');
+            generateFilters();
         }
 
         // 店舗表示
