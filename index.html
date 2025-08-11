@@ -451,7 +451,17 @@
         async function checkAuth() {
             try {
                 console.log('認証チェック開始...');
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                // タイムアウト付きでセッション取得
+                const sessionPromise = supabase.auth.getSession();
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('認証タイムアウト')), 10000)
+                );
+                
+                const { data: { session }, error: sessionError } = await Promise.race([
+                    sessionPromise,
+                    timeoutPromise
+                ]);
                 
                 if (sessionError) {
                     console.error('セッション取得エラー:', sessionError);
@@ -464,33 +474,38 @@
                 }
 
                 console.log('セッション確認済み:', session.user.email);
-
-                // 許可リストチェック
-                const { data: allowedUser, error: allowedError } = await supabase
-                    .from('allowed_users')
-                    .select('email')
-                    .eq('email', session.user.email)
-                    .single();
-                
-                if (allowedError && allowedError.code !== 'PGRST116') {
-                    console.error('許可リストチェックエラー:', allowedError);
-                    showMessage('データベース接続エラーが発生しました', 'error');
-                    return false;
-                }
-                
-                if (!allowedUser) {
-                    console.log('許可されていないユーザー:', session.user.email);
-                    showMessage('アクセス権限がありません', 'error');
-                    await supabase.auth.signOut();
-                    return false;
-                }
-
-                console.log('認証成功:', session.user.email);
                 currentUser = session.user;
+
+                // 許可リストチェック（エラーでも継続）
+                try {
+                    const { data: allowedUser, error: allowedError } = await supabase
+                        .from('allowed_users')
+                        .select('email')
+                        .eq('email', session.user.email)
+                        .single();
+                    
+                    if (allowedError && allowedError.code !== 'PGRST116') {
+                        console.warn('許可リストチェックエラー（継続）:', allowedError);
+                        // データベースエラーでも認証済みユーザーは通す
+                        return true;
+                    }
+                    
+                    if (!allowedUser) {
+                        console.log('許可されていないユーザー:', session.user.email);
+                        showMessage('アクセス権限がありません', 'error');
+                        await supabase.auth.signOut();
+                        return false;
+                    }
+                } catch (dbError) {
+                    console.warn('データベース接続エラー（継続）:', dbError);
+                    // DB接続エラーでも認証済みユーザーは通す
+                }
+
+                console.log('✅ 認証成功:', session.user.email);
                 return true;
+                
             } catch (error) {
                 console.error('認証チェック中にエラー:', error);
-                showMessage('認証エラーが発生しました', 'error');
                 return false;
             }
         }
@@ -639,10 +654,11 @@
             showMessage('', '');
             
             console.log('Google OAuth開始...');
+            console.log('リダイレクト先:', window.location.href);
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + '/nagoya-glutenfree-map/'
+                    redirectTo: window.location.href.split('#')[0] // ハッシュを除いた現在のURL
                 }
             });
             
@@ -658,30 +674,21 @@
         async function init() {
             console.log('アプリ開始...');
             
-            // URLのハッシュパラメーターをチェック（OAuth戻り時）
+            // URLの状態をクリアして認証状態のみで判断
             if (window.location.hash) {
-                console.log('OAuth戻りを検出');
-                showMessage('認証を確認中...', 'info');
-                // 少し待ってから認証チェック
-                setTimeout(async () => {
-                    const isAuthenticated = await checkAuth();
-                    if (isAuthenticated) {
-                        showApp();
-                    } else {
-                        showLogin();
-                        loadingDiv.classList.remove('active');
-                        enterBtn.style.display = 'flex';
-                    }
-                }, 1000);
+                console.log('OAuth戻りを検出 - URLクリア');
+                // URLハッシュをクリア
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+            
+            // 認証チェックのみで判断（シンプル）
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                console.log('認証済みユーザー - アプリ表示');
+                showApp();
             } else {
-                // 通常の初期アクセス
-                const isAuthenticated = await checkAuth();
-                if (isAuthenticated) {
-                    showMessage('認証済み - マップを読み込み中...', 'info');
-                    showApp();
-                } else {
-                    showLogin();
-                }
+                console.log('未認証ユーザー - ログイン画面表示');
+                showLogin();
             }
         }
 
