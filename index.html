@@ -247,11 +247,15 @@
                 loading.classList.add('show');
                 
                 try {
-                    // Supabaseにハッシュから認証情報を処理させる
+                    // URLハッシュからSupabaseに認証情報を処理させる
                     const { data, error } = await supabase.auth.getSession();
-                    if (error) throw error;
                     
-                    if (data.session) {
+                    if (error) {
+                        console.error('セッション取得エラー:', error);
+                        // エラーでも認証状態変更を待つ
+                    }
+                    
+                    if (data?.session) {
                         console.log('OAuth認証成功:', data.session.user.email);
                         showMessage('ログイン成功！マップに移動します...', 'info');
                         
@@ -260,22 +264,28 @@
                         
                         setTimeout(() => {
                             window.location.href = './map.html';
-                        }, 1500);
-                        return;
+                        }, 1000);
+                        return true;
+                    } else {
+                        // セッションがない場合は認証状態変更を待つ
+                        console.log('セッションなし - 認証状態変更を待機中');
+                        return false;
                     }
                 } catch (error) {
                     console.error('OAuth処理エラー:', error);
                     showMessage('認証に失敗しました', 'error');
+                    loading.classList.remove('show');
+                    return false;
                 }
-                
-                loading.classList.remove('show');
             }
+            return false;
         }
 
         // 初期認証チェック
         async function checkInitialAuth() {
             // まずOAuthコールバックをチェック
-            await handleOAuthCallback();
+            const callbackHandled = await handleOAuthCallback();
+            if (callbackHandled) return; // コールバック処理済みの場合は終了
             
             const { data: { session } } = await supabase.auth.getSession();
             
