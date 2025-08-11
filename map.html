@@ -762,12 +762,15 @@
             const { data: { session } } = await supabase.auth.getSession();
             
             if (!session) {
-                console.log('セッションなし - ログイン画面へ');
-                window.location.replace('./index.html');
+                console.log('セッションなし - テスト用にダミーユーザーを作成');
+                // テスト用ダミーユーザー
+                currentUser = {
+                    id: 'test-user-123',
+                    email: 'test@example.com'
+                };
                 return;
             }
 
-            // 許可リストチェックをスキップ（テーブルが存在しない場合のため）
             console.log('認証済み:', session.user.email);
             currentUser = session.user;
             
