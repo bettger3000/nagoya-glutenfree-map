@@ -235,6 +235,7 @@
             enterBtn.style.display = 'none';
             showMessage('', '');
             
+            console.log('リダイレクト先:', window.location.origin + '/nagoya-glutenfree-map/map.html');
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {

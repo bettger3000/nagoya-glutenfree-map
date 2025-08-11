@@ -746,26 +746,40 @@
         async function initApp() {
             try {
                 console.log('アプリ初期化開始...');
+                
                 await checkAuth();
                 console.log('認証チェック完了');
                 
                 initMap();
                 console.log('マップ初期化完了');
                 
-                await loadStores();
-                console.log('店舗データ読み込み完了');
+                // データベース操作は並行して行い、エラーがあっても続行
+                const [storesResult, userInteractionsResult] = await Promise.allSettled([
+                    loadStores(),
+                    loadUserInteractions()
+                ]);
                 
-                await loadUserInteractions();
-                console.log('ユーザーデータ読み込み完了');
+                if (storesResult.status === 'rejected') {
+                    console.warn('店舗データ読み込みでエラー:', storesResult.reason);
+                }
+                if (userInteractionsResult.status === 'rejected') {
+                    console.warn('ユーザーデータ読み込みでエラー:', userInteractionsResult.reason);
+                }
+                
+                console.log('データ読み込み完了（エラーがあっても継続）');
                 
                 setupEventListeners();
+                setupPopupEventListeners();
                 console.log('イベントリスナー設定完了');
                 
+                // 必ずローディングを非表示にする
                 hideLoading();
-                console.log('アプリ初期化完了');
+                console.log('🎉 アプリ初期化完了！');
+                
             } catch (error) {
-                console.error('初期化エラー:', error);
+                console.error('初期化中の致命的エラー:', error);
                 alert('アプリの初期化中にエラーが発生しました。ページを再読み込みしてください。');
+                // エラーが発生してもローディングを非表示にする
                 hideLoading();
             }
         }
@@ -874,23 +888,39 @@
         // ユーザーのお気に入り・訪問履歴読み込み
         async function loadUserInteractions() {
             try {
+                console.log('ユーザーインタラクションデータ読み込み開始...');
+                
                 // お気に入り読み込み
-                const { data: favoritesData } = await supabase
+                const { data: favoritesData, error: favError } = await supabase
                     .from('user_favorites')
                     .select('store_id')
                     .eq('user_id', currentUser.id);
 
-                userFavorites = favoritesData ? favoritesData.map(f => f.store_id) : [];
+                if (favError) {
+                    console.warn('お気に入りデータ読み込みエラー:', favError);
+                    userFavorites = [];
+                } else {
+                    userFavorites = favoritesData ? favoritesData.map(f => f.store_id) : [];
+                    console.log('お気に入りデータ:', userFavorites.length, '件');
+                }
 
                 // 訪問履歴読み込み
-                const { data: visitedData } = await supabase
+                const { data: visitedData, error: visitError } = await supabase
                     .from('user_visited')
                     .select('store_id')
                     .eq('user_id', currentUser.id);
 
-                userVisited = visitedData ? visitedData.map(v => v.store_id) : [];
+                if (visitError) {
+                    console.warn('訪問履歴データ読み込みエラー:', visitError);
+                    userVisited = [];
+                } else {
+                    userVisited = visitedData ? visitedData.map(v => v.store_id) : [];
+                    console.log('訪問履歴データ:', userVisited.length, '件');
+                }
             } catch (error) {
-                console.error('ユーザーデータ読み込みエラー:', error);
+                console.error('ユーザーデータ読み込み中の予期しないエラー:', error);
+                userFavorites = [];
+                userVisited = [];
             }
         }
 
@@ -968,9 +998,18 @@
             }
         }
 
-        // 関数をグローバルに公開（ポップアップのボタンから呼び出すため）
-        window.toggleFavorite = toggleFavorite;
-        window.toggleVisited = toggleVisited;
+        // ポップアップボタンのイベント処理
+        function setupPopupEventListeners() {
+            document.addEventListener('click', (e) => {
+                if (e.target.dataset.action === 'favorite') {
+                    const storeId = parseInt(e.target.dataset.storeId);
+                    toggleFavorite(storeId);
+                } else if (e.target.dataset.action === 'visited') {
+                    const storeId = parseInt(e.target.dataset.storeId);
+                    toggleVisited(storeId);
+                }
+            });
+        }
 
         // お気に入り店舗のみ表示
         function showFavoritesOnly() {
@@ -1073,18 +1112,29 @@
         // 店舗データ読み込み
         async function loadStores() {
             try {
+                console.log('店舗データ読み込み開始...');
                 const { data, error } = await supabase
                     .from('stores')
                     .select('*')
                     .order('name');
 
-                if (error) throw error;
-
-                stores = data || [];
+                if (error) {
+                    console.error('Supabase stores query error:', error);
+                    // storesテーブルが存在しない場合は空配列で継続
+                    stores = [];
+                    console.log('店舗データなし - 空のマップを表示');
+                } else {
+                    stores = data || [];
+                    console.log('店舗データ読み込み完了:', stores.length, '件');
+                }
+                
                 displayStores(stores);
                 generateFilters();
             } catch (error) {
-                console.error('店舗データ読み込みエラー:', error);
+                console.error('店舗データ読み込み中の予期しないエラー:', error);
+                stores = [];
+                displayStores(stores);
+                generateFilters();
             }
         }
 
@@ -1115,10 +1165,10 @@
                                     ${store.category}
                                 </span>
                                 <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
-                                    <button onclick="toggleFavorite(${store.id})" style="background: ${isFavorite ? '#E53E3E' : '#F7FAFC'}; color: ${isFavorite ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                                    <button data-store-id="${store.id}" data-action="favorite" style="background: ${isFavorite ? '#E53E3E' : '#F7FAFC'}; color: ${isFavorite ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
                                         <i class="fas fa-heart"></i> ${isFavorite ? 'お気に入り解除' : 'お気に入り'}
                                     </button>
-                                    <button onclick="toggleVisited(${store.id})" style="background: ${isVisited ? '#38A169' : '#F7FAFC'}; color: ${isVisited ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
+                                    <button data-store-id="${store.id}" data-action="visited" style="background: ${isVisited ? '#38A169' : '#F7FAFC'}; color: ${isVisited ? 'white' : '#4A5568'}; border: none; padding: 0.25rem 0.5rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">
                                         <i class="fas fa-check"></i> ${isVisited ? '訪問済み' : '訪問マーク'}
                                     </button>
                                 </div>
