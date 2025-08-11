@@ -157,9 +157,45 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        
+        const supabase = createClient(
+            'https://lywfaolwvkewuouvkzlk.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5d2Zhb2x3dmtld3VvdXZremxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MDg2NjcsImV4cCI6MjA2OTk4NDY2N30.wBGCHOLbP6ew7Bnvxrq0sKSm1EnHk5NNE1sWWH7ff60'
+        );
+
+        let currentUser = null;
+
+        // 認証チェック
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                window.location.replace('./index.html');
+                return false;
+            }
+
+            // コミュニティメンバーチェック
+            const { data: allowedUser } = await supabase
+                .from('allowed_users')
+                .select('*')
+                .eq('email', session.user.email)
+                .single();
+
+            if (!allowedUser) {
+                alert('nacoコミュニティメンバー専用です');
+                await supabase.auth.signOut();
+                window.location.replace('./index.html');
+                return false;
+            }
+
+            currentUser = session.user;
+            return true;
+        }
+
         // 店舗データ
-        const stores = [
+        let stores = [
             { id: 1, name: "グルテンフリーカフェ東京", latitude: 35.6762, longitude: 139.6503, address: "東京都渋谷区", category: "カフェ" },
             { id: 2, name: "グルテンフリーベーカリー大阪", latitude: 34.6937, longitude: 135.5023, address: "大阪府大阪市", category: "パン屋" },
             { id: 3, name: "和食レストラン名古屋", latitude: 35.1815, longitude: 136.9066, address: "愛知県名古屋市", category: "和食" },
@@ -288,16 +324,15 @@
         }
 
         // アプリ初期化
-        function initApp() {
-            console.log('アプリ初期化開始');
+        async function initApp() {
+            const authSuccess = await checkAuth();
+            if (!authSuccess) return;
             
             try {
                 initMap();
                 displayStores(stores);
                 generateFilters();
                 setupEventListeners();
-                
-                console.log('アプリ初期化完了');
             } catch (error) {
                 console.error('初期化エラー:', error);
             }
